@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Bloody SSR | MangaBuff — коллекционная игра</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0a0f 0%, #0c0b13 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 40%, rgba(139, 0, 0, 0.15) 0%, transparent 70%),
+                        radial-gradient(circle at 80% 70%, rgba(180, 0, 0, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(10, 8, 18, 0.92);
+            backdrop-filter: blur(3px);
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-stats {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 1px solid rgba(200, 40, 40, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .logo-icon {
+            font-size: 1.4rem;
+        }
+
+        .site-title {
+            font-weight: 800;
+            font-size: 1rem;
+            background: linear-gradient(135deg, #ff6666, #ff4444);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .channel-badge {
+            background: linear-gradient(135deg, #aa2222, #660000);
+            padding: 3px 8px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 0.6rem;
+            color: #ffdddd;
+        }
+
+        .stats-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 10px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .stat-value {
+            font-weight: 800;
+            color: #ff8888;
+        }
+
+        .ore-value {
+            color: #ffcc88;
+        }
+
+        .shard-value {
+            color: #ffdd99;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 6px 8px;
+            gap: 6px;
+            border-bottom: 1px solid rgba(255, 80, 80, 0.2);
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .tab-btn {
+            flex: 1;
+            background: rgba(30, 20, 40, 0.8);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #ddbbcc;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #ff4444, #aa2222);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 12px;
+            flex: 1;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .filter-btn {
+            background: rgba(30, 20, 40, 0.6);
+            border: none;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: #ccaa99;
+            cursor: pointer;
+            transition: 0.1s;
+            white-space: nowrap;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #ffaa33, #cc8833);
+            color: #1a0f1a;
+        }
+
+        .daily-section {
+            background: linear-gradient(135deg, #2a1a2a, #1a0f1a);
+            border-radius: 24px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 200, 100, 0.3);
+        }
+
+        .daily-section div {
+            color: #ffddcc;
+        }
+
+        .daily-section strong {
+            color: #ffaa88;
+        }
+
+        .daily-btn {
+            background: linear-gradient(135deg, #ffaa33, #cc8833);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 25px;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: #2a1a0a;
+            cursor: pointer;
+        }
+
+        .daily-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .mine-section {
+            background: linear-gradient(135deg, #1a1a2a, #0f0f1a);
+            border-radius: 24px;
+            padding: 16px;
+            border: 1px solid rgba(255, 100, 50, 0.4);
+        }
+
+        .mine-header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .mine-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffaa66;
+        }
+
+        .mine-stats {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            color: #ccaa99;
+        }
+
+        .mine-stats span {
+            color: #ffaa66;
+            font-weight: bold;
+        }
+
+        .click-button {
+            background: radial-gradient(circle at 30% 10%, #6b8c5c, #3a5a2a);
+            border: none;
+            padding: 16px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1.3rem;
+            color: #ffffcc;
+            cursor: pointer;
+            width: 100%;
+            max-width: 220px;
+            margin: 0 auto 12px;
+            display: block;
+            box-shadow: 0 5px 0 #2a3a1a;
+            transform: translateY(-2px);
+        }
+
+        .click-button:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #2a3a1a;
+        }
+
+        .click-button.disabled {
+            opacity: 0.5;
+            transform: translateY(0);
+            pointer-events: none;
+        }
+
+        .mine-info {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #ccaa99;
+            margin-bottom: 12px;
+        }
+
+        .exchange-btn {
+            background: linear-gradient(135deg, #ffaa33, #cc8833);
+            border: none;
+            padding: 10px;
+            border-radius: 35px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #2a1a0a;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .exchange-btn:active {
+            transform: scale(0.98);
+        }
+
+        .pack-section {
+            background: linear-gradient(135deg, #1a1020, #0f0a18);
+            border-radius: 24px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 80, 80, 0.4);
+        }
+
+        .pack-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .pack-icon {
+            font-size: 2rem;
+        }
+
+        .pack-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #ffaaaa;
+        }
+
+        .pack-description {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+            border-left: 3px solid #ffaa66;
+        }
+
+        .pack-description p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #ddccaa;
+            line-height: 1.4;
+        }
+
+        .pack-description strong {
+            color: #ffaa66;
+        }
+
+        .pack-rules {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+            font-size: 0.65rem;
+            color: #aa8899;
+            flex-wrap: wrap;
+        }
+
+        .pack-rules span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .open-btn {
+            background: radial-gradient(circle at 30% 10%, #ff4444, #990000);
+            border: none;
+            padding: 10px;
+            border-radius: 35px;
+            font-weight: 800;
+            font-size: 1rem;
+            color: white;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #550000;
+            transform: translateY(-2px);
+        }
+
+        .open-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #550000;
+        }
+
+        .open-btn.disabled {
+            opacity: 0.5;
+            transform: translateY(0);
+            pointer-events: none;
+        }
+
+        .selection-area {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 24px;
+            padding: 12px;
+            margin-top: 12px;
+            border: 1px solid rgba(255, 80, 80, 0.3);
+        }
+
+        .selection-area > div:first-child {
+            color: #ffddcc;
+            font-weight: bold;
+        }
+
+        .choice-cards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .choice-card {
+            background: linear-gradient(145deg, #1a1f2e, #0f121f);
+            border-radius: 18px;
+            padding: 10px;
+            width: calc(33% - 8px);
+            min-width: 90px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.1s;
+            border: 2px solid rgba(255, 200, 100, 0.3);
+        }
+
+        .choice-card.selected {
+            border: 2px solid #ff4444;
+            background: linear-gradient(145deg, #2a1f2a, #1a1222);
+            transform: scale(1.02);
+        }
+
+        .choice-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            background: #2a2a3a;
+        }
+
+        .choice-name {
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: #FFE7B6;
+            margin: 4px 0;
+        }
+
+        .rank-badge {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 16px;
+            display: inline-block;
+        }
+
+        .confirm-btn {
+            background: linear-gradient(135deg, #ff4444, #aa2222);
+            border: none;
+            padding: 8px;
+            border-radius: 35px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: white;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .confirm-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .collection-header, .allcards-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .collection-header span, .allcards-header span {
+            color: #ffddcc;
+            font-weight: bold;
+        }
+
+        .collection-grid, .allcards-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            max-height: 55vh;
+            overflow-y: auto;
+            padding: 4px;
+        }
+
+        .collection-card, .allcards-card {
+            background: #1e1a2a;
+            border-radius: 14px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: calc(33% - 6px);
+            min-width: 85px;
+            text-align: center;
+            border-left: 3px solid;
+            position: relative;
+        }
+
+        .allcards-card {
+            opacity: 0.8;
+        }
+
+        .allcards-card .card-owned {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            background: #4a6741;
+            border-radius: 20px;
+            padding: 1px 5px;
+            font-size: 0.55rem;
+            color: #ccffaa;
+        }
+
+        .collection-card.animated, .allcards-card.animated {
+            background: linear-gradient(135deg, #2a1a3a, #1a122a);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.4); }
+            50% { box-shadow: 0 0 0 5px rgba(255, 215, 0, 0.2); }
+        }
+
+        .collection-image, .allcards-image {
+            width: 55px;
+            height: 55px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            background: #2a2a3a;
+        }
+
+        .collection-name, .allcards-name {
+            font-size: 0.65rem;
+            font-weight: bold;
+            margin: 3px 0;
+            word-break: break-word;
+            color: #FFE7B6;
+        }
+
+        .collection-count {
+            background: #ff4444;
+            color: white;
+            border-radius: 20px;
+            padding: 1px 5px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            position: absolute;
+            top: 3px;
+            right: 3px;
+        }
+
+        .upgrade-btn {
+            background: linear-gradient(135deg, #ffaa33, #ff8833);
+            border: none;
+            padding: 3px 6px;
+            border-radius: 16px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            color: #2a1a0a;
+            cursor: pointer;
+            margin-top: 4px;
+            width: 100%;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.6rem;
+            color: #aa8899;
+            border-top: 1px solid rgba(255, 80, 80, 0.2);
+        }
+
+        @media (max-width: 400px) {
+            .choice-card { min-width: 80px; }
+            .collection-card, .allcards-card { min-width: 75px; }
+            .choice-image { width: 50px; height: 50px; }
+            .collection-image, .allcards-image { width: 45px; height: 45px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="header-stats">
+        <div class="logo-area">
+            <div class="logo-icon">🩸</div>
+            <div class="site-title">Bloody SSR</div>
+            <div class="channel-badge">@bloody_ssr</div>
+        </div>
+        <div class="stats-row">
+            <div class="stat-box">💎 <span class="stat-value" id="crystalDisplay">0</span></div>
+            <div class="stat-box">⛏️ <span class="stat-value ore-value" id="oreDisplay">0</span></div>
+            <div class="stat-box">⚡ <span class="stat-value shard-value" id="shardDisplay">0</span></div>
+            <div class="stat-box">📚 <span class="stat-value" id="totalCardsCount">0</span></div>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <button class="tab-btn active" data-tab="mine">⛏️ Шахта</button>
+        <button class="tab-btn" data-tab="pack">🎴 Паки карт</button>
+        <button class="tab-btn" data-tab="collection">📚 Мои карты</button>
+        <button class="tab-btn" data-tab="allcards">📖 Каталог карточек</button>
+    </div>
+
+    <!-- Шахта -->
+    <div class="tab-content active" id="tab-mine">
+        <div class="daily-section">
+            <div>
+                <span style="font-size: 1rem;">🎁</span>
+                <strong>Ежедневный бонус</strong>
+            </div>
+            <button class="daily-btn" id="dailyBonusBtn">+30💎</button>
+        </div>
+
+        <div class="mine-section">
+            <div class="mine-header">
+                <div class="mine-title">⛏️ КРОВАВАЯ ШАХТА</div>
+                <div class="mine-stats">
+                    <div>📊 <span id="clicksLeftDisplay">0</span></div>
+                    <div>⛏️ <span id="oreInMine">0</span></div>
+                </div>
+            </div>
+            <button class="click-button" id="mineClickBtn">⛏️ КОПНУТЬ!</button>
+            <div class="mine-info">✨ +10-15 руды | 100 руды = 1 💎</div>
+            <button class="exchange-btn" id="exchangeOreBtn">🔄 ОБМЕНЯТЬ РУДУ</button>
+        </div>
+    </div>
+
+    <!-- Паки -->
+    <div class="tab-content" id="tab-pack">
+        <div class="pack-section">
+            <div class="pack-header">
+                <div class="pack-icon">🎴🩸</div>
+                <h3>Кровавые паки</h3>
+            </div>
+            
+            <div class="pack-description">
+                <p><strong>📦 Что такое пак?</strong> Пак — это набор из <strong>3 случайных карт</strong>. Когда вы открываете пак, вам показываются все 3 карты, но <strong>вы можете выбрать только 1 карту</strong> и забрать её в свою коллекцию.</p>
+                <div class="pack-rules">
+                    <span>🎴 3 карты в паке</span>
+                    <span>⚡ Карты A+ дают осколки</span>
+                    <span>✨ Выбор только 1 карты</span>
+                </div>
+            </div>
+            
+            <button class="open-btn" id="openPackBtn">🎁 КУПИТЬ ПАК ЗА 70💎</button>
+        </div>
+
+        <div id="selectionArea" class="selection-area" style="display: none;">
+            <div style="font-size: 0.8rem; margin-bottom: 10px;">🎲 ВЫБЕРИ ОДНУ КАРТУ</div>
+            <div id="choiceCardsContainer" class="choice-cards"></div>
+            <button class="confirm-btn" id="confirmChoiceBtn" disabled>✅ Забрать карту</button>
+        </div>
+    </div>
+
+    <!-- Моя коллекция -->
+    <div class="tab-content" id="tab-collection">
+        <div class="collection-header">
+            <span>🏆 Мои карты</span>
+        </div>
+        <div class="filter-bar" id="collectionFilterBar">
+            <button class="filter-btn active" data-filter="all">Все</button>
+            <button class="filter-btn" data-filter="X">X</button>
+            <button class="filter-btn" data-filter="S">S</button>
+            <button class="filter-btn" data-filter="A">A</button>
+            <button class="filter-btn" data-filter="B">B</button>
+            <button class="filter-btn" data-filter="C">C</button>
+            <button class="filter-btn" data-filter="D">D</button>
+            <button class="filter-btn" data-filter="E">E</button>
+        </div>
+        <div id="collectionList" class="collection-grid"></div>
+    </div>
+
+    <!-- Каталог карт -->
+    <div class="tab-content" id="tab-allcards">
+        <div class="allcards-header">
+            <span>📖 Каталог карточек</span>
+            <span style="font-size: 0.7rem; color: #aa8899;">Всего: <span id="totalAllCardsCount">0</span></span>
+        </div>
+        <div class="filter-bar" id="catalogFilterBar">
+            <button class="filter-btn active" data-filter="all">Все</button>
+            <button class="filter-btn" data-filter="X">X</button>
+            <button class="filter-btn" data-filter="S">S</button>
+            <button class="filter-btn" data-filter="A">A</button>
+            <button class="filter-btn" data-filter="B">B</button>
+            <button class="filter-btn" data-filter="C">C</button>
+            <button class="filter-btn" data-filter="D">D</button>
+            <button class="filter-btn" data-filter="E">E</button>
+        </div>
+        <div id="allCardsList" class="allcards-grid"></div>
+    </div>
+
+    <div class="footer">
+        ⭐
+    </div>
+</div>
+
+<script>
+    // =====================================================
+    // БАЗА КАРТ
+    // =====================================================
+    const ALL_CARDS = [
+        { id: "naru01", name: "Наруто", emoji: "🍥", rank: "X", rankLabel: "X", color: "#ff3333", rankOrder: 1, image: "images/naruto.png", canUpgrade: true, animImage: "images/anim_naruto.gif" },
+        { id: "gok01", name: "Гоку", emoji: "🐉", rank: "X", rankLabel: "X", color: "#ff3333", rankOrder: 1, image: "images/goku.png", canUpgrade: true, animImage: "images/anim_goku.gif" },
+        { id: "goj01", name: "Годжо", emoji: "👁️", rank: "S", rankLabel: "S", color: "#ff6666", rankOrder: 2, image: "images/gojo.png", canUpgrade: true, animImage: "images/anim_gojo.gif" },
+        { id: "luf01", name: "Луффи", emoji: "🏴‍☠️", rank: "S", rankLabel: "S", color: "#ff6666", rankOrder: 2, image: "images/luffy.png", canUpgrade: true, animImage: "images/anim_luffy.gif" },
+        { id: "ich01", name: "Ичиго", emoji: "⚔️", rank: "A+", rankLabel: "A+", color: "#ffaa66", rankOrder: 3, image: "images/ichigo.png", canUpgrade: true, animImage: "images/anim_ichigo.gif" },
+        { id: "lev01", name: "Леви", emoji: "🪶", rank: "A+", rankLabel: "A+", color: "#ffaa66", rankOrder: 3, image: "images/levi.png", canUpgrade: true, animImage: "images/anim_levi.gif" },
+        { id: "tan01", name: "Танджиро", emoji: "🗡️", rank: "A", rankLabel: "A", color: "#ffcc88", rankOrder: 4, image: "images/tanjirou.png", canUpgrade: true, animImage: "images/anim_tanjirou.gif" },
+        { id: "jot01", name: "Джотаро", emoji: "⭐", rank: "A", rankLabel: "A", color: "#ffcc88", rankOrder: 4, image: "images/jotaro.png", canUpgrade: true, animImage: "images/anim_jotaro.gif" },
+        { id: "ede01", name: "Эдвард", emoji: "⚙️", rank: "B", rankLabel: "B", color: "#ddbb77", rankOrder: 5, image: "images/edward.png", canUpgrade: false, animImage: null },
+        { id: "zoro01", name: "Зоро", emoji: "🗡️", rank: "B", rankLabel: "B", color: "#ddbb77", rankOrder: 5, image: "images/zoro.png", canUpgrade: true, animImage: "images/anim_zoro.gif" },
+        { id: "hiso01", name: "Хисока", emoji: "🃏", rank: "C", rankLabel: "C", color: "#aa99cc", rankOrder: 6, image: "images/hisoka.png", canUpgrade: false, animImage: null },
+        { id: "sai01", name: "Сакура", emoji: "🌸", rank: "D", rankLabel: "D", color: "#88aadd", rankOrder: 7, image: "images/sakura.png", canUpgrade: true, animImage: "images/anim_sakura.gif" },
+        { id: "nami01", name: "Нами", emoji: "🍊", rank: "D", rankLabel: "D", color: "#88aadd", rankOrder: 7, image: "images/nami.png", canUpgrade: true, animImage: "images/anim_nami.gif" },
+        { id: "bul01", name: "Булма", emoji: "💇", rank: "E", rankLabel: "E", color: "#6699cc", rankOrder: 8, image: "images/bulma.png", canUpgrade: false, animImage: null }
+    ];
+
+    // КАТАЛОГ (ТОЛЬКО КАРТЫ, БЕЗ A+)
+    const CATALOG_CARDS = ALL_CARDS.filter(card => card.rank !== "A+");
+
+    const DEFAULT_IMAGE = "images/default.png";
+    const RANK_WEIGHTS = { "X": 1, "S": 4, "A+": 7, "A": 10, "B": 15, "C": 18, "D": 20, "E": 25 };
+    const PACK_PRICE = 70;
+    const START_CRYSTALS = 40;
+
+    const STORAGE_KEY = 'bloody_ssr_v13';
+    let crystals = START_CRYSTALS, shards = 0, ore = 0;
+    let dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
+    let collectionMap = new Map();
+    let currentOfferedCards = [], selectedCardIndex = null;
+    
+    let collectionFilter = "all";
+    let catalogFilter = "all";
+
+    // DOM элементы
+    const crystalDisplay = document.getElementById('crystalDisplay');
+    const oreDisplay = document.getElementById('oreDisplay');
+    const shardDisplay = document.getElementById('shardDisplay');
+    const totalCardsCountSpan = document.getElementById('totalCardsCount');
+    const totalAllCardsCountSpan = document.getElementById('totalAllCardsCount');
+    const openPackBtn = document.getElementById('openPackBtn');
+    const selectionArea = document.getElementById('selectionArea');
+    const choiceCardsContainer = document.getElementById('choiceCardsContainer');
+    const confirmChoiceBtn = document.getElementById('confirmChoiceBtn');
+    const collectionListDiv = document.getElementById('collectionList');
+    const allCardsListDiv = document.getElementById('allCardsList');
+    const dailyBonusBtn = document.getElementById('dailyBonusBtn');
+    const exchangeOreBtn = document.getElementById('exchangeOreBtn');
+    const mineClickBtn = document.getElementById('mineClickBtn');
+    const clicksLeftDisplay = document.getElementById('clicksLeftDisplay');
+    const oreInMine = document.getElementById('oreInMine');
+
+    // Функция для получения полной карты по ID
+    function getFullCardById(cardId) {
+        return ALL_CARDS.find(c => c.id === cardId);
+    }
+
+    function saveData() {
+        const collectionData = [];
+        for (let [id, data] of collectionMap.entries()) {
+            collectionData.push({ 
+                id: id, 
+                count: data.count, 
+                animated: data.animated 
+            });
+        }
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData
+        }));
+    }
+
+    function loadData() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                crystals = data.crystals ?? START_CRYSTALS;
+                shards = data.shards ?? 0;
+                ore = data.ore ?? 0;
+                dailyLastClaim = data.dailyLastClaim ?? null;
+                miningClicksToday = data.miningClicksToday ?? 0;
+                miningLastDate = data.miningLastDate ?? null;
+                
+                // Восстанавливаем коллекцию, используя полные данные карт из ALL_CARDS
+                collectionMap.clear();
+                if (data.collectionData) {
+                    for (let item of data.collectionData) {
+                        const fullCard = getFullCardById(item.id);
+                        if (fullCard) {
+                            collectionMap.set(item.id, { 
+                                cardData: fullCard, 
+                                count: item.count, 
+                                animated: item.animated || false 
+                            });
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error("Ошибка загрузки:", e);
+            }
+        }
+        
+        // Обновляем дату для шахты
+        const today = new Date().toDateString();
+        if (miningLastDate !== today) {
+            miningClicksToday = 0;
+            miningLastDate = today;
+        }
+        updateDailyUI();
+        updateMiningUI();
+        updateUI();
+    }
+
+    function updateDailyUI() {
+        const today = new Date().toDateString();
+        if (dailyLastClaim === today) {
+            dailyBonusBtn.disabled = true;
+            dailyBonusBtn.classList.add('disabled');
+        } else {
+            dailyBonusBtn.disabled = false;
+            dailyBonusBtn.classList.remove('disabled');
+        }
+    }
+
+    function claimDaily() {
+        const today = new Date().toDateString();
+        if (dailyLastClaim === today) return;
+        crystals += 30;
+        dailyLastClaim = today;
+        updateDailyUI();
+        updateUI();
+    }
+
+    function updateMiningUI() {
+        clicksLeftDisplay.innerText = `${miningClicksToday}/100`;
+        if (oreInMine) oreInMine.innerText = ore;
+        mineClickBtn.disabled = miningClicksToday >= 100;
+        mineClickBtn.classList.toggle('disabled', miningClicksToday >= 100);
+    }
+
+    function mine() {
+        if (miningClicksToday >= 100) return;
+        const gain = Math.floor(Math.random() * 6) + 10;
+        miningClicksToday++;
+        ore += gain;
+        updateMiningUI();
+        updateUI();
+        mineClickBtn.style.transform = 'scale(0.95)';
+        setTimeout(() => { if(mineClickBtn) mineClickBtn.style.transform = ''; }, 100);
+    }
+
+    function exchangeOreFunc() {
+        if (ore < 100) return;
+        const exchangeAmount = Math.floor(ore / 100);
+        crystals += exchangeAmount;
+        ore -= exchangeAmount * 100;
+        updateUI();
+    }
+
+    function getRandomCard() {
+        let total = Object.values(RANK_WEIGHTS).reduce((a,b)=>a+b,0);
+        let rand = Math.random() * total, acc = 0;
+        for (let [rank, w] of Object.entries(RANK_WEIGHTS)) {
+            acc += w;
+            if (rand <= acc) {
+                const pool = ALL_CARDS.filter(c => c.rank === rank);
+                return { ...pool[Math.floor(Math.random() * pool.length)] };
+            }
+        }
+        return { ...ALL_CARDS[0] };
+    }
+
+    function generateOffer() {
+        const cards = [], used = new Set();
+        while (cards.length < 3) {
+            const card = getRandomCard();
+            if (!used.has(card.id)) {
+                used.add(card.id);
+                cards.push(card);
+            }
+        }
+        return cards;
+    }
+
+    function renderChoice() {
+        if (!currentOfferedCards.length) return;
+        let html = '';
+        currentOfferedCards.forEach((card, i) => {
+            const imgPath = card.image || DEFAULT_IMAGE;
+            html += `
+                <div class="choice-card ${selectedCardIndex === i ? 'selected' : ''}" data-index="${i}">
+                    <img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${DEFAULT_IMAGE}';">
+                    <div class="choice-name">${card.name}</div>
+                    <div class="rank-badge" style="background:${card.color}40; color:${card.color};">${card.rankLabel}</div>
+                </div>
+            `;
+        });
+        choiceCardsContainer.innerHTML = html;
+        document.querySelectorAll('.choice-card').forEach(el => {
+            el.addEventListener('click', (e) => {
+                selectedCardIndex = parseInt(el.dataset.index);
+                renderChoice();
+                confirmChoiceBtn.disabled = false;
+            });
+        });
+    }
+
+    function confirmChoiceCard() {
+        if (selectedCardIndex === null) return;
+        const card = currentOfferedCards[selectedCardIndex];
+        
+        if (card.rank === "A+") {
+            shards += 1;
+        } else {
+            if (collectionMap.has(card.id)) {
+                collectionMap.get(card.id).count++;
+            } else {
+                // Находим полную карту из ALL_CARDS
+                const fullCard = getFullCardById(card.id);
+                collectionMap.set(card.id, { cardData: fullCard, count: 1, animated: false });
+            }
+        }
+        
+        currentOfferedCards = [];
+        selectedCardIndex = null;
+        selectionArea.style.display = 'none';
+        updateUI();
+    }
+
+    function buyPack() {
+        if (crystals < PACK_PRICE) return;
+        if (selectionArea.style.display === 'block') return;
+        crystals -= PACK_PRICE;
+        updateUI();
+        currentOfferedCards = generateOffer();
+        selectedCardIndex = null;
+        selectionArea.style.display = 'block';
+        renderChoice();
+        confirmChoiceBtn.disabled = true;
+    }
+
+    function getCardImage(card, isAnimated) {
+        if (isAnimated && card.animImage) {
+            return card.animImage;
+        }
+        return card.image || DEFAULT_IMAGE;
+    }
+
+    function upgradeCard(cardId) {
+        const entry = collectionMap.get(cardId);
+        if (!entry) return;
+        const card = entry.cardData;
+        if (card.canUpgrade === false) return;
+        if (entry.animated) return;
+        if (shards < 3) return;
+        shards -= 3;
+        entry.animated = true;
+        updateUI();
+    }
+
+    function renderCollection() {
+        if (collectionMap.size === 0) {
+            collectionListDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#aa8899;">📭 Коллекция пуста</div>';
+            return;
+        }
+        
+        let filtered = Array.from(collectionMap.values());
+        if (collectionFilter !== "all") {
+            filtered = filtered.filter(entry => entry.cardData.rank === collectionFilter);
+        }
+        
+        let sorted = filtered.sort((a,b) => (a.cardData.rankOrder||99) - (b.cardData.rankOrder||99));
+        let html = '';
+        for (let entry of sorted) {
+            const card = entry.cardData;
+            const isAnim = entry.animated;
+            const canUp = card.canUpgrade !== false;
+            const imgPath = getCardImage(card, isAnim);
+            html += `
+                <div class="collection-card ${isAnim ? 'animated' : ''}" style="border-left-color:${card.color}">
+                    <img class="collection-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${DEFAULT_IMAGE}';">
+                    <div class="collection-count">x${entry.count}</div>
+                    <div class="collection-name">${card.name}${isAnim ? '✨' : ''}</div>
+                    <span style="font-size:0.55rem; background:${card.color}40; padding:2px 5px; border-radius:12px; color:${card.color};">${card.rankLabel}</span>
+                    ${!isAnim && canUp ? `<button class="upgrade-btn" data-id="${card.id}">⬆️ Улучшить (3⚡)</button>` : ''}
+                    ${!isAnim && !canUp ? `<span style="font-size:0.55rem; color:#aa8899;">🔒</span>` : ''}
+                </div>
+            `;
+        }
+        collectionListDiv.innerHTML = html;
+        document.querySelectorAll('.upgrade-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                upgradeCard(btn.dataset.id);
+            });
+        });
+    }
+
+    function renderAllCards() {
+        if (CATALOG_CARDS.length === 0) {
+            allCardsListDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#aa8899;">📭 Нет карт в базе</div>';
+            return;
+        }
+        
+        let filtered = [...CATALOG_CARDS];
+        if (catalogFilter !== "all") {
+            filtered = filtered.filter(card => card.rank === catalogFilter);
+        }
+        
+        let sorted = filtered.sort((a,b) => (a.rankOrder||99) - (b.rankOrder||99));
+        let html = '';
+        
+        for (let card of sorted) {
+            const isOwned = collectionMap.has(card.id);
+            const ownedCount = isOwned ? collectionMap.get(card.id).count : 0;
+            const imgPath = card.image || DEFAULT_IMAGE;
+            
+            html += `
+                <div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};">
+                    ${isOwned ? `<div class="card-owned">✔️ x${ownedCount}</div>` : `<div class="card-owned" style="background:#332233;">❌</div>`}
+                    <img class="allcards-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${DEFAULT_IMAGE}';">
+                    <div class="allcards-name">${card.name}</div>
+                    <span style="font-size:0.55rem; background:${card.color}40; padding:2px 5px; border-radius:12px; color:${card.color};">${card.rankLabel}</span>
+                </div>
+            `;
+        }
+        allCardsListDiv.innerHTML = html;
+        totalAllCardsCountSpan.innerText = CATALOG_CARDS.length;
+    }
+
+    function updateUI() {
+        crystalDisplay.innerText = crystals;
+        oreDisplay.innerText = ore;
+        shardDisplay.innerText = shards;
+        let total = 0;
+        for (let v of collectionMap.values()) total += v.count;
+        totalCardsCountSpan.innerText = total;
+        if (openPackBtn) openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
+        renderCollection();
+        renderAllCards();
+        saveData();
+    }
+
+    function resetGame() {
+        if (confirm("Сбросить всё?")) {
+            collectionMap.clear();
+            crystals = START_CRYSTALS;
+            shards = 0;
+            ore = 0;
+            dailyLastClaim = null;
+            miningClicksToday = 0;
+            miningLastDate = new Date().toDateString();
+            currentOfferedCards = [];
+            selectedCardIndex = null;
+            selectionArea.style.display = 'none';
+            updateDailyUI();
+            updateMiningUI();
+            updateUI();
+        }
+    }
+
+    function setupFilters() {
+        const collectionFilterBtns = document.querySelectorAll('#collectionFilterBar .filter-btn');
+        collectionFilterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                collectionFilterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                collectionFilter = btn.dataset.filter;
+                renderCollection();
+            });
+        });
+        
+        const catalogFilterBtns = document.querySelectorAll('#catalogFilterBar .filter-btn');
+        catalogFilterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                catalogFilterBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                catalogFilter = btn.dataset.filter;
+                renderAllCards();
+            });
+        });
+    }
+
+    // Инициализация табов
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+        });
+    });
+
+    dailyBonusBtn.addEventListener('click', claimDaily);
+    exchangeOreBtn.addEventListener('click', exchangeOreFunc);
+    mineClickBtn.addEventListener('click', mine);
+    openPackBtn.addEventListener('click', buyPack);
+    confirmChoiceBtn.addEventListener('click', confirmChoiceCard);
+    if (resetBtn) resetBtn.addEventListener('click', resetGame);
+
+    loadData();
+    setupFilters();
+</script>
+</body>
+</html>
