@@ -907,8 +907,8 @@
         <div class="pack-section">
             <div class="pack-header"><div class="pack-icon">🎴🩸</div><h3>Кровавые паки</h3></div>
             <div class="pack-description">
-                <p><strong>📦 Что такое пак?</strong> Пак — это набор из <strong>3 случайных карт</strong>. Когда вы открываете пак, вам показываются все 3 карты, но <strong>вы можете выбрать только 1 карту</strong> и забрать её в свою коллекцию.</p>
-                <div class="pack-rules"><span>🎴 3 карты в паке</span><span>⚡ Карты A+ дают осколки</span><span>✨ Выбор только 1 карты</span></div>
+                <p><strong>📦 Что такое пак?</strong> Пак — это набор из <strong>3 случайных карт</strong>. Когда вы открываете пак, вам показываются все 3 карты, но <strong>вы можете выбрать только 1 карту</strong> и забрать её в свою коллекцию. <strong style="color:#ffaa66;">✨ Если карта уже есть — вы получите 7💎 вместо дубликата!</strong></p>
+                <div class="pack-rules"><span>🎴 3 карты в паке</span><span>⚡ Карты A+ дают осколки</span><span>✨ Дубликат = 7💎</span><span>🎲 Выбор только 1 карты</span></div>
             </div>
             <button class="open-btn" id="openPackBtn">🎁 КУПИТЬ ПАК ЗА 70💎</button>
         </div>
@@ -965,23 +965,10 @@
 <script>
     // ========== БАЗА КАРТ (сокращённая для читаемости, но полная рабочая) ==========
     const ALL_CARDS = [
-
-        // A+ Осколок
         { id: "osk01", name: "Осколок", emoji: "⚔️", rank: "A+", rankLabel: "A+", color: "#772ce8", rankOrder: 3, image: "images/osk.png", canUpgrade: false, animImage: null },
-        
-      
-        // X Ранг
         { id: "default", name: "", emoji: "🍊", rank: "X", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/default.png", canUpgrade: false, animImage: null },
-
-        // Эхокалипсис
-
-        // S Ранг
         { id: "default", name: "", emoji: "🍊", rank: "S", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/default.png", canUpgrade: false, animImage: null },
-
-        // A Ран
         { id: "default", name: "", emoji: "🍊", rank: "A", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/default.png", canUpgrade: false, animImage: null },
-
-        // P Ранг
         { id: "Pmituba01", name: "Митуба", emoji: "🍊", rank: "P", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/mituba01.png", canUpgrade: false, animImage: null },
         { id: "Psova03", name: "Сова", emoji: "🍊", rank: "P", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/sova03.png", canUpgrade: false, animImage: null },
         { id: "Plori01", name: "Лори", emoji: "🍊", rank: "P", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/lori01.png", canUpgrade: false, animImage: null },
@@ -1008,8 +995,6 @@
         { id: "Pkiubei01", name: "Кьюбей", emoji: "🍊", rank: "P", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/kiubei01.png", canUpgrade: false, animImage: null },
         { id: "Pprinni01", name: "Принни", emoji: "🍊", rank: "P", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/prinni01.png", canUpgrade: false, animImage: null },
         { id: "Piora01", name: "Йора", emoji: "🍊", rank: "P", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/iora01.png", canUpgrade: false, animImage: null },
-
-        // G Ранг
         { id: "Gneftida01", name: "Нефтида", emoji: "🍊", rank: "G", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/neftida01.png", canUpgrade: false, animImage: null },
         { id: "Gsnejana01", name: "Снежана", emoji: "🍊", rank: "G", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/snejana01.png", canUpgrade: false, animImage: null },
         { id: "Gsharon02", name: "Шарон", emoji: "🍊", rank: "G", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/sharon02.png", canUpgrade: false, animImage: null },
@@ -1024,9 +1009,6 @@
         { id: "Grie01", name: "Рие", emoji: "🍊", rank: "G", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/senko01.png", canUpgrade: false, animImage: null },
         { id: "Gsenko01", name: "Сенко", emoji: "🍊", rank: "G", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/senko01.png", canUpgrade: false, animImage: null },
         { id: "Gsui01", name: "Суй", emoji: "🍊", rank: "G", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/sui01.png", canUpgrade: false, animImage: null },
-
-        // B Ранг
-
         { id: "Bkamelia01", name: "Камелия", emoji: "🍊", rank: "B", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/kamelia01.png", canUpgrade: false, animImage: null },
         { id: "Bkiki01", name: "Кики", emoji: "🍊", rank: "B", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/kiki01.png", canUpgrade: false, animImage: null },
         { id: "Bzava01", name: "Зава", emoji: "🍊", rank: "B", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/zava01.png", canUpgrade: false, animImage: null },
@@ -1040,9 +1022,6 @@
         { id: "Bhator01", name: "Хатор", emoji: "🍊", rank: "B", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/hator01.png", canUpgrade: false, animImage: null },
         { id: "Biora01", name: "Йора", emoji: "🍊", rank: "B", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/iora01.png", canUpgrade: false, animImage: null },
         { id: "Bsera01", name: "Сера", emoji: "🍊", rank: "B", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/sera01.png", canUpgrade: false, animImage: null },
-
-        // C Ранг
-
         { id: "Cluciferin01", name: "Люциферин", emoji: "🍊", rank: "C", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/luciferin01.png", canUpgrade: false, animImage: null },
         { id: "Cuinno01", name: "Уинно", emoji: "🍊", rank: "C", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/uinno01.png", canUpgrade: false, animImage: null },
         { id: "Ceriri01", name: "Эрири", emoji: "🍊", rank: "C", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/eriri01.png", canUpgrade: false, animImage: null },
@@ -1056,9 +1035,6 @@
         { id: "Ciori01", name: "Иори", emoji: "🍊", rank: "C", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/iori01.png", canUpgrade: false, animImage: null },
         { id: "Clilit01", name: "Лилит", emoji: "🍊", rank: "C", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/lilit01.png", canUpgrade: false, animImage: null },
         { id: "Cfirentia01", name: "Фирентия", emoji: "🍊", rank: "C", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/firentia01.png", canUpgrade: false, animImage: null },
-
-        // D Ранг
-
         { id: "Dsenko01", name: "Сенко", emoji: "🍊", rank: "D", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/senko01.png", canUpgrade: false, animImage: null },
         { id: "Dnila04", name: "Нила", emoji: "🍊", rank: "D", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/nila04.png", canUpgrade: false, animImage: null },
         { id: "Dpanpan01", name: "Пан Пан", emoji: "🍊", rank: "D", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/panpan01.png", canUpgrade: false, animImage: null },
@@ -1078,9 +1054,6 @@
         { id: "Dnila01", name: "Нила", emoji: "🍊", rank: "D", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/nila01.png", canUpgrade: false, animImage: null },
         { id: "Dvivi02", name: "Виви", emoji: "🍊", rank: "D", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/vivi02.png", canUpgrade: false, animImage: null },
         { id: "Dvivi01", name: "Виви", emoji: "🍊", rank: "D", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/vivi01.png", canUpgrade: false, animImage: null },
-        
-        // E Ранг
--
         { id: "Eakira01", name: "Акира", emoji: "🍊", rank: "E", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/akira01.png", canUpgrade: false, animImage: null },
         { id: "Etomi01", name: "Томи", emoji: "🍊", rank: "E", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/tomi01.png", canUpgrade: false, animImage: null },
         { id: "Evivi01", name: "Виви", emoji: "🍊", rank: "E", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/vivi01.png", canUpgrade: false, animImage: null },
@@ -1105,18 +1078,17 @@
     const PACK_PRICE = 70;
     const START_CRYSTALS = 40;
     const STORAGE_KEY = 'bloody_ssr_v18_promo';
+    const DUPLICATE_REWARD_CRYSTALS = 7;
     
-    // Промокоды
     const PROMO_LIST = [
         { code: "BLOODY10", reward: { crystals: 500, shards: 0, ore: 0 } },
     ];
     
     let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
-    let collectionMap = new Map();
+    let collectionMap = new Map(); // id -> { cardData, animated }
     let currentOfferedCards = [], selectedCardIndex = null, collectionFilter = "all", catalogFilter = "all";
     let usedPromoCodes = new Set();
     
-    // DOM элементы
     let crystalDisplay, oreDisplay, shardDisplay, totalCardsCountSpan, totalAllCardsCountSpan;
     let openPackBtn, selectionArea, choiceCardsContainer, confirmChoiceBtn, collectionListDiv, allCardsListDiv;
     let dailyBonusBtn, exchangeOreBtn, mineClickBtn, clicksLeftDisplay, oreInMine;
@@ -1140,8 +1112,8 @@
     function closeModal() { modal.classList.remove('active'); }
     
     function saveData() {
-        const collectionData = Array.from(collectionMap.entries()).map(([id, data]) => ({ id, count: data.count, animated: data.animated || false }));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 3 }));
+        const collectionData = Array.from(collectionMap.entries()).map(([id, data]) => ({ id, animated: data.animated || false }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 4 }));
     }
     
     function loadData() {
@@ -1160,7 +1132,7 @@
                 if (data.collectionData) {
                     for (let item of data.collectionData) {
                         const fullCard = getFullCardById(item.id);
-                        if (fullCard) collectionMap.set(item.id, { cardData: fullCard, count: item.count || 1, animated: item.animated || false });
+                        if (fullCard) collectionMap.set(item.id, { cardData: fullCard, animated: item.animated || false });
                     }
                 }
             } catch(e) { resetToDefaults(); }
@@ -1215,15 +1187,39 @@
         choiceCardsContainer.innerHTML = html;
         document.querySelectorAll('.choice-card').forEach(el => { el.addEventListener('click', (e) => { selectedCardIndex = parseInt(el.dataset.index); renderChoice(); confirmChoiceBtn.disabled = false; }); });
     }
+    
     function confirmChoiceCard() {
         if (selectedCardIndex === null) return;
         const card = currentOfferedCards[selectedCardIndex];
-        if (card.rank === "A+") shards += 1;
-        else { if (collectionMap.has(card.id)) collectionMap.get(card.id).count++; else { const fullCard = getFullCardById(card.id); collectionMap.set(card.id, { cardData: fullCard, count: 1, animated: false }); } }
+        
+        if (card.rank === "A+") {
+            shards += 1;
+            showPromoStatus(`⚡ Получен осколок! +1⚡`, "success");
+        } else {
+            if (collectionMap.has(card.id)) {
+                crystals += DUPLICATE_REWARD_CRYSTALS;
+                showPromoStatus(`🔄 Дубликат! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.name}"`, "success");
+            } else {
+                const fullCard = getFullCardById(card.id);
+                collectionMap.set(card.id, { cardData: fullCard, animated: false });
+                showPromoStatus(`✨ Новая карта! "${card.name}" добавлена в коллекцию ✨`, "success");
+            }
+        }
+        
         currentOfferedCards = []; selectedCardIndex = null; selectionArea.style.display = 'none';
         updateUI();
     }
-    function buyPack() { if (crystals < PACK_PRICE || selectionArea.style.display === 'block') return; crystals -= PACK_PRICE; updateUI(); currentOfferedCards = generateOffer(); selectedCardIndex = null; selectionArea.style.display = 'block'; renderChoice(); confirmChoiceBtn.disabled = true; }
+    
+    function buyPack() { 
+        if (crystals < PACK_PRICE || selectionArea.style.display === 'block') return; 
+        crystals -= PACK_PRICE; 
+        updateUI(); 
+        currentOfferedCards = generateOffer(); 
+        selectedCardIndex = null; 
+        selectionArea.style.display = 'block'; 
+        renderChoice(); 
+        confirmChoiceBtn.disabled = true; 
+    }
     
     function getCardImage(card, isAnimated) { return (isAnimated && card.animImage) ? card.animImage : (card.image || DEFAULT_IMAGE); }
     function upgradeCard(cardId) { const entry = collectionMap.get(cardId); if (!entry || !entry.cardData.canUpgrade || entry.animated || shards < 3) return; shards -= 3; entry.animated = true; updateUI(); }
@@ -1237,7 +1233,7 @@
         for (let entry of sorted) {
             const card = entry.cardData, isAnim = entry.animated, canUp = card.canUpgrade !== false;
             const imgPath = getCardImage(card, isAnim), rankClass = getRankCornerClass(card.rank);
-            html += `<div class="collection-card ${isAnim ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="image-container"><img class="collection-image" src="${imgPath}" onerror="this.src='${DEFAULT_IMAGE}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="collection-count">x${entry.count}</div><div class="collection-name">${card.name}${isAnim ? '✨' : ''}</div>${!isAnim && canUp ? `<button class="upgrade-btn" data-id="${card.id}">⬆️ Улучшить (3⚡)</button>` : (!isAnim && !canUp ? `<span style="font-size:0.55rem; color:#aa8899; margin-top:4px;">🔒</span>` : '')}</div>`;
+            html += `<div class="collection-card ${isAnim ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="image-container"><img class="collection-image" src="${imgPath}" onerror="this.src='${DEFAULT_IMAGE}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="collection-name">${card.name}${isAnim ? '✨' : ''}</div>${!isAnim && canUp ? `<button class="upgrade-btn" data-id="${card.id}">⬆️ Улучшить (3⚡)</button>` : (!isAnim && !canUp ? `<span style="font-size:0.55rem; color:#aa8899; margin-top:4px;">🔒</span>` : '')}</div>`;
         }
         collectionListDiv.innerHTML = html;
         document.querySelectorAll('.collection-card').forEach(card => { const data = JSON.parse(card.dataset.card); card.addEventListener('click', (e) => { if (e.target.classList.contains('upgrade-btn')) return; showModal(data.image, data.name, data.rank); }); });
@@ -1250,9 +1246,9 @@
         let sorted = filtered.sort((a,b) => (a.rankOrder||99) - (b.rankOrder||99));
         let html = '';
         for (let card of sorted) {
-            const isOwned = collectionMap.has(card.id), ownedCount = isOwned ? collectionMap.get(card.id).count : 0;
+            const isOwned = collectionMap.has(card.id);
             const imgPath = card.image || DEFAULT_IMAGE, rankClass = getRankCornerClass(card.rank);
-            html += `<div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="card-owned" style="background:${isOwned ? '#4a6741' : '#332233'};">${isOwned ? `✔️ x${ownedCount}` : '❌'}</div><div class="image-container"><img class="allcards-image" src="${imgPath}" onerror="this.src='${DEFAULT_IMAGE}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="allcards-name">${card.name}</div></div>`;
+            html += `<div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="card-owned" style="background:${isOwned ? '#4a6741' : '#332233'};">${isOwned ? '✔️' : '❌'}</div><div class="image-container"><img class="allcards-image" src="${imgPath}" onerror="this.src='${DEFAULT_IMAGE}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="allcards-name">${card.name}</div></div>`;
         }
         allCardsListDiv.innerHTML = html;
         document.querySelectorAll('.allcards-card').forEach(card => { const data = JSON.parse(card.dataset.card); card.addEventListener('click', () => showModal(data.image, data.name, data.rank)); });
@@ -1292,8 +1288,7 @@
     
     function updateUI() {
         crystalDisplay.innerText = crystals; oreDisplay.innerText = ore; shardDisplay.innerText = shards;
-        let total = 0; for (let v of collectionMap.values()) total += v.count;
-        totalCardsCountSpan.innerText = total;
+        totalCardsCountSpan.innerText = collectionMap.size;
         if (openPackBtn) openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
         renderCollection(); renderAllCards(); saveData();
     }
