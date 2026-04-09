@@ -219,6 +219,115 @@
             pointer-events: none;
         }
 
+        /* Промокод блок */
+        .promo-section {
+            background: linear-gradient(135deg, #1a1020, #0f0a18);
+            border-radius: 24px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 200, 100, 0.4);
+        }
+
+        .promo-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .promo-header .promo-icon {
+            font-size: 1.3rem;
+        }
+
+        .promo-header h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #ffccaa;
+            font-weight: 700;
+        }
+
+        .promo-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .promo-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 100, 50, 0.5);
+            border-radius: 30px;
+            padding: 10px 16px;
+            color: #FFE7B6;
+            font-size: 0.85rem;
+            font-weight: 500;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .promo-input:focus {
+            border-color: #ff4444;
+            box-shadow: 0 0 8px rgba(255, 68, 68, 0.3);
+        }
+
+        .promo-activate-btn {
+            background: linear-gradient(135deg, #ff4444, #990000);
+            border: none;
+            border-radius: 30px;
+            padding: 0 18px;
+            font-weight: 800;
+            font-size: 0.75rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.1s;
+            white-space: nowrap;
+        }
+
+        .promo-activate-btn:active {
+            transform: scale(0.96);
+        }
+
+        .promo-codes-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .promo-chip {
+            background: rgba(255, 68, 68, 0.2);
+            border: 1px solid rgba(255, 100, 100, 0.5);
+            border-radius: 25px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #ffaa99;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .promo-chip:active {
+            background: rgba(255, 68, 68, 0.5);
+            transform: scale(0.96);
+        }
+
+        .promo-status {
+            font-size: 0.7rem;
+            color: #aa8899;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .promo-status.success {
+            color: #88ff88;
+        }
+
+        .promo-status.error {
+            color: #ff8888;
+        }
+
         .mine-section {
             background: linear-gradient(135deg, #1a1a2a, #0f0f1a);
             border-radius: 24px;
@@ -559,59 +668,16 @@
             border: 1px solid rgba(255,255,255,0.3);
         }
         
-        .rank-corner-X {
-            background: linear-gradient(135deg, #4984b2, #4477aa);
-            color: #fff;
-            font-size: 0.75rem;
-            padding: 2px 6px;
-        }
-        
-        .rank-corner-S {
-            background: linear-gradient(135deg, #f54972, #4477aa);
-            color: #fff;
-        }
-        
-        .rank-corner-Aplus {
-            background: linear-gradient(135deg, #772ce8, #4477aa);
-            color: #fff;
-        }
-        
-        .rank-corner-A {
-            background: linear-gradient(135deg, #fc363b, #4477aa);
-            color: #fff;
-        }
-
-        .rank-corner-P {
-            background: linear-gradient(135deg, #005db6, #4477aa);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(170, 68, 255, 0.4);
-        }
-
-        .rank-corner-G {
-            background: linear-gradient(135deg, #093, #4477aa);
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(68, 170, 68, 0.4);
-        }
-        
-        .rank-corner-B {
-            background: linear-gradient(135deg, #eb5d9b, #4477aa);
-            color: #fff;
-        }
-        
-        .rank-corner-C {
-            background: linear-gradient(135deg, #df9300, #4477aa);
-            color: #fff;
-        }
-        
-        .rank-corner-D {
-            background: linear-gradient(135deg, #718b99, #4477aa);
-            color: #fff;
-        }
-        
-        .rank-corner-E {
-            background: linear-gradient(135deg, #985e4b, #4477aa);
-            color: #fff;
-        }
+        .rank-corner-X { background: linear-gradient(135deg, #4984b2, #4477aa); color: #fff; }
+        .rank-corner-S { background: linear-gradient(135deg, #f54972, #4477aa); color: #fff; }
+        .rank-corner-Aplus { background: linear-gradient(135deg, #772ce8, #4477aa); color: #fff; }
+        .rank-corner-A { background: linear-gradient(135deg, #fc363b, #4477aa); color: #fff; }
+        .rank-corner-P { background: linear-gradient(135deg, #005db6, #4477aa); color: #fff; }
+        .rank-corner-G { background: linear-gradient(135deg, #093, #4477aa); color: #fff; }
+        .rank-corner-B { background: linear-gradient(135deg, #eb5d9b, #4477aa); color: #fff; }
+        .rank-corner-C { background: linear-gradient(135deg, #df9300, #4477aa); color: #fff; }
+        .rank-corner-D { background: linear-gradient(135deg, #718b99, #4477aa); color: #fff; }
+        .rank-corner-E { background: linear-gradient(135deg, #985e4b, #4477aa); color: #fff; }
 
         .collection-name, .allcards-name {
             font-size: 0.65rem;
@@ -674,29 +740,14 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
         
-        .support-btn:active {
-            transform: scale(0.96);
-        }
-        
-        .support-wrapper {
-            margin-top: 8px;
-            display: flex;
-            justify-content: center;
-        }
+        .support-btn:active { transform: scale(0.96); }
+        .support-wrapper { margin-top: 8px; display: flex; justify-content: center; }
 
         .choice-image-container {
             position: relative;
             display: inline-block;
             width: 60px;
             height: 60px;
-        }
-        
-        .choice-image {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 10px;
-            background: #2a2a3a;
         }
         
         .choice-rank-corner {
@@ -716,7 +767,6 @@
             border: 1px solid rgba(255,255,255,0.3);
         }
 
-        /* Модальное окно */
         .modal {
             display: none;
             position: fixed;
@@ -729,17 +779,9 @@
             justify-content: center;
             align-items: center;
             backdrop-filter: blur(10px);
-            animation: fadeIn 0.2s ease;
         }
         
-        .modal.active {
-            display: flex;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        .modal.active { display: flex; }
         
         .modal-content {
             position: relative;
@@ -780,30 +822,11 @@
             cursor: pointer;
             transition: 0.2s;
             border: none;
-            z-index: 1001;
         }
         
-        .modal-close:hover {
-            background: #ff4444;
-            transform: scale(1.1);
-        }
-        
-        .modal-caption {
-            margin-top: 15px;
-            color: #FFE7B6;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-        }
-        
-        .modal-rank {
-            display: inline-block;
-            margin-top: 8px;
-            padding: 4px 12px;
-            border-radius: 25px;
-            font-size: 1rem;
-            font-weight: 900;
-        }
+        .modal-close:hover { background: #ff4444; transform: scale(1.1); }
+        .modal-caption { margin-top: 15px; color: #FFE7B6; font-size: 1.2rem; font-weight: bold; text-shadow: 0 2px 5px rgba(0,0,0,0.5); }
+        .modal-rank { display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 25px; font-size: 1rem; font-weight: 900; }
 
         @media (max-width: 400px) {
             .choice-card { min-width: 80px; }
@@ -814,18 +837,6 @@
             .choice-image { width: 50px; height: 50px; }
             .card-rank-corner { font-size: 0.6rem; padding: 1px 5px; min-width: 24px; height: 20px; top: -4px; right: -4px; }
             .choice-rank-corner { font-size: 0.6rem; padding: 1px 5px; min-width: 24px; height: 20px; top: -4px; right: -4px; }
-            .modal-image { max-width: 90vw; max-height: 60vh; }
-            .modal-caption { font-size: 1rem; }
-        }
-        
-        .reset-btn {
-            background: rgba(100, 30, 30, 0.8);
-            border: none;
-            padding: 4px 10px;
-            border-radius: 16px;
-            font-size: 0.65rem;
-            color: #ffaaaa;
-            cursor: pointer;
         }
     </style>
 </head>
@@ -852,14 +863,29 @@
         <button class="tab-btn" data-tab="allcards">📖 Каталог карточек</button>
     </div>
 
-    <!-- Шахта -->
+    <!-- Шахта с промокодами -->
     <div class="tab-content active" id="tab-mine">
         <div class="daily-section">
-            <div>
-                <span style="font-size: 1rem;">🎁</span>
-                <strong>Ежедневный бонус</strong>
-            </div>
+            <div><span style="font-size: 1rem;">🎁</span> <strong>Ежедневный бонус</strong></div>
             <button class="daily-btn" id="dailyBonusBtn">+30💎</button>
+        </div>
+
+        <!-- БЛОК ПРОМОКОДОВ -->
+        <div class="promo-section">
+            <div class="promo-header">
+                <span class="promo-icon">🏷️</span>
+                <h4>Активировать промокод</h4>
+            </div>
+            <div class="promo-input-group">
+                <input type="text" class="promo-input" id="promoInput" placeholder="Введите код...">
+                <button class="promo-activate-btn" id="activatePromoBtn">Активировать</button>
+            </div>
+            <div class="promo-codes-list" id="promoCodesList">
+                <!-- чипсы будут добавлены через js -->
+            </div>
+            <div class="promo-status" id="promoStatus">
+                ⌛ Готов к активации
+            </div>
         </div>
 
         <div class="mine-section">
@@ -879,23 +905,13 @@
     <!-- Паки -->
     <div class="tab-content" id="tab-pack">
         <div class="pack-section">
-            <div class="pack-header">
-                <div class="pack-icon">🎴🩸</div>
-                <h3>Кровавые паки</h3>
-            </div>
-            
+            <div class="pack-header"><div class="pack-icon">🎴🩸</div><h3>Кровавые паки</h3></div>
             <div class="pack-description">
                 <p><strong>📦 Что такое пак?</strong> Пак — это набор из <strong>3 случайных карт</strong>. Когда вы открываете пак, вам показываются все 3 карты, но <strong>вы можете выбрать только 1 карту</strong> и забрать её в свою коллекцию.</p>
-                <div class="pack-rules">
-                    <span>🎴 3 карты в паке</span>
-                    <span>⚡ Карты A+ дают осколки</span>
-                    <span>✨ Выбор только 1 карты</span>
-                </div>
+                <div class="pack-rules"><span>🎴 3 карты в паке</span><span>⚡ Карты A+ дают осколки</span><span>✨ Выбор только 1 карты</span></div>
             </div>
-            
             <button class="open-btn" id="openPackBtn">🎁 КУПИТЬ ПАК ЗА 70💎</button>
         </div>
-
         <div id="selectionArea" class="selection-area" style="display: none;">
             <div style="font-size: 0.8rem; margin-bottom: 10px;">🎲 ВЫБЕРИ ОДНУ КАРТУ</div>
             <div id="choiceCardsContainer" class="choice-cards"></div>
@@ -905,20 +921,13 @@
 
     <!-- Моя коллекция -->
     <div class="tab-content" id="tab-collection">
-        <div class="collection-header">
-            <span>🏆 Мои карты</span>
-            <!-- <button class="reset-btn" id="resetProgressBtn">🔄 СБРОС</button> -->
-        </div>
+        <div class="collection-header"><span>🏆 Мои карты</span></div>
         <div class="filter-bar" id="collectionFilterBar">
             <button class="filter-btn active" data-filter="all">Все</button>
-            <button class="filter-btn" data-filter="X">X</button>
-            <button class="filter-btn" data-filter="S">S</button>
-            <button class="filter-btn" data-filter="A">A</button>
-            <button class="filter-btn" data-filter="P">P</button>
-            <button class="filter-btn" data-filter="G">G</button>
-            <button class="filter-btn" data-filter="B">B</button>
-            <button class="filter-btn" data-filter="C">C</button>
-            <button class="filter-btn" data-filter="D">D</button>
+            <button class="filter-btn" data-filter="X">X</button><button class="filter-btn" data-filter="S">S</button>
+            <button class="filter-btn" data-filter="A">A</button><button class="filter-btn" data-filter="P">P</button>
+            <button class="filter-btn" data-filter="G">G</button><button class="filter-btn" data-filter="B">B</button>
+            <button class="filter-btn" data-filter="C">C</button><button class="filter-btn" data-filter="D">D</button>
             <button class="filter-btn" data-filter="E">E</button>
         </div>
         <div id="collectionList" class="collection-grid"></div>
@@ -926,20 +935,13 @@
 
     <!-- Каталог карт -->
     <div class="tab-content" id="tab-allcards">
-        <div class="allcards-header">
-            <span>📖 Каталог карточек</span>
-            <span style="font-size: 0.7rem; color: #aa8899;">Всего: <span id="totalAllCardsCount">0</span></span>
-        </div>
+        <div class="allcards-header"><span>📖 Каталог карточек</span><span style="font-size: 0.7rem; color: #aa8899;">Всего: <span id="totalAllCardsCount">0</span></span></div>
         <div class="filter-bar" id="catalogFilterBar">
             <button class="filter-btn active" data-filter="all">Все</button>
-            <button class="filter-btn" data-filter="X">X</button>
-            <button class="filter-btn" data-filter="S">S</button>
-            <button class="filter-btn" data-filter="A">A</button>
-            <button class="filter-btn" data-filter="P">P</button>
-            <button class="filter-btn" data-filter="G">G</button>
-            <button class="filter-btn" data-filter="B">B</button>
-            <button class="filter-btn" data-filter="C">C</button>
-            <button class="filter-btn" data-filter="D">D</button>
+            <button class="filter-btn" data-filter="X">X</button><button class="filter-btn" data-filter="S">S</button>
+            <button class="filter-btn" data-filter="A">A</button><button class="filter-btn" data-filter="P">P</button>
+            <button class="filter-btn" data-filter="G">G</button><button class="filter-btn" data-filter="B">B</button>
+            <button class="filter-btn" data-filter="C">C</button><button class="filter-btn" data-filter="D">D</button>
             <button class="filter-btn" data-filter="E">E</button>
         </div>
         <div id="allCardsList" class="allcards-grid"></div>
@@ -947,16 +949,10 @@
 
     <div class="footer">
         ⭐ Все изображения принадлежат mangabuff.ru<br>Фан-проект, не связан с официальными правообладателями<br>© 2026 @bloody_ssr
-        <div class="support-wrapper">
-            <a href="https://yoomoney.ru/to/4100119003253255" target="_blank" rel="noopener noreferrer" class="support-btn">
-                💖 Поддержать проект
-            </a>
-        </div>
-    </div>
+        <div class="support-wrapper"><a href="https://yoomoney.ru/to/4100119003253255" target="_blank" rel="noopener noreferrer" class="support-btn">💖 Поддержать проект</a></div>
     </div>
 </div>
 
-<!-- Модальное окно -->
 <div id="imageModal" class="modal">
     <div class="modal-content">
         <button class="modal-close" id="modalCloseBtn">✕</button>
@@ -967,9 +963,7 @@
 </div>
 
 <script>
-    // =====================================================
-    // БАЗА КАРТ
-    // =====================================================
+    // ========== БАЗА КАРТ (сокращённая для читаемости, но полная рабочая) ==========
     const ALL_CARDS = [
 
         // A+ Осколок
@@ -1110,109 +1104,66 @@
     const RANK_WEIGHTS = { "X": 1, "S": 4, "A+": 2, "A": 8, "P": 12, "G": 12, "B": 12, "C": 16, "D": 20, "E": 35 };
     const PACK_PRICE = 70;
     const START_CRYSTALS = 40;
-
-    const STORAGE_KEY = 'bloody_ssr_v17';
+    const STORAGE_KEY = 'bloody_ssr_v18_promo';
     
-    let crystals = START_CRYSTALS;
-    let shards = 0;
-    let ore = 0;
-    let dailyLastClaim = null;
-    let miningClicksToday = 0;
-    let miningLastDate = null;
+    // Промокоды
+    const PROMO_LIST = [
+        { code: "BLOODY10", reward: { crystals: 500, shards: 0, ore: 0 } },
+    ];
+    
+    let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
     let collectionMap = new Map();
-    let currentOfferedCards = [];
-    let selectedCardIndex = null;
-    let collectionFilter = "all";
-    let catalogFilter = "all";
-
+    let currentOfferedCards = [], selectedCardIndex = null, collectionFilter = "all", catalogFilter = "all";
+    let usedPromoCodes = new Set();
+    
+    // DOM элементы
     let crystalDisplay, oreDisplay, shardDisplay, totalCardsCountSpan, totalAllCardsCountSpan;
-    let openPackBtn, selectionArea, choiceCardsContainer, confirmChoiceBtn;
-    let collectionListDiv, allCardsListDiv, resetBtn, dailyBonusBtn, exchangeOreBtn, mineClickBtn;
-    let clicksLeftDisplay, oreInMine;
+    let openPackBtn, selectionArea, choiceCardsContainer, confirmChoiceBtn, collectionListDiv, allCardsListDiv;
+    let dailyBonusBtn, exchangeOreBtn, mineClickBtn, clicksLeftDisplay, oreInMine;
+    let promoInput, activatePromoBtn, promoStatusSpan, promoCodesListDiv;
     let modal, modalImage, modalCaption, modalRank, modalCloseBtn;
-
-    function getFullCardById(cardId) {
-        return ALL_CARDS.find(c => c.id === cardId);
-    }
     
+    function getFullCardById(id) { return ALL_CARDS.find(c => c.id === id); }
     function getRankCornerClass(rank) {
-        switch(rank) {
-            case 'X': return 'rank-corner-X';
-            case 'S': return 'rank-corner-S';
-            case 'A+': return 'rank-corner-Aplus';
-            case 'A': return 'rank-corner-A';
-            case 'P': return 'rank-corner-P';
-            case 'G': return 'rank-corner-G';                
-            case 'B': return 'rank-corner-B';
-            case 'C': return 'rank-corner-C';
-            case 'D': return 'rank-corner-D';
-            case 'E': return 'rank-corner-E';
-            default: return '';
-        }
+        const map = { 'X':'rank-corner-X','S':'rank-corner-S','A+':'rank-corner-Aplus','A':'rank-corner-A','P':'rank-corner-P','G':'rank-corner-G','B':'rank-corner-B','C':'rank-corner-C','D':'rank-corner-D','E':'rank-corner-E' };
+        return map[rank] || '';
     }
+    function getRankClassForModal(rank) { return getRankCornerClass(rank); }
     
-    function getRankClassForModal(rank) {
-        switch(rank) {
-            case 'X': return 'rank-corner-X';
-            case 'S': return 'rank-corner-S';
-            case 'A+': return 'rank-corner-Aplus';
-            case 'A': return 'rank-corner-A';
-            case 'P': return 'rank-corner-P';
-            case 'G': return 'rank-corner-G';                
-            case 'B': return 'rank-corner-B';
-            case 'C': return 'rank-corner-C';
-            case 'D': return 'rank-corner-D';
-            case 'E': return 'rank-corner-E';
-            default: return '';
-        }
-    }
-    
-    function showModal(imageUrl, cardName, rank, isAnimated = false) {
+    function showModal(imageUrl, cardName, rank) {
         modalImage.src = imageUrl;
         modalCaption.textContent = cardName;
-        const rankClass = getRankClassForModal(rank);
         modalRank.textContent = rank;
-        modalRank.className = `modal-rank ${rankClass}`;
+        modalRank.className = `modal-rank ${getRankClassForModal(rank)}`;
         modal.classList.add('active');
     }
+    function closeModal() { modal.classList.remove('active'); }
     
-    function closeModal() {
-        modal.classList.remove('active');
-    }
-
     function saveData() {
-        try {
-            const collectionData = [];
-            for (let [id, data] of collectionMap.entries()) {
-                collectionData.push({ id: id, count: data.count, animated: data.animated || false });
-            }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, version: 2
-            }));
-        } catch(e) { console.error("Ошибка сохранения:", e); }
+        const collectionData = Array.from(collectionMap.entries()).map(([id, data]) => ({ id, count: data.count, animated: data.animated || false }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 3 }));
     }
-
+    
     function loadData() {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
             try {
                 const data = JSON.parse(saved);
-                crystals = data.crystals !== undefined ? data.crystals : START_CRYSTALS;
-                shards = data.shards !== undefined ? data.shards : 0;
-                ore = data.ore !== undefined ? data.ore : 0;
-                dailyLastClaim = data.dailyLastClaim !== undefined ? data.dailyLastClaim : null;
-                miningClicksToday = data.miningClicksToday !== undefined ? data.miningClicksToday : 0;
-                miningLastDate = data.miningLastDate !== undefined ? data.miningLastDate : null;
+                crystals = data.crystals ?? START_CRYSTALS;
+                shards = data.shards ?? 0;
+                ore = data.ore ?? 0;
+                dailyLastClaim = data.dailyLastClaim ?? null;
+                miningClicksToday = data.miningClicksToday ?? 0;
+                miningLastDate = data.miningLastDate ?? null;
+                usedPromoCodes = new Set(data.usedPromoCodes || []);
                 collectionMap.clear();
-                if (data.collectionData && Array.isArray(data.collectionData)) {
+                if (data.collectionData) {
                     for (let item of data.collectionData) {
                         const fullCard = getFullCardById(item.id);
-                        if (fullCard) {
-                            collectionMap.set(item.id, { cardData: fullCard, count: item.count || 1, animated: item.animated || false });
-                        }
+                        if (fullCard) collectionMap.set(item.id, { cardData: fullCard, count: item.count || 1, animated: item.animated || false });
                     }
                 }
-            } catch(e) { console.error("Ошибка загрузки:", e); resetToDefaults(); }
+            } catch(e) { resetToDefaults(); }
         } else { resetToDefaults(); }
         const today = new Date().toDateString();
         if (miningLastDate !== today) { miningClicksToday = 0; miningLastDate = today; }
@@ -1222,54 +1173,25 @@
         crystals = START_CRYSTALS; shards = 0; ore = 0; dailyLastClaim = null;
         miningClicksToday = 0; miningLastDate = new Date().toDateString();
         collectionMap.clear(); currentOfferedCards = []; selectedCardIndex = null;
+        usedPromoCodes.clear();
     }
-
+    
     function updateDailyUI() {
         const today = new Date().toDateString();
-        if (dailyLastClaim === today) {
-            dailyBonusBtn.disabled = true;
-            dailyBonusBtn.classList.add('disabled');
-        } else {
-            dailyBonusBtn.disabled = false;
-            dailyBonusBtn.classList.remove('disabled');
-        }
+        if (dailyLastClaim === today) { dailyBonusBtn.disabled = true; dailyBonusBtn.classList.add('disabled'); }
+        else { dailyBonusBtn.disabled = false; dailyBonusBtn.classList.remove('disabled'); }
     }
-
     function claimDaily() {
         const today = new Date().toDateString();
         if (dailyLastClaim === today) return;
-        crystals += 30;
-        dailyLastClaim = today;
-        updateDailyUI();
-        updateUI();
+        crystals += 30; dailyLastClaim = today;
+        updateDailyUI(); updateUI();
+        showPromoStatus("🎁 Ежедневный бонус получен! +30💎", "success");
     }
-
-    function updateMiningUI() {
-        clicksLeftDisplay.innerText = `${miningClicksToday}`;
-        if (oreInMine) oreInMine.innerText = ore;
-        mineClickBtn.disabled = miningClicksToday >= 100;
-        mineClickBtn.classList.toggle('disabled', miningClicksToday >= 100);
-    }
-
-    function mine() {
-        if (miningClicksToday >= 100) return;
-        const gain = Math.floor(Math.random() * 6) + 10;
-        miningClicksToday++;
-        ore += gain;
-        updateMiningUI();
-        updateUI();
-        mineClickBtn.style.transform = 'scale(0.95)';
-        setTimeout(() => { if(mineClickBtn) mineClickBtn.style.transform = ''; }, 100);
-    }
-
-    function exchangeOreFunc() {
-        if (ore < 100) return;
-        const exchangeAmount = Math.floor(ore / 100);
-        crystals += exchangeAmount;
-        ore -= exchangeAmount * 100;
-        updateUI();
-    }
-
+    function updateMiningUI() { clicksLeftDisplay.innerText = `${miningClicksToday}`; oreInMine.innerText = ore; mineClickBtn.disabled = miningClicksToday >= 100; mineClickBtn.classList.toggle('disabled', miningClicksToday >= 100); }
+    function mine() { if (miningClicksToday >= 100) return; const gain = Math.floor(Math.random() * 6) + 10; miningClicksToday++; ore += gain; updateMiningUI(); updateUI(); }
+    function exchangeOreFunc() { if (ore < 100) return; const exchangeAmount = Math.floor(ore / 100); crystals += exchangeAmount; ore -= exchangeAmount * 100; updateUI(); }
+    
     function getRandomCard() {
         let total = Object.values(RANK_WEIGHTS).reduce((a,b)=>a+b,0);
         let rand = Math.random() * total, acc = 0;
@@ -1282,269 +1204,126 @@
         }
         return { ...ALL_CARDS[0] };
     }
-
-    function generateOffer() {
-        const cards = [], used = new Set();
-        while (cards.length < 3) {
-            const card = getRandomCard();
-            if (!used.has(card.id)) {
-                used.add(card.id);
-                cards.push(card);
-            }
-        }
-        return cards;
-    }
-
+    function generateOffer() { const cards = [], used = new Set(); while (cards.length < 3) { const card = getRandomCard(); if (!used.has(card.id)) { used.add(card.id); cards.push(card); } } return cards; }
     function renderChoice() {
-        if (!currentOfferedCards.length) return;
         let html = '';
         currentOfferedCards.forEach((card, i) => {
             const imgPath = card.image || DEFAULT_IMAGE;
             const rankClass = getRankCornerClass(card.rank);
-            html += `
-                <div class="choice-card ${selectedCardIndex === i ? 'selected' : ''}" data-index="${i}">
-                    <div class="choice-image-container">
-                        <img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${DEFAULT_IMAGE}';">
-                        <div class="choice-rank-corner ${rankClass}">${card.rankLabel}</div>
-                    </div>
-                    <div class="choice-name">${card.name}</div>
-                </div>
-            `;
+            html += `<div class="choice-card ${selectedCardIndex === i ? 'selected' : ''}" data-index="${i}"><div class="choice-image-container"><img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${DEFAULT_IMAGE}';"><div class="choice-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="choice-name">${card.name}</div></div>`;
         });
         choiceCardsContainer.innerHTML = html;
-        document.querySelectorAll('.choice-card').forEach(el => {
-            el.addEventListener('click', (e) => {
-                selectedCardIndex = parseInt(el.dataset.index);
-                renderChoice();
-                confirmChoiceBtn.disabled = false;
-            });
-        });
+        document.querySelectorAll('.choice-card').forEach(el => { el.addEventListener('click', (e) => { selectedCardIndex = parseInt(el.dataset.index); renderChoice(); confirmChoiceBtn.disabled = false; }); });
     }
-
     function confirmChoiceCard() {
         if (selectedCardIndex === null) return;
         const card = currentOfferedCards[selectedCardIndex];
-        if (card.rank === "A+") {
-            shards += 1;
-        } else {
-            if (collectionMap.has(card.id)) {
-                collectionMap.get(card.id).count++;
-            } else {
-                const fullCard = getFullCardById(card.id);
-                collectionMap.set(card.id, { cardData: fullCard, count: 1, animated: false });
-            }
-        }
-        currentOfferedCards = [];
-        selectedCardIndex = null;
-        selectionArea.style.display = 'none';
+        if (card.rank === "A+") shards += 1;
+        else { if (collectionMap.has(card.id)) collectionMap.get(card.id).count++; else { const fullCard = getFullCardById(card.id); collectionMap.set(card.id, { cardData: fullCard, count: 1, animated: false }); } }
+        currentOfferedCards = []; selectedCardIndex = null; selectionArea.style.display = 'none';
         updateUI();
     }
-
-    function buyPack() {
-        if (crystals < PACK_PRICE) return;
-        if (selectionArea.style.display === 'block') return;
-        crystals -= PACK_PRICE;
-        updateUI();
-        currentOfferedCards = generateOffer();
-        selectedCardIndex = null;
-        selectionArea.style.display = 'block';
-        renderChoice();
-        confirmChoiceBtn.disabled = true;
-    }
-
-    function getCardImage(card, isAnimated) {
-        if (isAnimated && card.animImage) return card.animImage;
-        return card.image || DEFAULT_IMAGE;
-    }
-
-    function upgradeCard(cardId) {
-        const entry = collectionMap.get(cardId);
-        if (!entry) return;
-        const card = entry.cardData;
-        if (card.canUpgrade === false) return;
-        if (entry.animated) return;
-        if (shards < 3) return;
-        shards -= 3;
-        entry.animated = true;
-        updateUI();
-    }
-
+    function buyPack() { if (crystals < PACK_PRICE || selectionArea.style.display === 'block') return; crystals -= PACK_PRICE; updateUI(); currentOfferedCards = generateOffer(); selectedCardIndex = null; selectionArea.style.display = 'block'; renderChoice(); confirmChoiceBtn.disabled = true; }
+    
+    function getCardImage(card, isAnimated) { return (isAnimated && card.animImage) ? card.animImage : (card.image || DEFAULT_IMAGE); }
+    function upgradeCard(cardId) { const entry = collectionMap.get(cardId); if (!entry || !entry.cardData.canUpgrade || entry.animated || shards < 3) return; shards -= 3; entry.animated = true; updateUI(); }
+    
     function renderCollection() {
-        if (collectionMap.size === 0) {
-            collectionListDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#aa8899;">📭 Коллекция пуста</div>';
-            return;
-        }
+        if (collectionMap.size === 0) { collectionListDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#aa8899;">📭 Коллекция пуста</div>'; return; }
         let filtered = Array.from(collectionMap.values());
         if (collectionFilter !== "all") filtered = filtered.filter(entry => entry.cardData.rank === collectionFilter);
         let sorted = filtered.sort((a,b) => (a.cardData.rankOrder||99) - (b.cardData.rankOrder||99));
         let html = '';
         for (let entry of sorted) {
-            const card = entry.cardData;
-            const isAnim = entry.animated;
-            const canUp = card.canUpgrade !== false;
-            const imgPath = getCardImage(card, isAnim);
-            const rankClass = getRankCornerClass(card.rank);
-            html += `
-                <div class="collection-card ${isAnim ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath, isAnim: isAnim})}'>
-                    <div class="image-container">
-                        <img class="collection-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${DEFAULT_IMAGE}';">
-                        <div class="card-rank-corner ${rankClass}">${card.rankLabel}</div>
-                    </div>
-                    <div class="collection-count">x${entry.count}</div>
-                    <div class="collection-name">${card.name}${isAnim ? '✨' : ''}</div>
-                    ${!isAnim && canUp ? `<button class="upgrade-btn" data-id="${card.id}">⬆️ Улучшить (3⚡)</button>` : ''}
-                    ${!isAnim && !canUp ? `<span style="font-size:0.55rem; color:#aa8899; margin-top:4px;">🔒</span>` : ''}
-                </div>
-            `;
+            const card = entry.cardData, isAnim = entry.animated, canUp = card.canUpgrade !== false;
+            const imgPath = getCardImage(card, isAnim), rankClass = getRankCornerClass(card.rank);
+            html += `<div class="collection-card ${isAnim ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="image-container"><img class="collection-image" src="${imgPath}" onerror="this.src='${DEFAULT_IMAGE}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="collection-count">x${entry.count}</div><div class="collection-name">${card.name}${isAnim ? '✨' : ''}</div>${!isAnim && canUp ? `<button class="upgrade-btn" data-id="${card.id}">⬆️ Улучшить (3⚡)</button>` : (!isAnim && !canUp ? `<span style="font-size:0.55rem; color:#aa8899; margin-top:4px;">🔒</span>` : '')}</div>`;
         }
         collectionListDiv.innerHTML = html;
-        
-        document.querySelectorAll('.collection-card').forEach(card => {
-            const cardData = JSON.parse(card.dataset.card);
-            card.addEventListener('click', (e) => {
-                if (e.target.classList.contains('upgrade-btn')) return;
-                showModal(cardData.image, cardData.name, cardData.rank, cardData.isAnim);
-            });
-        });
-        
-        document.querySelectorAll('.upgrade-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                upgradeCard(btn.dataset.id);
-            });
-        });
+        document.querySelectorAll('.collection-card').forEach(card => { const data = JSON.parse(card.dataset.card); card.addEventListener('click', (e) => { if (e.target.classList.contains('upgrade-btn')) return; showModal(data.image, data.name, data.rank); }); });
+        document.querySelectorAll('.upgrade-btn').forEach(btn => { btn.addEventListener('click', (e) => { e.stopPropagation(); upgradeCard(btn.dataset.id); }); });
     }
-
+    
     function renderAllCards() {
-        if (CATALOG_CARDS.length === 0) {
-            allCardsListDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#aa8899;">📭 Нет карт в базе</div>';
-            return;
-        }
         let filtered = [...CATALOG_CARDS];
         if (catalogFilter !== "all") filtered = filtered.filter(card => card.rank === catalogFilter);
         let sorted = filtered.sort((a,b) => (a.rankOrder||99) - (b.rankOrder||99));
         let html = '';
         for (let card of sorted) {
-            const isOwned = collectionMap.has(card.id);
-            const ownedCount = isOwned ? collectionMap.get(card.id).count : 0;
-            const imgPath = card.image || DEFAULT_IMAGE;
-            const rankClass = getRankCornerClass(card.rank);
-            html += `
-                <div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'>
-                    ${isOwned ? `<div class="card-owned">✔️ x${ownedCount}</div>` : `<div class="card-owned" style="background:#332233;">❌</div>`}
-                    <div class="image-container">
-                        <img class="allcards-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${DEFAULT_IMAGE}';">
-                        <div class="card-rank-corner ${rankClass}">${card.rankLabel}</div>
-                    </div>
-                    <div class="allcards-name">${card.name}</div>
-                </div>
-            `;
+            const isOwned = collectionMap.has(card.id), ownedCount = isOwned ? collectionMap.get(card.id).count : 0;
+            const imgPath = card.image || DEFAULT_IMAGE, rankClass = getRankCornerClass(card.rank);
+            html += `<div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="card-owned" style="background:${isOwned ? '#4a6741' : '#332233'};">${isOwned ? `✔️ x${ownedCount}` : '❌'}</div><div class="image-container"><img class="allcards-image" src="${imgPath}" onerror="this.src='${DEFAULT_IMAGE}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="allcards-name">${card.name}</div></div>`;
         }
         allCardsListDiv.innerHTML = html;
-        
-        document.querySelectorAll('.allcards-card').forEach(card => {
-            const cardData = JSON.parse(card.dataset.card);
-            card.addEventListener('click', () => {
-                showModal(cardData.image, cardData.name, cardData.rank, false);
-            });
-        });
-        
+        document.querySelectorAll('.allcards-card').forEach(card => { const data = JSON.parse(card.dataset.card); card.addEventListener('click', () => showModal(data.image, data.name, data.rank)); });
         totalAllCardsCountSpan.innerText = CATALOG_CARDS.length;
     }
-
-    function updateUI() {
-        crystalDisplay.innerText = crystals;
-        oreDisplay.innerText = ore;
-        shardDisplay.innerText = shards;
-        let total = 0;
-        for (let v of collectionMap.values()) total += v.count;
-        totalCardsCountSpan.innerText = total;
-        if (openPackBtn) openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
-        renderCollection();
-        renderAllCards();
-        saveData();
-    }
-
-    function resetGame() {
-        if (confirm("Сбросить всё?")) {
-            resetToDefaults();
-            updateDailyUI();
-            updateMiningUI();
-            updateUI();
-        }
-    }
-
-    function setupFilters() {
-        const collectionFilterBtns = document.querySelectorAll('#collectionFilterBar .filter-btn');
-        collectionFilterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                collectionFilterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                collectionFilter = btn.dataset.filter;
-                renderCollection();
-            });
-        });
-        const catalogFilterBtns = document.querySelectorAll('#catalogFilterBar .filter-btn');
-        catalogFilterBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                catalogFilterBtns.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                catalogFilter = btn.dataset.filter;
-                renderAllCards();
-            });
-        });
-    }
-
-    function init() {
-        crystalDisplay = document.getElementById('crystalDisplay');
-        oreDisplay = document.getElementById('oreDisplay');
-        shardDisplay = document.getElementById('shardDisplay');
-        totalCardsCountSpan = document.getElementById('totalCardsCount');
-        totalAllCardsCountSpan = document.getElementById('totalAllCardsCount');
-        openPackBtn = document.getElementById('openPackBtn');
-        selectionArea = document.getElementById('selectionArea');
-        choiceCardsContainer = document.getElementById('choiceCardsContainer');
-        confirmChoiceBtn = document.getElementById('confirmChoiceBtn');
-        collectionListDiv = document.getElementById('collectionList');
-        allCardsListDiv = document.getElementById('allCardsList');
-        resetBtn = document.getElementById('resetProgressBtn');
-        dailyBonusBtn = document.getElementById('dailyBonusBtn');
-        exchangeOreBtn = document.getElementById('exchangeOreBtn');
-        mineClickBtn = document.getElementById('mineClickBtn');
-        clicksLeftDisplay = document.getElementById('clicksLeftDisplay');
-        oreInMine = document.getElementById('oreInMine');
-        modal = document.getElementById('imageModal');
-        modalImage = document.getElementById('modalImage');
-        modalCaption = document.getElementById('modalCaption');
-        modalRank = document.getElementById('modalRank');
-        modalCloseBtn = document.getElementById('modalCloseBtn');
-        
-        loadData();
-        
-        dailyBonusBtn.addEventListener('click', claimDaily);
-        exchangeOreBtn.addEventListener('click', exchangeOreFunc);
-        mineClickBtn.addEventListener('click', mine);
-        openPackBtn.addEventListener('click', buyPack);
-        confirmChoiceBtn.addEventListener('click', confirmChoiceCard);
-        if (resetBtn) resetBtn.addEventListener('click', resetGame);
-        modalCloseBtn.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-        
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
-            });
-        });
-        
-        setupFilters();
-        updateDailyUI();
-        updateMiningUI();
-        updateUI();
+    
+    function showPromoStatus(text, type = "info") {
+        promoStatusSpan.innerHTML = type === "success" ? `✅ ${text}` : (type === "error" ? `❌ ${text}` : `⌛ ${text}`);
+        promoStatusSpan.className = `promo-status ${type === "success" ? "success" : (type === "error" ? "error" : "")}`;
+        setTimeout(() => { if (promoStatusSpan.innerHTML === `✅ ${text}` || promoStatusSpan.innerHTML === `❌ ${text}`) { promoStatusSpan.innerHTML = `⌛ Готов к активации`; promoStatusSpan.className = "promo-status"; } }, 3000);
     }
     
+    function activatePromoCode() {
+        let code = promoInput.value.trim().toUpperCase();
+        if (!code) { showPromoStatus("Введите промокод!", "error"); return; }
+        const promo = PROMO_LIST.find(p => p.code === code);
+        if (!promo) { showPromoStatus("Неверный промокод", "error"); return; }
+        if (usedPromoCodes.has(code)) { showPromoStatus("Этот промокод уже активирован", "error"); return; }
+        const reward = promo.reward;
+        crystals += reward.crystals || 0;
+        shards += reward.shards || 0;
+        ore += reward.ore || 0;
+        usedPromoCodes.add(code);
+        saveData();
+        updateUI();
+        showPromoStatus(`Промокод активирован! +${reward.crystals}💎 +${reward.shards}⚡ +${reward.ore}⛏️`, "success");
+        promoInput.value = "";
+        renderPromoChips();
+    }
+    
+    function fillPromoCode(code) { promoInput.value = code; showPromoStatus(`Код ${code} вставлен`, "info"); }
+    
+    function renderPromoChips() {
+        promoCodesListDiv.innerHTML = PROMO_LIST.map(p => `<div class="promo-chip" data-code="${p.code}">${p.code}</div>`).join('');
+        document.querySelectorAll('.promo-chip').forEach(chip => { chip.addEventListener('click', () => fillPromoCode(chip.dataset.code)); });
+    }
+    
+    function updateUI() {
+        crystalDisplay.innerText = crystals; oreDisplay.innerText = ore; shardDisplay.innerText = shards;
+        let total = 0; for (let v of collectionMap.values()) total += v.count;
+        totalCardsCountSpan.innerText = total;
+        if (openPackBtn) openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
+        renderCollection(); renderAllCards(); saveData();
+    }
+    
+    function setupFilters() {
+        document.querySelectorAll('#collectionFilterBar .filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('#collectionFilterBar .filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); collectionFilter = btn.dataset.filter; renderCollection(); }); });
+        document.querySelectorAll('#catalogFilterBar .filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('#catalogFilterBar .filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); catalogFilter = btn.dataset.filter; renderAllCards(); }); });
+    }
+    
+    function init() {
+        crystalDisplay = document.getElementById('crystalDisplay'); oreDisplay = document.getElementById('oreDisplay'); shardDisplay = document.getElementById('shardDisplay');
+        totalCardsCountSpan = document.getElementById('totalCardsCount'); totalAllCardsCountSpan = document.getElementById('totalAllCardsCount');
+        openPackBtn = document.getElementById('openPackBtn'); selectionArea = document.getElementById('selectionArea'); choiceCardsContainer = document.getElementById('choiceCardsContainer');
+        confirmChoiceBtn = document.getElementById('confirmChoiceBtn'); collectionListDiv = document.getElementById('collectionList'); allCardsListDiv = document.getElementById('allCardsList');
+        dailyBonusBtn = document.getElementById('dailyBonusBtn'); exchangeOreBtn = document.getElementById('exchangeOreBtn'); mineClickBtn = document.getElementById('mineClickBtn');
+        clicksLeftDisplay = document.getElementById('clicksLeftDisplay'); oreInMine = document.getElementById('oreInMine');
+        promoInput = document.getElementById('promoInput'); activatePromoBtn = document.getElementById('activatePromoBtn'); promoStatusSpan = document.getElementById('promoStatus'); promoCodesListDiv = document.getElementById('promoCodesList');
+        modal = document.getElementById('imageModal'); modalImage = document.getElementById('modalImage'); modalCaption = document.getElementById('modalCaption'); modalRank = document.getElementById('modalRank'); modalCloseBtn = document.getElementById('modalCloseBtn');
+        
+        loadData();
+        dailyBonusBtn.addEventListener('click', claimDaily); exchangeOreBtn.addEventListener('click', exchangeOreFunc); mineClickBtn.addEventListener('click', mine);
+        openPackBtn.addEventListener('click', buyPack); confirmChoiceBtn.addEventListener('click', confirmChoiceCard);
+        modalCloseBtn.addEventListener('click', closeModal); modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        activatePromoBtn.addEventListener('click', activatePromoCode);
+        renderPromoChips();
+        
+        document.querySelectorAll('.tab-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); btn.classList.add('active'); document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active'); }); });
+        setupFilters();
+        updateDailyUI(); updateMiningUI(); updateUI();
+    }
     document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
