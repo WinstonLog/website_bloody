@@ -1412,25 +1412,46 @@
         }
     }
     
+    // Исправленная функция loadFromCloud
     async function loadFromCloud(userId = null) {
-        if (!supabaseInitialized) return false;
+        if (!supabaseInitialized) return null;
         const targetId = userId || getUserId();
         
         try {
-            const { data: resources } = await supabaseClient
-                .from('user_resources')
-                .select('*')
-                .eq('user_id', targetId)
-                .single();
+            // Загружаем ресурсы
+            let resources = null;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_resources')
+                    .select('*')
+                    .eq('user_id', targetId)
+                    .maybeSingle();  // используем maybeSingle вместо single
+                
+                if (!error && data) {
+                    resources = data;
+                }
+            } catch(e) {
+                console.error('Resources load error:', e);
+            }
             
-            const { data: collections } = await supabaseClient
-                .from('user_collections')
-                .select('*')
-                .eq('user_id', targetId);
+            // Загружаем коллекции
+            let collections = [];
+            try {
+                const { data, error } = await supabaseClient
+                    .from('user_collections')
+                    .select('*')
+                    .eq('user_id', targetId);
+                
+                if (!error && data) {
+                    collections = data;
+                }
+            } catch(e) {
+                console.error('Collections load error:', e);
+            }
             
             return { resources, collections };
         } catch(e) {
-            console.error('Load error:', e);
+            console.error('Load from cloud error:', e);
             return null;
         }
     }
@@ -1477,31 +1498,151 @@
             return [];
         }
     }
-    
-    async function viewPlayerCollection(playerId) {
-        const data = await loadFromCloud(playerId);
-        if (!data || !data.collections) return false;
+
+    // Исправленная функция загрузки топа с отображением в UI
+    async function loadTopPlayers() {
+        const container = document.getElementById('topPlayersList');
+        if (!container) return;
         
-        viewingPlayerId = playerId;
-        viewingCollectionMap.clear();
-        
-        for (const item of data.collections) {
-            const fullCard = getFullCardById(item.card_id);
-            if (fullCard) {
-                viewingCollectionMap.set(item.card_id, { cardData: fullCard, animated: item.animated || false });
+        try {
+            const tops = await getTopPlayers(10);
+            
+            if (!tops || tops.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#aa8899; padding:20px;">🏆 Пока нет игроков с коллекциями<br><span style="font-size:0.7rem;">Откройте несколько паков карт, чтобы попасть в топ!</span></div>';
+                return;
             }
+            
+            let html = '';
+            for (let i = 0; i < tops.length; i++) {
+                const player = tops[i];
+                const shortId = player.user_id.length > 20 ? player.user_id.slice(0, 18) + '...' : player.user_id;
+                html += `
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="font-weight: bold; color: #ffaa66;">#${i+1}</span>
+                            <span style="color: #FFE7B6; font-size: 0.75rem;">${escapeHtml(shortId)}</span>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span style="color: #88ff88;">📚 ${player.count} карт</span>
+                            <button class="filter-btn" onclick="window.viewTopPlayer('${escapeHtml(player.user_id)}')" style="background: #ff4444; color: white; cursor: pointer;">👁️</button>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        } catch(e) {
+            console.error('Load top players error:', e);
+            container.innerHTML = '<div style="text-align:center; color:#ff8888; padding:20px;">❌ Ошибка загрузки топа игроков</div>';
         }
-        
-        if (data.resources) {
-            document.getElementById('viewCrystals').innerText = data.resources.crystals || 0;
-            document.getElementById('viewShards').innerText = data.resources.shards || 0;
-            document.getElementById('viewOre').innerText = data.resources.ore || 0;
-        }
-        document.getElementById('viewCardsCount').innerText = viewingCollectionMap.size;
-        
-        return true;
+    }
+
+    // Вспомогательная функция для экранирования HTML
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
     
+    // Обновленная функция viewPlayerCollection с лучшей обработкой ошибок
+    async function viewPlayerCollection(playerId) {
+        if (!supabaseInitialized) {
+            showPromoStatus("❌ Облачный сервис недоступен", "error");
+            return false;
+        }
+        
+        try {
+            const data = await loadFromCloud(playerId);
+            
+            if (!data) {
+                console.error('No data returned for player:', playerId);
+                return false;
+            }
+            
+            viewingPlayerId = playerId;
+            viewingCollectionMap.clear();
+            
+            // Загружаем коллекцию карт
+            if (data.collections && data.collections.length > 0) {
+                for (const item of data.collections) {
+                    const fullCard = getFullCardById(item.card_id);
+                    if (fullCard) {
+                        viewingCollectionMap.set(item.card_id, { 
+                            cardData: fullCard, 
+                            animated: item.animated || false 
+                        });
+                    }
+                }
+            }
+            
+            // Обновляем отображение ресурсов
+            if (data.resources) {
+                const viewCrystals = document.getElementById('viewCrystals');
+                const viewShards = document.getElementById('viewShards');
+                const viewOre = document.getElementById('viewOre');
+                const viewCardsCount = document.getElementById('viewCardsCount');
+                
+                if (viewCrystals) viewCrystals.innerText = data.resources.crystals || 0;
+                if (viewShards) viewShards.innerText = data.resources.shards || 0;
+                if (viewOre) viewOre.innerText = data.resources.ore || 0;
+                if (viewCardsCount) viewCardsCount.innerText = viewingCollectionMap.size;
+            }
+            
+            return true;
+        } catch(e) {
+            console.error('View player collection error:', e);
+            return false;
+        }
+    }
+    
+    // Добавьте эту функцию для автоматической синхронизации при первом входе
+    async function syncInitialData() {
+        if (!supabaseInitialized) return;
+        
+        const userId = getUserId();
+        
+        // Проверяем, есть ли уже данные пользователя в облаке
+        const existingData = await loadFromCloud(userId);
+        
+        if (!existingData || !existingData.resources) {
+            // Если данных нет, синхронизируем текущие
+            console.log('Первая синхронизация данных пользователя...');
+            await syncToCloud();
+        } else if (existingData.resources) {
+            // Если данные есть, загружаем их (если локальных данных меньше)
+            const cloudCrystals = existingData.resources.crystals || 0;
+            const localCrystals = crystals;
+            
+            // Если в облаке больше ресурсов, загружаем оттуда
+            if (cloudCrystals > localCrystals + 10) {  // +10 чтобы не было конфликта
+                crystals = cloudCrystals;
+                shards = existingData.resources.shards || 0;
+                ore = existingData.resources.ore || 0;
+                
+                // Также загружаем коллекцию
+                if (existingData.collections && existingData.collections.length > 0) {
+                    collectionMap.clear();
+                    for (const item of existingData.collections) {
+                        const fullCard = getFullCardById(item.card_id);
+                        if (fullCard) {
+                            collectionMap.set(item.card_id, { 
+                                cardData: fullCard, 
+                                animated: item.animated || false 
+                            });
+                        }
+                    }
+                }
+                
+                showPromoStatus("🔄 Данные синхронизированы с облаком!", "success");
+                updateUI();
+                saveData();
+            }
+        }
+    }
+
     function getFullCardById(id) { return ALL_CARDS.find(c => c.id === id); }
     
     // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ИГРЫ ==========
@@ -1947,51 +2088,74 @@
         showPromoStatus("✅ ID скопирован в буфер обмена!", "success");
     }
     
-    async function loadTopPlayers() {
-        const tops = await getTopPlayers(10);
-        const container = document.getElementById('topPlayersList');
-        if (!container) return;
+    // Исправленная функция получения топа игроков
+    async function getTopPlayers(limit = 10) {
+        if (!supabaseInitialized) return [];
         
-        if (tops.length === 0) {
-            container.innerHTML = '<div style="text-align:center; color:#aa8899; padding:20px;">🏆 Топ игроков загружается...</div>';
+        try {
+            // Сначала получаем всех пользователей из user_collections
+            const { data: collections, error } = await supabaseClient
+                .from('user_collections')
+                .select('user_id');
+            
+            if (error) {
+                console.error('Error getting collections:', error);
+                return [];
+            }
+            
+            if (!collections || collections.length === 0) {
+                return [];
+            }
+            
+            // Подсчитываем количество карт у каждого пользователя
+            const counts = {};
+            collections.forEach(item => {
+                counts[item.user_id] = (counts[item.user_id] || 0) + 1;
+            });
+            
+            // Преобразуем в массив и сортируем
+            const topPlayers = Object.entries(counts)
+                .map(([user_id, count]) => ({ user_id, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, limit);
+            
+            return topPlayers;
+        } catch(e) {
+            console.error('Top players error:', e);
+            return [];
+        }
+    }
+    
+    // Исправленная функция просмотра топ-игрока
+    async function viewTopPlayer(playerId) {
+        if (!playerId) {
+            showPromoStatus("❌ Ошибка: ID игрока не указан", "error");
             return;
         }
         
-        let html = '';
-        for (let i = 0; i < tops.length; i++) {
-            const player = tops[i];
-            const shortId = player.user_id.slice(0, 16) + '...';
-            html += `
-                <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <span style="font-weight: bold; color: #ffaa66;">#${i+1}</span>
-                        <span style="color: #FFE7B6; font-size: 0.8rem;">${shortId}</span>
-                    </div>
-                    <div style="display: flex; gap: 12px; align-items: center;">
-                        <span style="color: #88ff88;">📚 ${player.count} карт</span>
-                        <button class="filter-btn" onclick="viewTopPlayer('${player.user_id}')" style="background: #ff4444; color: white;">👁️</button>
-                    </div>
-                </div>
-            `;
-        }
-        container.innerHTML = html;
-    }
-    
-    async function viewTopPlayer(playerId) {
+        showPromoStatus("🔍 Загрузка коллекции игрока...", "info");
+        
         const success = await viewPlayerCollection(playerId);
         if (!success) {
-            showPromoStatus("❌ Не удалось загрузить коллекцию", "error");
+            showPromoStatus("❌ Не удалось загрузить коллекцию игрока", "error");
             return;
         }
         
         isViewingOtherPlayer = true;
-        document.getElementById('viewingCollectionArea').style.display = 'block';
-        document.getElementById('viewingPlayerName').innerText = playerId.slice(0, 20) + '...';
+        const viewingArea = document.getElementById('viewingCollectionArea');
+        const viewingName = document.getElementById('viewingPlayerName');
+        
+        if (viewingArea) viewingArea.style.display = 'block';
+        if (viewingName) viewingName.innerText = playerId.length > 25 ? playerId.slice(0, 22) + '...' : playerId;
+        
         viewingFilter = "all";
         renderViewingCollection();
         
-        document.querySelector('.tab-btn[data-tab="players"]').click();
-        showPromoStatus(`✅ Загружена коллекция топ-игрока`, "success");
+        // Переключаемся на вкладку игроков
+        const playersTab = document.querySelector('.tab-btn[data-tab="players"]');
+        if (playersTab) playersTab.click();
+        
+        showPromoStatus(`✅ Загружена коллекция игрока`, "success");
     }
     
     function updateUI() {
@@ -2078,6 +2242,7 @@
         modal = document.getElementById('imageModal'); modalImage = document.getElementById('modalImage'); modalCaption = document.getElementById('modalCaption'); modalRank = document.getElementById('modalRank'); modalCloseBtn = document.getElementById('modalCloseBtn');
         
         loadData();
+        await syncInitialData();
         loadFishingData();
         
         const supabaseInited = initSupabase();
