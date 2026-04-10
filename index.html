@@ -1000,7 +1000,7 @@
 
 <!-- Добавляем счетчик пользователей в хедер (после stats-row) -->
 <div style="position: fixed; bottom: 10px; right: 10px; z-index: 100;">
-    <div class="visitor-counter" id="visitorCounter" onclick="window.showVisitorStats()">
+    <div class="visitor-counter" id="visitorCounter"> <!-- onclick="window.showVisitorStats()" -->
         👥 Всего игроков: <span id="visitorCount">0</span>
     </div>
 </div>
@@ -1052,24 +1052,32 @@
         const today = new Date().toISOString().split('T')[0];
         const storageKey = `visited_${today}`;
         
+        // Если уже регистрировался сегодня, просто возвращаем общее количество
         if (localStorage.getItem(storageKey)) {
             return await getTotalVisitors();
         }
         
         try {
             const userIP = await getUserIP();
-            await supabaseClient.from('visitors').insert([{ 
-                visitor_ip: userIP,
-                visit_date: today,
-                user_agent: navigator.userAgent.substring(0, 255)
-            }]);
-            localStorage.setItem(storageKey, 'true');
-        } catch (error) {
-            if (error.code !== '23505') {
-                console.error('Ошибка:', error);
+            const { error } = await supabaseClient
+                .from('visitors')
+                .insert([{ 
+                    visitor_ip: userIP,
+                    visit_date: today,
+                    user_agent: navigator.userAgent.substring(0, 255)
+                }]);
+            
+            // 409 ошибка = уже существует (дубликат)
+            if (error && error.code === '23505') {
+                localStorage.setItem(storageKey, 'true');
+            } else if (error) {
+                console.error('Ошибка регистрации:', error);
             } else {
                 localStorage.setItem(storageKey, 'true');
+                console.log('✅ Новый посетитель зарегистрирован!');
             }
+        } catch (error) {
+            console.error('Ошибка:', error);
         }
         
         return await getTotalVisitors();
@@ -1116,26 +1124,27 @@
         const container = document.getElementById('visitorCounter');
         
         if (!supabaseInitialized) {
-            counterElement.textContent = '?';
+            if (counterElement) counterElement.textContent = '?';
             return;
         }
         
-        container.classList.add('loading');
+        if (container) container.classList.add('loading');
         const total = await registerVisitor();
-        counterElement.textContent = total;
-        container.classList.remove('loading');
+        if (counterElement) counterElement.textContent = total;
+        if (container) container.classList.remove('loading');
     }
     
-    async function showVisitorStats() {
+    // Функция для показа статистики (НЕ РЕКУРСИВНАЯ)
+    async function showVisitorStatsModal() {
         if (!supabaseInitialized) {
-            alert('⚠️ Счетчик временно недоступен.');
+            alert('⚠️ Счетчик временно недоступен.\n\nНастройте Supabase в коде.');
             return;
         }
         
         const total = document.getElementById('visitorCount').textContent;
         const stats = await getDailyStats();
         
-        let message = `👥 Всего игроков: ${total}\n\n📊 По дням:\n`;
+        let message = `👥 Всего уникальных игроков: ${total}\n\n📊 Статистика за последние 7 дней:\n`;
         if (stats.length === 0) {
             message += 'Нет данных';
         } else {
@@ -1143,17 +1152,22 @@
                 message += `${stat.date}: ${stat.count} чел.\n`;
             });
         }
+        message += '\n✨ Спасибо, что играете!';
         
         alert(message);
     }
     
-    window.showVisitorStats = showVisitorStats;
+    // Глобальная функция для кнопки
+    window.showVisitorStats = showVisitorStatsModal;
     
-    // Инициализация при загрузке
+    // АВТОМАТИЧЕСКАЯ регистрация при загрузке страницы
     document.addEventListener('DOMContentLoaded', function() {
         initSupabase();
         if (supabaseInitialized) {
+            // Регистрируем посетителя и обновляем счетчик сразу при загрузке
             updateVisitorCounter();
+            
+            // Обновляем счетчик каждые 30 секунд
             setInterval(async () => {
                 const total = await getTotalVisitors();
                 const el = document.getElementById('visitorCount');
