@@ -561,12 +561,36 @@
             cursor: pointer;
             transition: 0.1s;
             border: 2px solid rgba(255, 200, 100, 0.3);
+            position: relative;
         }
 
         .choice-card.selected {
             border: 2px solid #ff4444;
             background: linear-gradient(145deg, #2a1f2a, #1a1222);
             transform: scale(1.02);
+        }
+
+        /* Метка наличия карты в коллекции (галочка) */
+        .choice-owned-badge {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            background: #4a6741;
+            border-radius: 20px;
+            padding: 2px 6px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: #ccffaa;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            backdrop-filter: blur(2px);
+        }
+
+        .choice-owned-badge span {
+            font-size: 0.7rem;
         }
 
         .choice-image {
@@ -1750,46 +1774,75 @@
     
     async function checkAndRewardReferrer(referredUserId) {
         if (!supabaseInitialized) return;
+        
         try {
+            // Получаем запись о реферале
             const { data: referral, error } = await supabaseClient
                 .from('referrals')
                 .select('*')
                 .eq('referred_id', referredUserId)
                 .maybeSingle();
+                
             if (error) throw error;
+            
+            // Если нет записи ИЛИ бонус уже выдан - выходим
             if (!referral || referral.reward_claimed) return;
             
+            // Получаем ресурсы приглашённого
             const { data: resources, error: resError } = await supabaseClient
                 .from('user_resources')
                 .select('ore')
                 .eq('user_id', referredUserId)
                 .maybeSingle();
+                
             if (resError) throw resError;
             if (!resources) return;
             
+            // Проверяем условие (руды >= 1000)
             if (resources.ore >= 1000) {
+                // *** ВАЖНО: Сначала помечаем бонус как выданный, чтобы избежать повторных начислений ***
+                const { error: updateError } = await supabaseClient
+                    .from('referrals')
+                    .update({ reward_claimed: true })
+                    .eq('id', referral.id);
+                    
+                if (updateError) throw updateError;
+                
+                // Затем начисляем бонус рефереру (ровно 50 кристаллов)
                 const { data: referrerRes } = await supabaseClient
                     .from('user_resources')
                     .select('crystals')
                     .eq('user_id', referral.referrer_id)
                     .maybeSingle();
                 
-                const newCrystals = (referrerRes?.crystals || 0) + 50;
-                await supabaseClient.from('user_resources').upsert({
-                    user_id: referral.referrer_id,
-                    crystals: newCrystals,
-                    updated_at: new Date().toISOString()
-                });
-                await supabaseClient.from('referrals').update({ reward_claimed: true }).eq('id', referral.id);
-                console.log(`Reward 50 crystals given to referrer ${referral.referrer_id}`);
+                const currentCrystals = referrerRes?.crystals || 0;
+                const newCrystals = currentCrystals + 50; // ← СТРОГО 50, не 300!
                 
+                const { error: upsertError } = await supabaseClient
+                    .from('user_resources')
+                    .upsert({
+                        user_id: referral.referrer_id,
+                        crystals: newCrystals,
+                        updated_at: new Date().toISOString()
+                    });
+                    
+                if (upsertError) throw upsertError;
+                
+                console.log(`✅ Бонус 50💎 выдан рефереру ${referral.referrer_id} за приглашение ${referredUserId}`);
+                
+                // Если текущий пользователь - реферер, обновляем локально
                 if (referral.referrer_id === getUserId()) {
                     crystals += 50;
                     updateUI();
-                    showPromoStatus("🎉 Ваш друг достиг 1000 руды! Вы получили +50💎 за приглашение!", "success");
+                    showPromoStatus(`🎉 Ваш друг достиг 1000 руды! Вы получили +50💎 за приглашение!`, "success");
                 }
+                
+                // Обновляем UI реферальной информации
+                await updateReferralUI();
             }
-        } catch(e) { console.error('Check referral reward error:', e); }
+        } catch(e) {
+            console.error('Check referral reward error:', e);
+        }
     }
     
     async function updateReferralUI() {
@@ -1897,7 +1950,7 @@
             return false;
         }
     }
-    
+
     async function forceCheckReferralBonus() {
         if (!supabaseInitialized) {
             showPromoStatus("❌ Облачный сервис недоступен", "error");
@@ -1990,7 +2043,12 @@
         ore += gain; 
         updateMiningUI(); 
         updateUI();
-        checkAndRewardReferrer(getUserId());
+        
+        // Проверяем реферальный бонус, но с защитой от дублирования
+        // Функция checkAndRewardReferrer уже проверяет reward_claimed
+        if (supabaseInitialized) {
+            checkAndRewardReferrer(getUserId());
+        }
     }
     
     function exchangeOreFunc() { if (ore < 100) return; const exchangeAmount = Math.floor(ore / 100); crystals += exchangeAmount; ore -= exchangeAmount * 100; updateUI(); }
@@ -2011,15 +2069,33 @@
     
     function generateOffer() { const cards = [], used = new Set(); while (cards.length < 3) { const card = getRandomCardForPack(); if (!used.has(card.id)) { used.add(card.id); cards.push(card); } } return cards; }
     
+    // *** ОБНОВЛЕННАЯ ФУНКЦИЯ ОТОБРАЖЕНИЯ ВЫБОРА КАРТ С ГАЛОЧКОЙ "ЕСТЬ" ***
     function renderChoice() {
         let html = '';
         currentOfferedCards.forEach((card, i) => {
             const imgPath = getCardImage(card, false);
             const rankClass = getRankCornerClass(card.rank);
-            html += `<div class="choice-card ${selectedCardIndex === i ? 'selected' : ''}" data-index="${i}"><div class="choice-image-container"><img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${getDefaultImageForRank(card)}';"><div class="choice-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="choice-name">${card.name}</div></div>`;
+            const isOwned = collectionMap.has(card.id);
+            // Добавляем бейдж "Есть" если карта уже в коллекции
+            const ownedBadge = isOwned ? `<div class="choice-owned-badge">✔️ Есть</div>` : '';
+            html += `<div class="choice-card ${selectedCardIndex === i ? 'selected' : ''}" data-index="${i}">
+                        ${ownedBadge}
+                        <div class="choice-image-container">
+                            <img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${getDefaultImageForRank(card)}';">
+                            <div class="choice-rank-corner ${rankClass}">${card.rankLabel}</div>
+                        </div>
+                        <div class="choice-name">${card.name}</div>
+                     </div>`;
         });
         choiceCardsContainer.innerHTML = html;
-        document.querySelectorAll('.choice-card').forEach(el => { el.addEventListener('click', (e) => { selectedCardIndex = parseInt(el.dataset.index); renderChoice(); confirmChoiceBtn.disabled = false; }); });
+        document.querySelectorAll('.choice-card').forEach(el => { 
+            el.addEventListener('click', (e) => { 
+                // Если кликнули по бейджу или его содержимому — всё равно выбираем карту
+                selectedCardIndex = parseInt(el.dataset.index); 
+                renderChoice(); 
+                confirmChoiceBtn.disabled = false; 
+            }); 
+        });
     }
     
     function confirmChoiceCard() {
