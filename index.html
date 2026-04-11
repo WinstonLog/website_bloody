@@ -893,7 +893,6 @@
             transform: scale(0.96);
         }
 
-        /* Стили для просмотра чужих коллекций */
         .search-player-section {
             background: linear-gradient(135deg, #1a1a2a, #0f0f1a);
             border-radius: 24px;
@@ -938,7 +937,6 @@
             margin-bottom: 12px;
         }
 
-        /* Стили для настройки ника */
         .nickname-section {
             background: linear-gradient(135deg, #1a1a2a, #0f0f1a);
             border-radius: 24px;
@@ -1006,7 +1004,7 @@
             color: white;
             cursor: pointer;
         }
-        /* Стили для реферальной информации */
+        
         .referral-info {
             background: linear-gradient(135deg, #2a1a2a, #1a0f1a);
             border-radius: 20px;
@@ -1021,6 +1019,18 @@
         }
         .referral-info strong {
             color: #ffaa66;
+        }
+        .check-bonus-btn {
+            background: linear-gradient(135deg, #ffaa33, #cc8833);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: #1a0f1a;
+            cursor: pointer;
+            margin-top: 8px;
+            width: 100%;
         }
     </style>
 </head>
@@ -1173,7 +1183,7 @@
         <div id="allCardsList" class="allcards-grid"></div>
     </div>
 
-    <!-- Игроки / Просмотр коллекций -->
+    <!-- Игроки -->
     <div class="tab-content" id="tab-players">
         <div class="search-player-section">
             <div class="promo-header">
@@ -1226,7 +1236,7 @@
         </div>
     </div>
 
-    <!-- Профиль / Настройка ника -->
+    <!-- Профиль -->
     <div class="tab-content" id="tab-profile">
         <div class="nickname-section">
             <div class="promo-header">
@@ -1266,7 +1276,7 @@
             <div class="promo-status" id="inviteStatus"></div>
         </div>
         
-        <!-- Блок реферальной информации -->
+        <!-- Реферальная информация -->
         <div class="referral-info" id="referralInfoBlock">
             <div class="promo-header">
                 <span class="promo-icon">🎁</span>
@@ -1274,8 +1284,9 @@
             </div>
             <p>🏆 <strong>Приведи друга и получи бонус!</strong></p>
             <p>📌 <strong>Ваш реферал:</strong> <span id="refUserName">Нет</span></p>
-            <p>⚙️ <strong>Статус бонуса:</strong> <span id="refBonusStatus">Ожидание</span></p>
+            <p>⚙️ <strong>Статус бонуса:</strong> <span id="refBonusStatus">—</span></p>
             <p style="font-size:0.7rem; margin-top:6px;">💎 <strong>Условие:</strong> Друг должен накопить 1000 руды в шахте, и вы получите +50💎!</p>
+            <button class="check-bonus-btn" id="checkBonusBtn">🔍 Проверить бонус</button>
         </div>
     </div>
 
@@ -1305,20 +1316,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ========== КОНФИГУРАЦИЯ SUPABASE ==========
     const SUPABASE_URL = 'https://tixgzuqpdepyxgueriqw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpeGd6dXFwZGVweXhndWVyaXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzAzMjIsImV4cCI6MjA5MTM0NjMyMn0.sskc8yr9bfHuCzAMVpupM7dJWXhfqg2GWg-1StQcQDM';
     
     let supabaseClient = null;
     let supabaseInitialized = false;
-    let currentUserId = null;
     let currentNickname = null;
     let isViewingOtherPlayer = false;
     let viewingPlayerId = null;
     let viewingFilter = "all";
     let viewingCollectionMap = new Map();
 
-    // БАЗА КАРТ (та же, что и была)
+    // БАЗА КАРТ
     const ALL_CARDS = [
         { id: "osk01", name: "Осколок", emoji: "⚔️", rank: "A+", set: "Эхокалипсис", rankLabel: "A+", color: "#772ce8", rankOrder: 3, image: "images/osk.png", canUpgrade: false, animImage: null },
         { id: "cc01", name: "C.C.", emoji: "🍊", rank: "X", set: "X", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/cc01.png", canUpgrade: false, animImage: null },
@@ -1487,14 +1496,12 @@
         { name: "🎁 Сундук", weight: 1, reward: { ore: 0, crystals: 0, shards: 0, card: null, pack: true } }
     ];
     
-    // DOM элементы
     let crystalDisplay, oreDisplay, shardDisplay, totalCardsCountSpan, totalAllCardsCountSpan;
     let openPackBtn, selectionArea, choiceCardsContainer, confirmChoiceBtn, collectionListDiv, allCardsListDiv;
     let dailyBonusBtn, exchangeOreBtn, mineClickBtn, clicksLeftDisplay, oreInMine;
     let promoInput, activatePromoBtn, promoStatusSpan, promoCodesListDiv;
     let modal, modalImage, modalCaption, modalRank, modalCloseBtn;
-    
-    // ========== ФУНКЦИИ SUPABASE ==========
+
     function initSupabase() {
         if (typeof supabase === 'undefined') {
             console.error('⚠️ Supabase библиотека не загружена!');
@@ -1543,7 +1550,6 @@
                 await supabaseClient.from('user_collections').upsert(card);
             }
             
-            // Обновляем профиль с ником
             await supabaseClient.from('user_profiles').upsert({
                 user_id: userId,
                 nickname: currentNickname || null,
@@ -1554,114 +1560,65 @@
         }
     }
     
-    // Загрузка ника пользователя из облака
     async function loadUserNickname(userId) {
         if (!supabaseInitialized) return null;
-        
         try {
             const { data, error } = await supabaseClient
                 .from('user_profiles')
                 .select('nickname')
                 .eq('user_id', userId)
                 .maybeSingle();
-            
-            if (!error && data && data.nickname) {
-                return data.nickname;
-            }
-        } catch(e) {
-            console.error('Load nickname error:', e);
-        }
+            if (!error && data && data.nickname) return data.nickname;
+        } catch(e) { console.error('Load nickname error:', e); }
         return null;
     }
     
-    // Проверка уникальности ника
     async function isNicknameUnique(nickname, excludeUserId = null) {
         if (!supabaseInitialized) return true;
-        
         try {
             let query = supabaseClient.from('user_profiles').select('user_id').eq('nickname', nickname);
-            if (excludeUserId) {
-                query = query.neq('user_id', excludeUserId);
-            }
+            if (excludeUserId) query = query.neq('user_id', excludeUserId);
             const { data, error } = await query;
-            
-            if (error) {
-                console.error('Check nickname error:', error);
-                return true;
-            }
+            if (error) return true;
             return !data || data.length === 0;
-        } catch(e) {
-            console.error('Nickname check error:', e);
-            return true;
-        }
+        } catch(e) { return true; }
     }
     
-    // Сохранение ника в облако
     async function saveNicknameToCloud(nickname) {
         if (!supabaseInitialized) return false;
         const userId = getUserId();
-        
         try {
-            // Проверяем уникальность
             const isUnique = await isNicknameUnique(nickname, userId);
-            if (!isUnique) {
-                return { success: false, error: "Этот ник уже занят!" };
-            }
-            
-            // Обновляем профиль
+            if (!isUnique) return { success: false, error: "Этот ник уже занят!" };
             const { error } = await supabaseClient.from('user_profiles').upsert({
                 user_id: userId,
                 nickname: nickname,
                 last_active: new Date().toISOString()
             });
-            
-            if (error) {
-                console.error('Save nickname error:', error);
-                return { success: false, error: "Ошибка сохранения" };
-            }
-            
+            if (error) return { success: false, error: "Ошибка сохранения" };
             return { success: true };
-        } catch(e) {
-            console.error('Save nickname error:', e);
-            return { success: false, error: "Ошибка соединения" };
-        }
+        } catch(e) { return { success: false, error: "Ошибка соединения" }; }
     }
     
-    // Поиск игрока по нику или ID
     async function searchPlayer(searchTerm) {
         if (!supabaseInitialized) return null;
-        
         try {
             let query = supabaseClient.from('user_profiles').select('user_id, nickname');
-            
-            // Если похоже на user_* ищем по ID
             if (searchTerm.startsWith('user_')) {
                 query = query.eq('user_id', searchTerm);
             } else {
-                // Ищем по нику (точное совпадение или по части)
                 query = query.ilike('nickname', `%${searchTerm}%`);
             }
-            
             const { data, error } = await query.limit(10);
-            
-            if (error) {
-                console.error('Search error:', error);
-                return null;
-            }
-            
+            if (error) return null;
             return data;
-        } catch(e) {
-            console.error('Search error:', e);
-            return null;
-        }
+        } catch(e) { return null; }
     }
     
     async function loadFromCloud(userId = null) {
         if (!supabaseInitialized) return null;
         const targetId = userId || getUserId();
-        
         try {
-            // Загружаем ресурсы
             let resources = null;
             try {
                 const { data, error } = await supabaseClient
@@ -1669,161 +1626,83 @@
                     .select('*')
                     .eq('user_id', targetId)
                     .maybeSingle();
-                
-                if (!error && data) {
-                    resources = data;
-                }
-            } catch(e) {
-                console.error('Resources load error:', e);
-            }
+                if (!error && data) resources = data;
+            } catch(e) {}
             
-            // Загружаем коллекции
             let collections = [];
             try {
                 const { data, error } = await supabaseClient
                     .from('user_collections')
                     .select('*')
                     .eq('user_id', targetId);
-                
-                if (!error && data) {
-                    collections = data;
-                }
-            } catch(e) {
-                console.error('Collections load error:', e);
-            }
+                if (!error && data) collections = data;
+            } catch(e) {}
             
             return { resources, collections };
-        } catch(e) {
-            console.error('Load from cloud error:', e);
-            return null;
-        }
+        } catch(e) { return null; }
     }
     
     async function getTopPlayers(limit = 10) {
         if (!supabaseInitialized) return [];
-        
         try {
-            // Получаем всех пользователей с их коллекциями
             const { data: collections, error: collError } = await supabaseClient
                 .from('user_collections')
                 .select('user_id');
-            
-            if (collError) {
-                console.error('Error getting collections:', collError);
-                return [];
-            }
-            
-            if (!collections || collections.length === 0) {
-                return [];
-            }
-            
-            // Подсчитываем количество карт у каждого пользователя
+            if (collError) return [];
+            if (!collections || collections.length === 0) return [];
             const counts = {};
-            collections.forEach(item => {
-                counts[item.user_id] = (counts[item.user_id] || 0) + 1;
-            });
-            
-            // Получаем ники для пользователей
+            collections.forEach(item => { counts[item.user_id] = (counts[item.user_id] || 0) + 1; });
             const userIds = Object.keys(counts);
             let nicknames = {};
-            
             if (userIds.length > 0) {
-                const { data: profiles, error: profError } = await supabaseClient
+                const { data: profiles } = await supabaseClient
                     .from('user_profiles')
                     .select('user_id, nickname')
                     .in('user_id', userIds);
-                
-                if (!profError && profiles) {
-                    profiles.forEach(p => {
-                        nicknames[p.user_id] = p.nickname;
-                    });
-                }
+                if (profiles) profiles.forEach(p => { nicknames[p.user_id] = p.nickname; });
             }
-            
-            // Формируем топ
-            const topPlayers = Object.entries(counts)
-                .map(([user_id, count]) => ({ 
-                    user_id, 
-                    count,
-                    nickname: nicknames[user_id] || user_id.slice(0, 16) + '...'
-                }))
-                .sort((a, b) => b.count - a.count)
-                .slice(0, limit);
-            
-            return topPlayers;
-        } catch(e) {
-            console.error('Top players error:', e);
-            return [];
-        }
+            return Object.entries(counts).map(([user_id, count]) => ({ user_id, count, nickname: nicknames[user_id] || user_id.slice(0, 16) + '...' })).sort((a, b) => b.count - a.count).slice(0, limit);
+        } catch(e) { return []; }
     }
     
     async function viewPlayerCollection(playerId) {
-        if (!supabaseInitialized) {
-            showPromoStatus("❌ Облачный сервис недоступен", "error");
-            return false;
-        }
-        
+        if (!supabaseInitialized) return false;
         try {
             const data = await loadFromCloud(playerId);
-            
-            if (!data) {
-                console.error('No data returned for player:', playerId);
-                return false;
-            }
-            
+            if (!data) return false;
             viewingPlayerId = playerId;
             viewingCollectionMap.clear();
-            
-            // Загружаем коллекцию карт
-            if (data.collections && data.collections.length > 0) {
+            if (data.collections) {
                 for (const item of data.collections) {
                     const fullCard = getFullCardById(item.card_id);
-                    if (fullCard) {
-                        viewingCollectionMap.set(item.card_id, { 
-                            cardData: fullCard, 
-                            animated: item.animated || false 
-                        });
-                    }
+                    if (fullCard) viewingCollectionMap.set(item.card_id, { cardData: fullCard, animated: item.animated || false });
                 }
             }
-            
-            // Обновляем отображение ресурсов
             if (data.resources) {
                 const viewCrystals = document.getElementById('viewCrystals');
                 const viewShards = document.getElementById('viewShards');
                 const viewOre = document.getElementById('viewOre');
                 const viewCardsCount = document.getElementById('viewCardsCount');
-                
                 if (viewCrystals) viewCrystals.innerText = data.resources.crystals || 0;
                 if (viewShards) viewShards.innerText = data.resources.shards || 0;
                 if (viewOre) viewOre.innerText = data.resources.ore || 0;
                 if (viewCardsCount) viewCardsCount.innerText = viewingCollectionMap.size;
             }
-            
             return true;
-        } catch(e) {
-            console.error('View player collection error:', e);
-            return false;
-        }
+        } catch(e) { return false; }
     }
+
+    // ========== РЕФЕРАЛЬНЫЕ ФУНКЦИИ ==========
     
-    // ================= РЕФЕРАЛЬНАЯ СИСТЕМА =================
-    // Создание связи реферал -> реферер
     async function createReferralLink(referredUserId, referrerUserId) {
         if (!supabaseInitialized) return false;
         try {
-            // Проверяем, не связан ли уже этот пользователь
             const { data: existing } = await supabaseClient
                 .from('referrals')
                 .select('id')
                 .eq('referred_id', referredUserId)
                 .maybeSingle();
-                
-            if (existing) {
-                console.log("Referral already exists");
-                return false;
-            }
-            
+            if (existing) return false;
             const { error } = await supabaseClient.from('referrals').insert({
                 referrer_id: referrerUserId,
                 referred_id: referredUserId,
@@ -1839,7 +1718,6 @@
         }
     }
     
-    // Получение данных о реферале для текущего пользователя
     async function getReferralInfo(userId) {
         if (!supabaseInitialized) return null;
         try {
@@ -1850,46 +1728,34 @@
                 .maybeSingle();
             if (error) throw error;
             return data;
-        } catch(e) {
-            console.error('Get referral info error:', e);
-            return null;
-        }
+        } catch(e) { return null; }
     }
     
-    // Проверка выполнения условия для выдачи бонуса рефереру
     async function checkAndRewardReferrer(referredUserId) {
         if (!supabaseInitialized) return;
         try {
-            // Получаем запись о реферале
             const { data: referral, error } = await supabaseClient
                 .from('referrals')
                 .select('*')
                 .eq('referred_id', referredUserId)
                 .maybeSingle();
-                
             if (error) throw error;
             if (!referral || referral.reward_claimed) return;
             
-            // Получаем ресурсы приглашенного
             const { data: resources, error: resError } = await supabaseClient
                 .from('user_resources')
                 .select('ore')
                 .eq('user_id', referredUserId)
                 .maybeSingle();
-                
             if (resError) throw resError;
             if (!resources) return;
             
-            // Если руды >= 1000
             if (resources.ore >= 1000) {
-                // Начисляем бонус рефереру (50 кристаллов)
-                const { data: referrerRes, error: refResError } = await supabaseClient
+                const { data: referrerRes } = await supabaseClient
                     .from('user_resources')
                     .select('crystals')
                     .eq('user_id', referral.referrer_id)
                     .maybeSingle();
-                    
-                if (refResError) throw refResError;
                 
                 const newCrystals = (referrerRes?.crystals || 0) + 50;
                 await supabaseClient.from('user_resources').upsert({
@@ -1897,25 +1763,18 @@
                     crystals: newCrystals,
                     updated_at: new Date().toISOString()
                 });
-                
-                // Отмечаем бонус как выданный
                 await supabaseClient.from('referrals').update({ reward_claimed: true }).eq('id', referral.id);
+                console.log(`Reward 50 crystals given to referrer ${referral.referrer_id}`);
                 
-                console.log(`Reward 50 crystals given to referrer ${referral.referrer_id} for referred ${referredUserId}`);
-                
-                // Если это текущий пользователь, обновляем локально
                 if (referral.referrer_id === getUserId()) {
                     crystals += 50;
                     updateUI();
                     showPromoStatus("🎉 Ваш друг достиг 1000 руды! Вы получили +50💎 за приглашение!", "success");
                 }
             }
-        } catch(e) {
-            console.error('Check referral reward error:', e);
-        }
+        } catch(e) { console.error('Check referral reward error:', e); }
     }
     
-    // Обновление UI реферальной информации
     async function updateReferralUI() {
         const userId = getUserId();
         const referral = await getReferralInfo(userId);
@@ -1923,7 +1782,6 @@
         const refStatusSpan = document.getElementById('refBonusStatus');
         
         if (referral) {
-            // Получаем ник реферала
             const { data: profile } = await supabaseClient
                 .from('user_profiles')
                 .select('nickname')
@@ -1938,7 +1796,6 @@
         }
     }
     
-    // Обработка реферальной ссылки при старте
     async function processReferralLink() {
         const urlParams = new URLSearchParams(window.location.search);
         const referrerId = urlParams.get('ref');
@@ -1946,343 +1803,57 @@
         
         if (referrerId && referrerId !== currentId) {
             console.log(`Referral detected: ${referrerId} -> ${currentId}`);
-            // Проверяем, существует ли реферер в БД
             const { data: referrerExists } = await supabaseClient
                 .from('user_profiles')
                 .select('user_id')
                 .eq('user_id', referrerId)
                 .maybeSingle();
-                
             if (referrerExists) {
-                // Создаем связь, если её еще нет
                 await createReferralLink(currentId, referrerId);
-                // Даем бонус новому игроку
                 crystals += 30;
                 updateUI();
                 showPromoStatus("🎁 Вы пришли по приглашению! Получено +30💎 бонусов!", "success");
                 saveData();
-                // Очищаем параметр из URL, чтобы не применять повторно
                 window.history.replaceState({}, document.title, window.location.pathname);
-            } else {
-                console.log("Referrer not found in DB");
             }
         }
     }
     
-    // ========== ФУНКЦИИ НИКА ==========
-    function updateNicknameUI() {
-        const nicknameSpan = document.getElementById('currentNickname');
-        if (nicknameSpan) {
-            nicknameSpan.innerText = currentNickname || 'Не установлен';
-        }
-        
-        // Отдельно показываем ID и ник в разных местах
-        const myUserIdSpan = document.getElementById('myUserId');
-        if (myUserIdSpan) {
-            // Показываем ник, если есть, иначе короткий ID
-            if (currentNickname) {
-                myUserIdSpan.innerText = currentNickname;
-                myUserIdSpan.title = `ID: ${getUserId()}`; // Подсказка с ID при наведении
-            } else {
-                myUserIdSpan.innerText = getUserId().slice(0, 20) + '...';
-                myUserIdSpan.title = getUserId();
-            }
-        }
-    }
-    
-    function showNicknameStatus(text, isError = false) {
-        const statusSpan = document.getElementById('nicknameStatus');
-        if (statusSpan) {
-            statusSpan.innerText = text;
-            statusSpan.className = `promo-status ${isError ? 'error' : 'success'}`;
-            setTimeout(() => {
-                if (statusSpan.innerText === text) {
-                    statusSpan.innerText = '';
-                    statusSpan.className = 'promo-status';
-                }
-            }, 3000);
-        }
-    }
-    
-    async function setNickname() {
-        const input = document.getElementById('nicknameInput');
-        const newNickname = input.value.trim();
-        
-        if (!newNickname) {
-            showNicknameStatus("❌ Введите ник!", true);
+    async function forceCheckReferralBonus() {
+        if (!supabaseInitialized) {
+            showPromoStatus("❌ Облачный сервис недоступен", "error");
             return;
         }
-        
-        if (newNickname.length < 2 || newNickname.length > 16) {
-            showNicknameStatus("❌ Ник должен быть от 2 до 16 символов!", true);
-            return;
-        }
-        
-        if (!/^[a-zA-Zа-яА-Я0-9_]+$/.test(newNickname)) {
-            showNicknameStatus("❌ Ник может содержать только буквы, цифры и _", true);
-            return;
-        }
-        
-        showNicknameStatus("⏳ Проверка ника...", false);
-        
-        const result = await saveNicknameToCloud(newNickname);
-        
-        if (result.success) {
-            currentNickname = newNickname;
-            updateNicknameUI();
-            showNicknameStatus(`✅ Ник успешно изменён на "${newNickname}"!`, false);
-            
-            // Закрываем форму редактирования
-            document.getElementById('nicknameDisplay').style.display = 'flex';
-            document.getElementById('nicknameEditForm').style.display = 'none';
-            input.value = '';
-            
-            // Синхронизируем данные
-            await syncToCloud();
-        } else {
-            showNicknameStatus(`❌ ${result.error}`, true);
-        }
-    }
-    
-    function showNicknameEditForm() {
-        document.getElementById('nicknameDisplay').style.display = 'none';
-        document.getElementById('nicknameEditForm').style.display = 'block';
-        document.getElementById('nicknameInput').value = currentNickname || '';
-        document.getElementById('nicknameInput').focus();
-    }
-    
-    function cancelNicknameEdit() {
-        document.getElementById('nicknameDisplay').style.display = 'flex';
-        document.getElementById('nicknameEditForm').style.display = 'none';
-        document.getElementById('nicknameStatus').innerText = '';
-    }
-    
-    // Исправленная функция поиска игрока
-    async function searchAndViewPlayer() {
-        const searchTerm = document.getElementById('searchPlayerInput').value.trim();
-        if (!searchTerm) {
-            showPromoStatus("Введите ID игрока или ник для поиска", "error");
-            return;
-        }
-        
-        showPromoStatus("🔍 Поиск игрока...", "info");
-        
-        const players = await searchPlayer(searchTerm);
-        if (!players || players.length === 0) {
-            document.getElementById('noPlayerFound').style.display = 'block';
-            document.getElementById('viewingCollectionArea').style.display = 'none';
-            showPromoStatus("❌ Игрок не найден", "error");
-            return;
-        }
-        
-        document.getElementById('noPlayerFound').style.display = 'none';
-        const player = players[0];
-        
-        const success = await viewPlayerCollection(player.user_id);
-        if (!success) {
-            showPromoStatus("❌ Не удалось загрузить коллекцию игрока", "error");
-            return;
-        }
-        
-        isViewingOtherPlayer = true;
-        document.getElementById('viewingCollectionArea').style.display = 'block';
-        
-        const displayName = player.nickname || player.user_id.slice(0, 20) + '...';
-        const viewingNameSpan = document.getElementById('viewingPlayerName');
-        if (viewingNameSpan) {
-            viewingNameSpan.innerText = displayName;
-            viewingNameSpan.title = `ID: ${player.user_id}`;
-        }
-        
-        viewingFilter = "all";
-        renderViewingCollection();
-        
-        showPromoStatus(`✅ Загружена коллекция игрока ${displayName}`, "success");
-    }
-    
-    function renderViewingCollection() {
-        if (!isViewingOtherPlayer) return;
-        
-        let filtered = Array.from(viewingCollectionMap.values());
-        if (viewingFilter !== "all") filtered = filtered.filter(entry => entry.cardData.rank === viewingFilter);
-        let sorted = filtered.sort((a,b) => (a.cardData.rankOrder||99) - (b.cardData.rankOrder||99));
-        let html = '';
-        for (let entry of sorted) {
-            const card = entry.cardData;
-            const imgPath = getCardImage(card, entry.animated);
-            const rankClass = getRankCornerClass(card.rank);
-            html += `<div class="collection-card ${entry.animated ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="image-container"><img class="collection-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="collection-name">${card.name}${entry.animated ? '✨' : ''}</div></div>`;
-        }
-        document.getElementById('viewingCollectionList').innerHTML = html || '<div style="text-align:center; padding:20px; color:#aa8899;">📭 У игрока нет карт</div>';
-        
-        document.querySelectorAll('#viewingCollectionList .collection-card').forEach(card => {
-            const data = JSON.parse(card.dataset.card);
-            card.addEventListener('click', () => showModal(data.image, data.name, data.rank));
-        });
-    }
-    
-    // Обновленная функция загрузки топа
-    async function loadTopPlayers() {
-        const container = document.getElementById('topPlayersList');
-        if (!container) return;
-        
-        try {
-            const tops = await getTopPlayers(10);
-            
-            if (!tops || tops.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#aa8899; padding:20px;">🏆 Пока нет игроков с коллекциями<br><span style="font-size:0.7rem;">Откройте несколько паков карт, чтобы попасть в топ!</span></div>';
-                return;
-            }
-            
-            let html = '';
-            for (let i = 0; i < tops.length; i++) {
-                const player = tops[i];
-                const displayName = player.nickname || player.user_id.slice(0, 18) + '...';
-                html += `
-                    <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span style="font-weight: bold; color: #ffaa66;">#${i+1}</span>
-                            <span style="color: #FFE7B6; font-size: 0.75rem;">${escapeHtml(displayName)}</span>
-                        </div>
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <span style="color: #88ff88;">📚 ${player.count} карт</span>
-                            <button class="filter-btn" onclick="window.viewTopPlayer('${escapeHtml(player.user_id)}')" style="background: #ff4444; color: white; cursor: pointer;">👁️</button>
-                        </div>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
-        } catch(e) {
-            console.error('Load top players error:', e);
-            container.innerHTML = '<div style="text-align:center; color:#ff8888; padding:20px;">❌ Ошибка загрузки топа игроков</div>';
-        }
+        showPromoStatus("🔍 Проверка реферального бонуса...", "info");
+        await checkAndRewardReferrer(getUserId());
+        await updateReferralUI();
+        showPromoStatus("✅ Проверка завершена", "success");
     }
 
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    // Исправленная функция просмотра топ-игрока
-    async function viewTopPlayer(playerId) {
-        if (!playerId) {
-            showPromoStatus("❌ Ошибка: ID игрока не указан", "error");
-            return;
-        }
-        
-        showPromoStatus("🔍 Загрузка коллекции игрока...", "info");
-        
-        const success = await viewPlayerCollection(playerId);
-        if (!success) {
-            showPromoStatus("❌ Не удалось загрузить коллекцию игрока", "error");
-            return;
-        }
-        
-        isViewingOtherPlayer = true;
-        const viewingArea = document.getElementById('viewingCollectionArea');
-        const viewingName = document.getElementById('viewingPlayerName');
-        
-        if (viewingArea) viewingArea.style.display = 'block';
-        
-        // Получаем ник игрока для отображения
-        try {
-            const { data: profile } = await supabaseClient
-                .from('user_profiles')
-                .select('nickname')
-                .eq('user_id', playerId)
-                .maybeSingle();
-            
-            const displayName = profile?.nickname || playerId.slice(0, 22) + '...';
-            if (viewingName) {
-                viewingName.innerText = displayName;
-                viewingName.title = `ID: ${playerId}`; // Подсказка с ID
-            }
-        } catch(e) {
-            if (viewingName) viewingName.innerText = playerId.slice(0, 22) + '...';
-        }
-        
-        viewingFilter = "all";
-        renderViewingCollection();
-        
-        // Переключаемся на вкладку игроков
-        const playersTab = document.querySelector('.tab-btn[data-tab="players"]');
-        if (playersTab) playersTab.click();
-        
-        showPromoStatus(`✅ Загружена коллекция игрока`, "success");
-    }
-
-    // Исправленная функция копирования (копируем ID, а не ник)
-    function copyUserId() {
-        const userId = getUserId();
-        navigator.clipboard.writeText(userId);
-        showPromoStatus("✅ Ваш ID скопирован в буфер обмена!", "success");
-    }
-
-    // Функция копирования ника (дополнительная)
-    function copyNickname() {
-        if (currentNickname) {
-            navigator.clipboard.writeText(currentNickname);
-            showPromoStatus(`✅ Ник "${currentNickname}" скопирован!`, "success");
-        } else {
-            showPromoStatus("❌ У вас еще нет ника", "error");
-        }
-    }
-    
-    function copyInviteLink() {
-        const userId = getUserId();
-        const link = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
-        navigator.clipboard.writeText(link);
-        const statusSpan = document.getElementById('inviteStatus');
-        if (statusSpan) {
-            statusSpan.innerText = "✅ Ссылка скопирована!";
-            statusSpan.className = "promo-status success";
-            setTimeout(() => {
-                statusSpan.innerText = "";
-                statusSpan.className = "promo-status";
-            }, 2000);
-        }
-    }
-    
-    function updateInviteLink() {
-        const userId = getUserId();
-        const link = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
-        const inviteInput = document.getElementById('inviteLinkInput');
-        if (inviteInput) {
-            inviteInput.value = link;
-        }
-    }
+    // ========== ОСНОВНЫЕ ФУНКЦИИ ИГРЫ ==========
     
     function getFullCardById(id) { return ALL_CARDS.find(c => c.id === id); }
     
-    // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ИГРЫ ==========
     function getRankCornerClass(rank) {
         const map = { 'X':'rank-corner-X','S':'rank-corner-S','A+':'rank-corner-Aplus','A':'rank-corner-A','P':'rank-corner-P','G':'rank-corner-G','B':'rank-corner-B','C':'rank-corner-C','D':'rank-corner-D','E':'rank-corner-E' };
         return map[rank] || '';
     }
-    function getRankClassForModal(rank) { return getRankCornerClass(rank); }
     
     function showModal(imageUrl, cardName, rank) {
         modalImage.src = imageUrl;
         modalCaption.textContent = cardName;
         modalRank.textContent = rank;
-        modalRank.className = `modal-rank ${getRankClassForModal(rank)}`;
+        modalRank.className = `modal-rank ${getRankCornerClass(rank)}`;
         modal.classList.add('active');
     }
+    
     function closeModal() { modal.classList.remove('active'); }
     
     function saveData() {
         const collectionData = Array.from(collectionMap.entries()).map(([id, data]) => ({ id, animated: data.animated || false }));
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 5 }));
         syncToCloud();
-        // После сохранения данных проверяем условия для реферального бонуса (если у текущего игрока есть реферер)
-        if (supabaseInitialized) {
-            checkAndRewardReferrer(getUserId());
-        }
+        if (supabaseInitialized) checkAndRewardReferrer(getUserId());
     }
     
     function loadData() {
@@ -2332,7 +1903,17 @@
     }
     
     function updateMiningUI() { clicksLeftDisplay.innerText = `${miningClicksToday}`; oreInMine.innerText = ore; mineClickBtn.disabled = miningClicksToday >= 100; mineClickBtn.classList.toggle('disabled', miningClicksToday >= 100); }
-    function mine() { if (miningClicksToday >= 100) return; const gain = Math.floor(Math.random() * 6) + 10; miningClicksToday++; ore += gain; updateMiningUI(); updateUI(); }
+    
+    function mine() { 
+        if (miningClicksToday >= 100) return; 
+        const gain = Math.floor(Math.random() * 6) + 10; 
+        miningClicksToday++; 
+        ore += gain; 
+        updateMiningUI(); 
+        updateUI();
+        checkAndRewardReferrer(getUserId());
+    }
+    
     function exchangeOreFunc() { if (ore < 100) return; const exchangeAmount = Math.floor(ore / 100); crystals += exchangeAmount; ore -= exchangeAmount * 100; updateUI(); }
     
     function getRandomCardForPack() {
@@ -2379,7 +1960,6 @@
                 showPromoStatus(`✨ Новая карта! "${card.name}" добавлена в коллекцию ✨`, "success");
             }
         }
-        
         currentOfferedCards = []; selectedCardIndex = null; selectionArea.style.display = 'none';
         updateUI();
     }
@@ -2461,14 +2041,11 @@
         document.querySelectorAll('.promo-chip').forEach(chip => { chip.addEventListener('click', () => fillPromoCode(chip.dataset.code)); });
     }
     
-    // ========== ФУНКЦИИ РЫБАЛКИ ==========
+    // ========== РЫБАЛКА ==========
     function loadFishingData() {
         const saved = localStorage.getItem('bloody_fishing_v1');
         if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                fishingData = data;
-            } catch(e) {}
+            try { fishingData = JSON.parse(saved); } catch(e) {}
         }
         resetFishingIfNeeded();
     }
@@ -2482,17 +2059,14 @@
         }
     }
     
-    function saveFishingData() {
-        localStorage.setItem('bloody_fishing_v1', JSON.stringify(fishingData));
-    }
+    function saveFishingData() { localStorage.setItem('bloody_fishing_v1', JSON.stringify(fishingData)); }
     
     function getFreeAttemptsLeft() {
         if (!fishingData.freeLastUsed) return 1;
         const lastUsed = new Date(fishingData.freeLastUsed);
         const now = new Date();
         const minutesPassed = (now - lastUsed) / 1000 / 60;
-        if (minutesPassed >= 30) return 1;
-        return 0;
+        return minutesPassed >= 30 ? 1 : 0;
     }
     
     function getNextFreeTimeString() {
@@ -2507,9 +2081,7 @@
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
     
-    function getPaidAttemptsLeft() {
-        return Math.max(0, 10 - fishingData.paidAttemptsUsed);
-    }
+    function getPaidAttemptsLeft() { return Math.max(0, 10 - fishingData.paidAttemptsUsed); }
     
     function updateFishingUI() {
         const freeLeft = getFreeAttemptsLeft();
@@ -2518,11 +2090,9 @@
         const paidEl = document.getElementById('paidAttemptsLeft');
         const freeBtn = document.getElementById('freeFishBtn');
         const paidBtn = document.getElementById('paidFishBtn');
-        
         if (freeEl) freeEl.innerText = freeLeft;
         if (nextEl) nextEl.innerText = getNextFreeTimeString();
         if (paidEl) paidEl.innerText = getPaidAttemptsLeft();
-        
         if (freeBtn) freeBtn.disabled = (freeLeft === 0);
         if (paidBtn) paidBtn.disabled = (getPaidAttemptsLeft() === 0 || shards < 2);
     }
@@ -2551,14 +2121,12 @@
     function showCatchResult(catchItem) {
         const display = document.getElementById('lastCatchDisplay');
         if (!display) return;
-        
         let rewardText = [];
         if (catchItem.reward.crystals > 0) rewardText.push(`+${catchItem.reward.crystals}💎`);
         if (catchItem.reward.ore > 0) rewardText.push(`+${catchItem.reward.ore}⛏️`);
         if (catchItem.reward.shards > 0) rewardText.push(`+${catchItem.reward.shards}⚡`);
         if (catchItem.reward.card) rewardText.push(`🎴 +1 новая карта!`);
         if (catchItem.reward.pack) rewardText.push(`🎁 +1 бесплатный пак!`);
-        
         display.innerHTML = `🎣 ${catchItem.name}! ${rewardText.join(' ')}`;
         display.className = "promo-status success";
         setTimeout(() => {
@@ -2574,7 +2142,6 @@
         if (nonAPlusCards.length === 0) return false;
         const randomCard = nonAPlusCards[Math.floor(Math.random() * nonAPlusCards.length)];
         const imgPath = getCardImage(randomCard, false);
-        
         if (collectionMap.has(randomCard.id)) {
             crystals += DUPLICATE_REWARD_CRYSTALS;
             showModal(imgPath, randomCard.name, randomCard.rank);
@@ -2614,23 +2181,18 @@
             fishingData.paidAttemptsUsed++;
             saveFishingData();
         }
-        
         animateFishing();
         await new Promise(resolve => setTimeout(resolve, 300));
-        
         const caught = getRandomCatch();
-        
         if (caught.reward.crystals > 0) crystals += caught.reward.crystals;
         if (caught.reward.ore > 0) ore += caught.reward.ore;
         if (caught.reward.shards > 0) shards += caught.reward.shards;
         if (caught.reward.card) giveRandomCard();
         if (caught.reward.pack) giveFreePack();
-        
         showCatchResult(caught);
         updateUI();
         updateFishingUI();
         saveData();
-        
         return true;
     }
     
@@ -2654,13 +2216,189 @@
     function setupFilters() {
         document.querySelectorAll('#collectionFilterBar .filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('#collectionFilterBar .filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); collectionFilter = btn.dataset.filter; renderCollection(); }); });
         document.querySelectorAll('#catalogFilterBar .filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('#catalogFilterBar .filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); catalogFilter = btn.dataset.filter; renderAllCards(); }); });
-        
         if (document.getElementById('viewingFilterBar')) {
             document.querySelectorAll('#viewingFilterBar .filter-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('#viewingFilterBar .filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); viewingFilter = btn.dataset.filter; renderViewingCollection(); }); });
         }
     }
     
-    // ========== СЧЕТЧИК ПОСЕТИТЕЛЕЙ ==========
+    function renderViewingCollection() {
+        if (!isViewingOtherPlayer) return;
+        let filtered = Array.from(viewingCollectionMap.values());
+        if (viewingFilter !== "all") filtered = filtered.filter(entry => entry.cardData.rank === viewingFilter);
+        let sorted = filtered.sort((a,b) => (a.cardData.rankOrder||99) - (b.cardData.rankOrder||99));
+        let html = '';
+        for (let entry of sorted) {
+            const card = entry.cardData;
+            const imgPath = getCardImage(card, entry.animated);
+            const rankClass = getRankCornerClass(card.rank);
+            html += `<div class="collection-card ${entry.animated ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="image-container"><img class="collection-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="collection-name">${card.name}${entry.animated ? '✨' : ''}</div></div>`;
+        }
+        document.getElementById('viewingCollectionList').innerHTML = html || '<div style="text-align:center; padding:20px; color:#aa8899;">📭 У игрока нет карт</div>';
+        document.querySelectorAll('#viewingCollectionList .collection-card').forEach(card => {
+            const data = JSON.parse(card.dataset.card);
+            card.addEventListener('click', () => showModal(data.image, data.name, data.rank));
+        });
+    }
+    
+    async function searchAndViewPlayer() {
+        const searchTerm = document.getElementById('searchPlayerInput').value.trim();
+        if (!searchTerm) { showPromoStatus("Введите ID игрока или ник для поиска", "error"); return; }
+        showPromoStatus("🔍 Поиск игрока...", "info");
+        const players = await searchPlayer(searchTerm);
+        if (!players || players.length === 0) {
+            document.getElementById('noPlayerFound').style.display = 'block';
+            document.getElementById('viewingCollectionArea').style.display = 'none';
+            showPromoStatus("❌ Игрок не найден", "error");
+            return;
+        }
+        document.getElementById('noPlayerFound').style.display = 'none';
+        const player = players[0];
+        const success = await viewPlayerCollection(player.user_id);
+        if (!success) { showPromoStatus("❌ Не удалось загрузить коллекцию игрока", "error"); return; }
+        isViewingOtherPlayer = true;
+        document.getElementById('viewingCollectionArea').style.display = 'block';
+        const displayName = player.nickname || player.user_id.slice(0, 20) + '...';
+        const viewingNameSpan = document.getElementById('viewingPlayerName');
+        if (viewingNameSpan) viewingNameSpan.innerText = displayName;
+        viewingFilter = "all";
+        renderViewingCollection();
+        showPromoStatus(`✅ Загружена коллекция игрока ${displayName}`, "success");
+    }
+    
+    async function loadTopPlayers() {
+        const container = document.getElementById('topPlayersList');
+        if (!container) return;
+        try {
+            const tops = await getTopPlayers(10);
+            if (!tops || tops.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#aa8899; padding:20px;">🏆 Пока нет игроков с коллекциями</div>';
+                return;
+            }
+            let html = '';
+            for (let i = 0; i < tops.length; i++) {
+                const player = tops[i];
+                const displayName = player.nickname || player.user_id.slice(0, 18) + '...';
+                html += `<div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="font-weight: bold; color: #ffaa66;">#${i+1}</span>
+                        <span style="color: #FFE7B6; font-size: 0.75rem;">${escapeHtml(displayName)}</span>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <span style="color: #88ff88;">📚 ${player.count} карт</span>
+                        <button class="filter-btn" onclick="window.viewTopPlayer('${escapeHtml(player.user_id)}')" style="background: #ff4444; color: white; cursor: pointer;">👁️</button>
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html;
+        } catch(e) { container.innerHTML = '<div style="text-align:center; color:#ff8888; padding:20px;">❌ Ошибка загрузки топа</div>'; }
+    }
+    
+    async function viewTopPlayer(playerId) {
+        if (!playerId) return;
+        const success = await viewPlayerCollection(playerId);
+        if (!success) { showPromoStatus("❌ Не удалось загрузить коллекцию", "error"); return; }
+        isViewingOtherPlayer = true;
+        document.getElementById('viewingCollectionArea').style.display = 'block';
+        try {
+            const { data: profile } = await supabaseClient.from('user_profiles').select('nickname').eq('user_id', playerId).maybeSingle();
+            const displayName = profile?.nickname || playerId.slice(0, 22) + '...';
+            document.getElementById('viewingPlayerName').innerText = displayName;
+        } catch(e) { document.getElementById('viewingPlayerName').innerText = playerId.slice(0, 22) + '...'; }
+        viewingFilter = "all";
+        renderViewingCollection();
+        document.querySelector('.tab-btn[data-tab="players"]').click();
+    }
+    
+    function copyUserId() {
+        const userId = getUserId();
+        navigator.clipboard.writeText(userId);
+        showPromoStatus("✅ Ваш ID скопирован в буфер обмена!", "success");
+    }
+    
+    function copyNickname() {
+        if (currentNickname) {
+            navigator.clipboard.writeText(currentNickname);
+            showPromoStatus(`✅ Ник "${currentNickname}" скопирован!`, "success");
+        } else { showPromoStatus("❌ У вас еще нет ника", "error"); }
+    }
+    
+    function copyInviteLink() {
+        const userId = getUserId();
+        const link = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
+        navigator.clipboard.writeText(link);
+        const statusSpan = document.getElementById('inviteStatus');
+        if (statusSpan) {
+            statusSpan.innerText = "✅ Ссылка скопирована!";
+            statusSpan.className = "promo-status success";
+            setTimeout(() => { statusSpan.innerText = ""; statusSpan.className = "promo-status"; }, 2000);
+        }
+    }
+    
+    function updateInviteLink() {
+        const userId = getUserId();
+        const link = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
+        const inviteInput = document.getElementById('inviteLinkInput');
+        if (inviteInput) inviteInput.value = link;
+    }
+    
+    function updateNicknameUI() {
+        const nicknameSpan = document.getElementById('currentNickname');
+        if (nicknameSpan) nicknameSpan.innerText = currentNickname || 'Не установлен';
+        const myUserIdSpan = document.getElementById('myUserId');
+        if (myUserIdSpan) {
+            if (currentNickname) {
+                myUserIdSpan.innerText = currentNickname;
+                myUserIdSpan.title = `ID: ${getUserId()}`;
+            } else {
+                myUserIdSpan.innerText = getUserId().slice(0, 20) + '...';
+                myUserIdSpan.title = getUserId();
+            }
+        }
+    }
+    
+    function showNicknameStatus(text, isError = false) {
+        const statusSpan = document.getElementById('nicknameStatus');
+        if (statusSpan) {
+            statusSpan.innerText = text;
+            statusSpan.className = `promo-status ${isError ? 'error' : 'success'}`;
+            setTimeout(() => { if (statusSpan.innerText === text) { statusSpan.innerText = ''; statusSpan.className = 'promo-status'; } }, 3000);
+        }
+    }
+    
+    async function setNickname() {
+        const input = document.getElementById('nicknameInput');
+        const newNickname = input.value.trim();
+        if (!newNickname) { showNicknameStatus("❌ Введите ник!", true); return; }
+        if (newNickname.length < 2 || newNickname.length > 16) { showNicknameStatus("❌ Ник должен быть от 2 до 16 символов!", true); return; }
+        if (!/^[a-zA-Zа-яА-Я0-9_]+$/.test(newNickname)) { showNicknameStatus("❌ Ник может содержать только буквы, цифры и _", true); return; }
+        showNicknameStatus("⏳ Проверка ника...", false);
+        const result = await saveNicknameToCloud(newNickname);
+        if (result.success) {
+            currentNickname = newNickname;
+            updateNicknameUI();
+            showNicknameStatus(`✅ Ник успешно изменён на "${newNickname}"!`, false);
+            document.getElementById('nicknameDisplay').style.display = 'flex';
+            document.getElementById('nicknameEditForm').style.display = 'none';
+            input.value = '';
+            await syncToCloud();
+        } else { showNicknameStatus(`❌ ${result.error}`, true); }
+    }
+    
+    function showNicknameEditForm() {
+        document.getElementById('nicknameDisplay').style.display = 'none';
+        document.getElementById('nicknameEditForm').style.display = 'block';
+        document.getElementById('nicknameInput').value = currentNickname || '';
+        document.getElementById('nicknameInput').focus();
+    }
+    
+    function cancelNicknameEdit() {
+        document.getElementById('nicknameDisplay').style.display = 'flex';
+        document.getElementById('nicknameEditForm').style.display = 'none';
+        document.getElementById('nicknameStatus').innerText = '';
+    }
+    
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+    
     async function getUserIP() {
         try {
             const response = await fetch('https://api.ipify.org?format=json');
@@ -2668,10 +2406,7 @@
             return data.ip;
         } catch (error) {
             let fallbackId = localStorage.getItem('fallback_id');
-            if (!fallbackId) {
-                fallbackId = 'user_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('fallback_id', fallbackId);
-            }
+            if (!fallbackId) { fallbackId = 'user_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('fallback_id', fallbackId); }
             return fallbackId;
         }
     }
@@ -2709,22 +2444,63 @@
         if (container) container.classList.remove('loading');
     }
     
-    window.showVisitorStats = function() {
-        alert(`👥 Всего уникальных игроков: ${document.getElementById('visitorCount').textContent}\n\n✨ Спасибо, что играете!`);
-    };
+    async function syncInitialData() {
+        if (!supabaseInitialized) return;
+        const userId = getUserId();
+        const nickname = await loadUserNickname(userId);
+        if (nickname) { currentNickname = nickname; updateNicknameUI(); }
+        const existingData = await loadFromCloud(userId);
+        if (!existingData || !existingData.resources) { await syncToCloud(); }
+        else if (existingData.resources) {
+            const cloudCrystals = existingData.resources.crystals || 0;
+            if (cloudCrystals > crystals + 10) {
+                crystals = cloudCrystals;
+                shards = existingData.resources.shards || 0;
+                ore = existingData.resources.ore || 0;
+                if (existingData.collections) {
+                    collectionMap.clear();
+                    for (const item of existingData.collections) {
+                        const fullCard = getFullCardById(item.card_id);
+                        if (fullCard) collectionMap.set(item.card_id, { cardData: fullCard, animated: item.animated || false });
+                    }
+                }
+                showPromoStatus("🔄 Данные синхронизированы с облаком!", "success");
+                updateUI();
+                saveData();
+            }
+        }
+    }
+    
+    window.showVisitorStats = function() { alert(`👥 Всего уникальных игроков: ${document.getElementById('visitorCount').textContent}`); };
     window.viewTopPlayer = viewTopPlayer;
     window.copyUserId = copyUserId;
     
-    // ========== ИНИЦИАЛИЗАЦИЯ ==========
     async function init() {
-        crystalDisplay = document.getElementById('crystalDisplay'); oreDisplay = document.getElementById('oreDisplay'); shardDisplay = document.getElementById('shardDisplay');
-        totalCardsCountSpan = document.getElementById('totalCardsCount'); totalAllCardsCountSpan = document.getElementById('totalAllCardsCount');
-        openPackBtn = document.getElementById('openPackBtn'); selectionArea = document.getElementById('selectionArea'); choiceCardsContainer = document.getElementById('choiceCardsContainer');
-        confirmChoiceBtn = document.getElementById('confirmChoiceBtn'); collectionListDiv = document.getElementById('collectionList'); allCardsListDiv = document.getElementById('allCardsList');
-        dailyBonusBtn = document.getElementById('dailyBonusBtn'); exchangeOreBtn = document.getElementById('exchangeOreBtn'); mineClickBtn = document.getElementById('mineClickBtn');
-        clicksLeftDisplay = document.getElementById('clicksLeftDisplay'); oreInMine = document.getElementById('oreInMine');
-        promoInput = document.getElementById('promoInput'); activatePromoBtn = document.getElementById('activatePromoBtn'); promoStatusSpan = document.getElementById('promoStatus'); promoCodesListDiv = document.getElementById('promoCodesList');
-        modal = document.getElementById('imageModal'); modalImage = document.getElementById('modalImage'); modalCaption = document.getElementById('modalCaption'); modalRank = document.getElementById('modalRank'); modalCloseBtn = document.getElementById('modalCloseBtn');
+        crystalDisplay = document.getElementById('crystalDisplay');
+        oreDisplay = document.getElementById('oreDisplay');
+        shardDisplay = document.getElementById('shardDisplay');
+        totalCardsCountSpan = document.getElementById('totalCardsCount');
+        totalAllCardsCountSpan = document.getElementById('totalAllCardsCount');
+        openPackBtn = document.getElementById('openPackBtn');
+        selectionArea = document.getElementById('selectionArea');
+        choiceCardsContainer = document.getElementById('choiceCardsContainer');
+        confirmChoiceBtn = document.getElementById('confirmChoiceBtn');
+        collectionListDiv = document.getElementById('collectionList');
+        allCardsListDiv = document.getElementById('allCardsList');
+        dailyBonusBtn = document.getElementById('dailyBonusBtn');
+        exchangeOreBtn = document.getElementById('exchangeOreBtn');
+        mineClickBtn = document.getElementById('mineClickBtn');
+        clicksLeftDisplay = document.getElementById('clicksLeftDisplay');
+        oreInMine = document.getElementById('oreInMine');
+        promoInput = document.getElementById('promoInput');
+        activatePromoBtn = document.getElementById('activatePromoBtn');
+        promoStatusSpan = document.getElementById('promoStatus');
+        promoCodesListDiv = document.getElementById('promoCodesList');
+        modal = document.getElementById('imageModal');
+        modalImage = document.getElementById('modalImage');
+        modalCaption = document.getElementById('modalCaption');
+        modalRank = document.getElementById('modalRank');
+        modalCloseBtn = document.getElementById('modalCloseBtn');
         
         loadData();
         
@@ -2734,18 +2510,9 @@
             await updateVisitorCounter();
             setInterval(async () => { const total = await getTotalVisitors(); document.getElementById('visitorCount').textContent = total; }, 30000);
             await loadTopPlayers();
-            
-            const myUserIdSpan = document.getElementById('myUserId');
-            if (myUserIdSpan && !currentNickname) {
-                myUserIdSpan.innerText = getUserId().slice(0, 20) + '...';
-            } else if (myUserIdSpan && currentNickname) {
-                myUserIdSpan.innerText = currentNickname;
-            }
-            
-            updateInviteLink();
-            // Обработка реферальной ссылки и обновление UI
             await processReferralLink();
             await updateReferralUI();
+            updateInviteLink();
         } else {
             document.getElementById('visitorCount').textContent = '?';
             document.getElementById('myUserId').innerText = 'офлайн';
@@ -2753,82 +2520,51 @@
         
         loadFishingData();
         
-        // Функция syncInitialData должна быть определена или перемещена сюда для доступа
-        async function syncInitialData() {
-            if (!supabaseInitialized) return;
-            const userId = getUserId();
-            const nickname = await loadUserNickname(userId);
-            if (nickname) {
-                currentNickname = nickname;
-                updateNicknameUI();
-            }
-            const existingData = await loadFromCloud(userId);
-            if (!existingData || !existingData.resources) {
-                console.log('Первая синхронизация...');
-                await syncToCloud();
-            } else if (existingData.resources) {
-                const cloudCrystals = existingData.resources.crystals || 0;
-                const localCrystals = crystals;
-                if (cloudCrystals > localCrystals + 10) {
-                    crystals = cloudCrystals;
-                    shards = existingData.resources.shards || 0;
-                    ore = existingData.resources.ore || 0;
-                    if (existingData.collections && existingData.collections.length > 0) {
-                        collectionMap.clear();
-                        for (const item of existingData.collections) {
-                            const fullCard = getFullCardById(item.card_id);
-                            if (fullCard) collectionMap.set(item.card_id, { cardData: fullCard, animated: item.animated || false });
-                        }
-                    }
-                    showPromoStatus("🔄 Данные синхронизированы с облаком!", "success");
-                    updateUI();
-                    saveData();
-                }
-            }
-        }
-        
-        dailyBonusBtn.addEventListener('click', claimDaily); exchangeOreBtn.addEventListener('click', exchangeOreFunc); mineClickBtn.addEventListener('click', mine);
-        openPackBtn.addEventListener('click', buyPack); confirmChoiceBtn.addEventListener('click', confirmChoiceCard);
-        modalCloseBtn.addEventListener('click', closeModal); modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+        dailyBonusBtn.addEventListener('click', claimDaily);
+        exchangeOreBtn.addEventListener('click', exchangeOreFunc);
+        mineClickBtn.addEventListener('click', mine);
+        openPackBtn.addEventListener('click', buyPack);
+        confirmChoiceBtn.addEventListener('click', confirmChoiceCard);
+        modalCloseBtn.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
         activatePromoBtn.addEventListener('click', activatePromoCode);
         
-        const freeFishBtn = document.getElementById('freeFishBtn');
-        const paidFishBtn = document.getElementById('paidFishBtn');
-        if (freeFishBtn) freeFishBtn.addEventListener('click', () => doFishing(true));
-        if (paidFishBtn) paidFishBtn.addEventListener('click', () => doFishing(false));
-        
-        const searchPlayerBtn = document.getElementById('searchPlayerBtn');
-        const closeViewingBtn = document.getElementById('closeViewingBtn');
-        if (searchPlayerBtn) searchPlayerBtn.addEventListener('click', searchAndViewPlayer);
-        if (closeViewingBtn) closeViewingBtn.addEventListener('click', closeViewing);
-        
-        // Настройка ника
-        const editNicknameBtn = document.getElementById('editNicknameBtn');
-        const saveNicknameBtn = document.getElementById('saveNicknameBtn');
-        const cancelNicknameBtn = document.getElementById('cancelNicknameBtn');
-        const copyInviteLinkBtn = document.getElementById('copyInviteLinkBtn');
-        
-        if (editNicknameBtn) editNicknameBtn.addEventListener('click', showNicknameEditForm);
-        if (saveNicknameBtn) saveNicknameBtn.addEventListener('click', setNickname);
-        if (cancelNicknameBtn) cancelNicknameBtn.addEventListener('click', cancelNicknameEdit);
-        if (copyInviteLinkBtn) copyInviteLinkBtn.addEventListener('click', copyInviteLink);
+        document.getElementById('freeFishBtn')?.addEventListener('click', () => doFishing(true));
+        document.getElementById('paidFishBtn')?.addEventListener('click', () => doFishing(false));
+        document.getElementById('searchPlayerBtn')?.addEventListener('click', searchAndViewPlayer);
+        document.getElementById('closeViewingBtn')?.addEventListener('click', closeViewing);
+        document.getElementById('editNicknameBtn')?.addEventListener('click', showNicknameEditForm);
+        document.getElementById('saveNicknameBtn')?.addEventListener('click', setNickname);
+        document.getElementById('cancelNicknameBtn')?.addEventListener('click', cancelNicknameEdit);
+        document.getElementById('copyInviteLinkBtn')?.addEventListener('click', copyInviteLink);
+        document.getElementById('copyNicknameBtn')?.addEventListener('click', copyNickname);
+        document.getElementById('checkBonusBtn')?.addEventListener('click', forceCheckReferralBonus);
         
         renderPromoChips();
         
-        document.querySelectorAll('.tab-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); btn.classList.add('active'); document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active'); }); });
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+            });
+        });
+        
         setupFilters();
-        updateDailyUI(); updateMiningUI(); updateUI();
+        updateDailyUI();
+        updateMiningUI();
+        updateUI();
         
-        setInterval(() => { updateFishingUI(); const freeEl = document.getElementById('nextFreeAttempt'); if (freeEl && document.getElementById('tab-fishing').classList.contains('active')) freeEl.innerText = getNextFreeTimeString(); }, 1000);
+        setInterval(() => {
+            updateFishingUI();
+            const freeEl = document.getElementById('nextFreeAttempt');
+            if (freeEl && document.getElementById('tab-fishing').classList.contains('active')) {
+                freeEl.innerText = getNextFreeTimeString();
+            }
+        }, 1000);
         
-        const copyNicknameBtn = document.getElementById('copyNicknameBtn');
-        if (copyNicknameBtn) copyNicknameBtn.addEventListener('click', copyNickname);
-
-        // Показываем ID пользователя
-        const userIdDisplay = document.getElementById('userIdDisplay');
-        if (userIdDisplay) {
-            userIdDisplay.innerText = getUserId();
-        }
+        document.getElementById('userIdDisplay').innerText = getUserId();
     }
     
     document.addEventListener('DOMContentLoaded', init);
