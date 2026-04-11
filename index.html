@@ -2078,7 +2078,7 @@
             showPromoStatus("❌ Сейчас нет активного ивента! Дождитесь Хэллоуина, Нового года, Весны или Лета", "error");
             return;
         }
-        if (shards < 1) {
+        if (shards < 5) {
             showPromoStatus(`❌ Недостаточно осколков! Нужно 5⚡`, "error");
             return;
         }
@@ -2086,7 +2086,7 @@
             showPromoStatus("❌ Сначала завершите текущий выбор карты", "error");
             return;
         }
-        shards -= 0;
+        shards -= 5;
         updateUI();
         currentEventOfferedCards = [];
         const card = getRandomEventPackCard();
@@ -2394,7 +2394,7 @@
         if (eventPackBtn) {
             const currentSeason = getCurrentSeason();
             if (!currentSeason) { eventPackBtn.disabled = true; eventPackBtn.classList.add('disabled'); eventPackBtn.textContent = "⏸️ ИВЕНТ НЕ АКТИВЕН"; }
-            else if (shards < 1) { eventPackBtn.disabled = true; eventPackBtn.classList.add('disabled'); eventPackBtn.textContent = `🎪 ОТКРЫТЬ ${getSeasonName(currentSeason).toUpperCase()} ПАК ЗА 5⚡`; }
+            else if (shards < 5) { eventPackBtn.disabled = true; eventPackBtn.classList.add('disabled'); eventPackBtn.textContent = `🎪 НЕТ 5⚡`; }
             else { eventPackBtn.disabled = false; eventPackBtn.classList.remove('disabled'); eventPackBtn.textContent = `🎪 ОТКРЫТЬ ${getSeasonName(currentSeason).toUpperCase()} ПАК ЗА 5⚡`; }
         }
         renderCollection(); renderAllCards(); saveData();
