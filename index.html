@@ -1697,21 +1697,38 @@
     async function createReferralLink(referredUserId, referrerUserId) {
         if (!supabaseInitialized) return false;
         try {
-            const { data: existing } = await supabaseClient
+            // Двойная проверка: не привязан ли уже пользователь
+            const { data: existing, error: checkError } = await supabaseClient
                 .from('referrals')
                 .select('id')
                 .eq('referred_id', referredUserId)
                 .maybeSingle();
-            if (existing) return false;
+                
+            if (checkError) {
+                console.error('Ошибка проверки:', checkError);
+                return false;
+            }
+            
+            if (existing) {
+                console.log(`Пользователь ${referredUserId} уже имеет реферера, пропускаем`);
+                return false;
+            }
+            
             const { error } = await supabaseClient.from('referrals').insert({
                 referrer_id: referrerUserId,
                 referred_id: referredUserId,
                 reward_claimed: false,
                 ore_target: 1000
             });
-            if (error) throw error;
-            console.log(`Referral link created: ${referrerUserId} -> ${referredUserId}`);
+            
+            if (error) {
+                console.error('Ошибка вставки:', error);
+                return false;
+            }
+            
+            console.log(`✅ Реферальная связь создана: ${referrerUserId} -> ${referredUserId}`);
             return true;
+            
         } catch(e) {
             console.error('Create referral error:', e);
             return false;
@@ -1797,25 +1814,87 @@
     }
     
     async function processReferralLink() {
+        if (!supabaseInitialized) return;
+        
         const urlParams = new URLSearchParams(window.location.search);
         const referrerId = urlParams.get('ref');
         const currentId = getUserId();
         
-        if (referrerId && referrerId !== currentId) {
-            console.log(`Referral detected: ${referrerId} -> ${currentId}`);
-            const { data: referrerExists } = await supabaseClient
+        // Проверяем, что реферер указан, это не сам пользователь и у нас есть подключение к БД
+        if (!referrerId || referrerId === currentId) return;
+        
+        try {
+            // *** ГЛАВНОЕ: Проверяем, не привязан ли уже этот пользователь к какому-либо рефереру ***
+            const { data: existingReferral, error: checkError } = await supabaseClient
+                .from('referrals')
+                .select('referrer_id')
+                .eq('referred_id', currentId)
+                .maybeSingle();
+                
+            if (checkError) {
+                console.error('Ошибка проверки существующего реферала:', checkError);
+                return;
+            }
+            
+            // Если пользователь уже привязан к кому-то (даже если бонус не получен) - выходим
+            if (existingReferral) {
+                console.log(`Пользователь ${currentId} уже приглашён пользователем ${existingReferral.referrer_id}`);
+                // Показываем сообщение, но не навязчиво
+                showPromoStatus(`ℹ️ Вы уже были приглашены ранее`, "info");
+                // Очищаем параметр из URL, чтобы не проверять при каждом обновлении
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return;
+            }
+            
+            // Проверяем, существует ли реферер в БД
+            const { data: referrerExists, error: refError } = await supabaseClient
                 .from('user_profiles')
                 .select('user_id')
                 .eq('user_id', referrerId)
                 .maybeSingle();
-            if (referrerExists) {
-                await createReferralLink(currentId, referrerId);
+                
+            if (refError || !referrerExists) {
+                console.log(`Реферер ${referrerId} не найден в БД`);
+                return;
+            }
+            
+            // Все проверки пройдены - создаём связь и даём бонус
+            const success = await createReferralLink(currentId, referrerId);
+            
+            if (success) {
+                // Даём бонус новому игроку за переход по ссылке
                 crystals += 30;
                 updateUI();
-                showPromoStatus("🎁 Вы пришли по приглашению! Получено +30💎 бонусов!", "success");
                 saveData();
-                window.history.replaceState({}, document.title, window.location.pathname);
+                showPromoStatus(`🎁 Вы пришли по приглашению! Получено +30💎! Пригласивший получит +50💎, когда вы накопите 1000 руды.`, "success");
+                
+                // Обновляем UI реферальной информации для текущего пользователя
+                await updateReferralUI();
+            } else {
+                showPromoStatus(`❌ Не удалось активировать реферальную ссылку`, "error");
             }
+            
+            // Очищаем параметр из URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
+        } catch(e) {
+            console.error('Ошибка обработки реферальной ссылки:', e);
+        }
+    }
+    
+    // Функция для проверки, есть ли у пользователя реферер
+    async function hasReferrer(userId) {
+        if (!supabaseInitialized) return false;
+        try {
+            const { data, error } = await supabaseClient
+                .from('referrals')
+                .select('referrer_id')
+                .eq('referred_id', userId)
+                .maybeSingle();
+            if (error) return false;
+            return !!data;
+        } catch(e) {
+            return false;
         }
     }
     
