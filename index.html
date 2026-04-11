@@ -937,6 +937,91 @@
             border-radius: 16px;
             margin-bottom: 12px;
         }
+
+        /* Стили для настройки ника */
+        .nickname-section {
+            background: linear-gradient(135deg, #1a1a2a, #0f0f1a);
+            border-radius: 24px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 100, 50, 0.4);
+        }
+
+        .nickname-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nickname-value {
+            font-weight: bold;
+            color: #ffaa66;
+            font-size: 1rem;
+            background: rgba(0,0,0,0.5);
+            padding: 4px 12px;
+            border-radius: 25px;
+        }
+
+        .nickname-edit-btn {
+            background: linear-gradient(135deg, #ffaa33, #cc8833);
+            border: none;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: #1a0f1a;
+            cursor: pointer;
+        }
+
+        .nickname-input-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .nickname-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 100, 50, 0.5);
+            border-radius: 30px;
+            padding: 8px 16px;
+            color: #FFE7B6;
+            font-size: 0.8rem;
+            outline: none;
+        }
+
+        .nickname-input:focus {
+            border-color: #ff4444;
+        }
+
+        .nickname-save-btn {
+            background: linear-gradient(135deg, #ff4444, #990000);
+            border: none;
+            border-radius: 30px;
+            padding: 0 18px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: white;
+            cursor: pointer;
+        }
+        /* Стили для реферальной информации */
+        .referral-info {
+            background: linear-gradient(135deg, #2a1a2a, #1a0f1a);
+            border-radius: 20px;
+            padding: 12px;
+            margin-top: 12px;
+            border: 1px solid rgba(255, 200, 100, 0.3);
+            font-size: 0.75rem;
+        }
+        .referral-info p {
+            margin: 5px 0;
+            color: #ffddcc;
+        }
+        .referral-info strong {
+            color: #ffaa66;
+        }
     </style>
 </head>
 <body>
@@ -962,6 +1047,7 @@
         <button class="tab-btn" data-tab="collection">📚 Мои карты</button>
         <button class="tab-btn" data-tab="allcards">📖 Каталог</button>
         <button class="tab-btn" data-tab="players">👥 Игроки</button>
+        <button class="tab-btn" data-tab="profile">👤 Профиль</button>
     </div>
 
     <!-- Шахта -->
@@ -1128,7 +1214,7 @@
 
         <div id="noPlayerFound" style="display: none; text-align: center; padding: 40px; color: #aa8899;">
             ❌ Игрок не найден<br>
-            <span style="font-size: 0.7rem;">Проверьте ID и попробуйте снова</span>
+            <span style="font-size: 0.7rem;">Проверьте ID или ник и попробуйте снова</span>
         </div>
 
         <div id="topPlayersSection" style="margin-top: 20px;">
@@ -1137,6 +1223,59 @@
                 <h4>Топ игроков по коллекции</h4>
             </div>
             <div id="topPlayersList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+    </div>
+
+    <!-- Профиль / Настройка ника -->
+    <div class="tab-content" id="tab-profile">
+        <div class="nickname-section">
+            <div class="promo-header">
+                <span class="promo-icon">👤</span>
+                <h4>Настройка профиля</h4>
+            </div>
+            <div class="nickname-display" id="nicknameDisplay">
+                <span style="color:#ccaa99;">Ваш ник:</span>
+                <span class="nickname-value" id="currentNickname">Не установлен</span>
+                <button class="nickname-edit-btn" id="editNicknameBtn">✏️ Изменить</button>
+                <button class="nickname-edit-btn" id="copyNicknameBtn" style="background:#4a6741;">📋 Копировать ник</button>
+            </div>
+            <div id="nicknameEditForm" style="display: none;">
+                <div class="nickname-input-group">
+                    <input type="text" class="nickname-input" id="nicknameInput" placeholder="Введите ник (2-16 символов)" maxlength="16">
+                    <button class="nickname-save-btn" id="saveNicknameBtn">Сохранить</button>
+                    <button class="nickname-edit-btn" id="cancelNicknameBtn" style="background:#666;">Отмена</button>
+                </div>
+                <div class="promo-status" id="nicknameStatus" style="margin-top: 8px;"></div>
+            </div>
+            <div style="font-size: 0.65rem; color: #aa8899; margin-top: 12px;">
+                ⚠️ Ник должен быть уникальным и содержать 2-16 символов (буквы, цифры, _)<br>
+                🔑 Ваш ID (не меняется): <span id="userIdDisplay" style="color:#ffaa66; font-family: monospace;"></span>
+                <button onclick="copyUserId()" style="background:none; border:none; color:#ffaa66; cursor:pointer;">📋</button>
+            </div>
+        </div>
+        
+        <div class="search-player-section" style="margin-top: 12px;">
+            <div class="promo-header">
+                <span class="promo-icon">🔗</span>
+                <h4>Ваша ссылка для приглашения</h4>
+            </div>
+            <div class="promo-input-group">
+                <input type="text" class="promo-input" id="inviteLinkInput" readonly value="Загрузка...">
+                <button class="promo-activate-btn" id="copyInviteLinkBtn">📋 Копировать</button>
+            </div>
+            <div class="promo-status" id="inviteStatus"></div>
+        </div>
+        
+        <!-- Блок реферальной информации -->
+        <div class="referral-info" id="referralInfoBlock">
+            <div class="promo-header">
+                <span class="promo-icon">🎁</span>
+                <h4>Реферальная система</h4>
+            </div>
+            <p>🏆 <strong>Приведи друга и получи бонус!</strong></p>
+            <p>📌 <strong>Ваш реферал:</strong> <span id="refUserName">Нет</span></p>
+            <p>⚙️ <strong>Статус бонуса:</strong> <span id="refBonusStatus">Ожидание</span></p>
+            <p style="font-size:0.7rem; margin-top:6px;">💎 <strong>Условие:</strong> Друг должен накопить 1000 руды в шахте, и вы получите +50💎!</p>
         </div>
     </div>
 
@@ -1173,6 +1312,7 @@
     let supabaseClient = null;
     let supabaseInitialized = false;
     let currentUserId = null;
+    let currentNickname = null;
     let isViewingOtherPlayer = false;
     let viewingPlayerId = null;
     let viewingFilter = "all";
@@ -1403,8 +1543,10 @@
                 await supabaseClient.from('user_collections').upsert(card);
             }
             
+            // Обновляем профиль с ником
             await supabaseClient.from('user_profiles').upsert({
                 user_id: userId,
+                nickname: currentNickname || null,
                 last_active: new Date().toISOString()
             });
         } catch(e) {
@@ -1412,7 +1554,108 @@
         }
     }
     
-    // Исправленная функция loadFromCloud
+    // Загрузка ника пользователя из облака
+    async function loadUserNickname(userId) {
+        if (!supabaseInitialized) return null;
+        
+        try {
+            const { data, error } = await supabaseClient
+                .from('user_profiles')
+                .select('nickname')
+                .eq('user_id', userId)
+                .maybeSingle();
+            
+            if (!error && data && data.nickname) {
+                return data.nickname;
+            }
+        } catch(e) {
+            console.error('Load nickname error:', e);
+        }
+        return null;
+    }
+    
+    // Проверка уникальности ника
+    async function isNicknameUnique(nickname, excludeUserId = null) {
+        if (!supabaseInitialized) return true;
+        
+        try {
+            let query = supabaseClient.from('user_profiles').select('user_id').eq('nickname', nickname);
+            if (excludeUserId) {
+                query = query.neq('user_id', excludeUserId);
+            }
+            const { data, error } = await query;
+            
+            if (error) {
+                console.error('Check nickname error:', error);
+                return true;
+            }
+            return !data || data.length === 0;
+        } catch(e) {
+            console.error('Nickname check error:', e);
+            return true;
+        }
+    }
+    
+    // Сохранение ника в облако
+    async function saveNicknameToCloud(nickname) {
+        if (!supabaseInitialized) return false;
+        const userId = getUserId();
+        
+        try {
+            // Проверяем уникальность
+            const isUnique = await isNicknameUnique(nickname, userId);
+            if (!isUnique) {
+                return { success: false, error: "Этот ник уже занят!" };
+            }
+            
+            // Обновляем профиль
+            const { error } = await supabaseClient.from('user_profiles').upsert({
+                user_id: userId,
+                nickname: nickname,
+                last_active: new Date().toISOString()
+            });
+            
+            if (error) {
+                console.error('Save nickname error:', error);
+                return { success: false, error: "Ошибка сохранения" };
+            }
+            
+            return { success: true };
+        } catch(e) {
+            console.error('Save nickname error:', e);
+            return { success: false, error: "Ошибка соединения" };
+        }
+    }
+    
+    // Поиск игрока по нику или ID
+    async function searchPlayer(searchTerm) {
+        if (!supabaseInitialized) return null;
+        
+        try {
+            let query = supabaseClient.from('user_profiles').select('user_id, nickname');
+            
+            // Если похоже на user_* ищем по ID
+            if (searchTerm.startsWith('user_')) {
+                query = query.eq('user_id', searchTerm);
+            } else {
+                // Ищем по нику (точное совпадение или по части)
+                query = query.ilike('nickname', `%${searchTerm}%`);
+            }
+            
+            const { data, error } = await query.limit(10);
+            
+            if (error) {
+                console.error('Search error:', error);
+                return null;
+            }
+            
+            return data;
+        } catch(e) {
+            console.error('Search error:', e);
+            return null;
+        }
+    }
+    
     async function loadFromCloud(userId = null) {
         if (!supabaseInitialized) return null;
         const targetId = userId || getUserId();
@@ -1425,7 +1668,7 @@
                     .from('user_resources')
                     .select('*')
                     .eq('user_id', targetId)
-                    .maybeSingle();  // используем maybeSingle вместо single
+                    .maybeSingle();
                 
                 if (!error && data) {
                     resources = data;
@@ -1456,98 +1699,64 @@
         }
     }
     
-    async function searchPlayer(searchTerm) {
-        if (!supabaseInitialized) return null;
-        
-        try {
-            let query = supabaseClient.from('user_profiles').select('user_id');
-            
-            if (searchTerm.startsWith('user_')) {
-                query = query.eq('user_id', searchTerm);
-            } else {
-                query = query.ilike('user_id', `%${searchTerm}%`);
-            }
-            
-            const { data } = await query.limit(10);
-            return data;
-        } catch(e) {
-            console.error('Search error:', e);
-            return null;
-        }
-    }
-    
     async function getTopPlayers(limit = 10) {
         if (!supabaseInitialized) return [];
         
         try {
-            const { data } = await supabaseClient
+            // Получаем всех пользователей с их коллекциями
+            const { data: collections, error: collError } = await supabaseClient
                 .from('user_collections')
-                .select('user_id, count')
-                .select('user_id, card_id')
-                .then(async (result) => {
-                    const counts = {};
-                    result.data?.forEach(item => {
-                        counts[item.user_id] = (counts[item.user_id] || 0) + 1;
-                    });
-                    return Object.entries(counts).map(([user_id, count]) => ({ user_id, count })).sort((a,b) => b.count - a.count).slice(0, limit);
-                });
+                .select('user_id');
             
-            return data || [];
+            if (collError) {
+                console.error('Error getting collections:', collError);
+                return [];
+            }
+            
+            if (!collections || collections.length === 0) {
+                return [];
+            }
+            
+            // Подсчитываем количество карт у каждого пользователя
+            const counts = {};
+            collections.forEach(item => {
+                counts[item.user_id] = (counts[item.user_id] || 0) + 1;
+            });
+            
+            // Получаем ники для пользователей
+            const userIds = Object.keys(counts);
+            let nicknames = {};
+            
+            if (userIds.length > 0) {
+                const { data: profiles, error: profError } = await supabaseClient
+                    .from('user_profiles')
+                    .select('user_id, nickname')
+                    .in('user_id', userIds);
+                
+                if (!profError && profiles) {
+                    profiles.forEach(p => {
+                        nicknames[p.user_id] = p.nickname;
+                    });
+                }
+            }
+            
+            // Формируем топ
+            const topPlayers = Object.entries(counts)
+                .map(([user_id, count]) => ({ 
+                    user_id, 
+                    count,
+                    nickname: nicknames[user_id] || user_id.slice(0, 16) + '...'
+                }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, limit);
+            
+            return topPlayers;
         } catch(e) {
             console.error('Top players error:', e);
             return [];
         }
     }
-
-    // Исправленная функция загрузки топа с отображением в UI
-    async function loadTopPlayers() {
-        const container = document.getElementById('topPlayersList');
-        if (!container) return;
-        
-        try {
-            const tops = await getTopPlayers(10);
-            
-            if (!tops || tops.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#aa8899; padding:20px;">🏆 Пока нет игроков с коллекциями<br><span style="font-size:0.7rem;">Откройте несколько паков карт, чтобы попасть в топ!</span></div>';
-                return;
-            }
-            
-            let html = '';
-            for (let i = 0; i < tops.length; i++) {
-                const player = tops[i];
-                const shortId = player.user_id.length > 20 ? player.user_id.slice(0, 18) + '...' : player.user_id;
-                html += `
-                    <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span style="font-weight: bold; color: #ffaa66;">#${i+1}</span>
-                            <span style="color: #FFE7B6; font-size: 0.75rem;">${escapeHtml(shortId)}</span>
-                        </div>
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <span style="color: #88ff88;">📚 ${player.count} карт</span>
-                            <button class="filter-btn" onclick="window.viewTopPlayer('${escapeHtml(player.user_id)}')" style="background: #ff4444; color: white; cursor: pointer;">👁️</button>
-                        </div>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
-        } catch(e) {
-            console.error('Load top players error:', e);
-            container.innerHTML = '<div style="text-align:center; color:#ff8888; padding:20px;">❌ Ошибка загрузки топа игроков</div>';
-        }
-    }
-
-    // Вспомогательная функция для экранирования HTML
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
     
-    // Обновленная функция viewPlayerCollection с лучшей обработкой ошибок
     async function viewPlayerCollection(playerId) {
         if (!supabaseInitialized) {
             showPromoStatus("❌ Облачный сервис недоступен", "error");
@@ -1598,51 +1807,456 @@
         }
     }
     
-    // Добавьте эту функцию для автоматической синхронизации при первом входе
-    async function syncInitialData() {
-        if (!supabaseInitialized) return;
-        
-        const userId = getUserId();
-        
-        // Проверяем, есть ли уже данные пользователя в облаке
-        const existingData = await loadFromCloud(userId);
-        
-        if (!existingData || !existingData.resources) {
-            // Если данных нет, синхронизируем текущие
-            console.log('Первая синхронизация данных пользователя...');
-            await syncToCloud();
-        } else if (existingData.resources) {
-            // Если данные есть, загружаем их (если локальных данных меньше)
-            const cloudCrystals = existingData.resources.crystals || 0;
-            const localCrystals = crystals;
+    // ================= РЕФЕРАЛЬНАЯ СИСТЕМА =================
+    // Создание связи реферал -> реферер
+    async function createReferralLink(referredUserId, referrerUserId) {
+        if (!supabaseInitialized) return false;
+        try {
+            // Проверяем, не связан ли уже этот пользователь
+            const { data: existing } = await supabaseClient
+                .from('referrals')
+                .select('id')
+                .eq('referred_id', referredUserId)
+                .maybeSingle();
+                
+            if (existing) {
+                console.log("Referral already exists");
+                return false;
+            }
             
-            // Если в облаке больше ресурсов, загружаем оттуда
-            if (cloudCrystals > localCrystals + 10) {  // +10 чтобы не было конфликта
-                crystals = cloudCrystals;
-                shards = existingData.resources.shards || 0;
-                ore = existingData.resources.ore || 0;
+            const { error } = await supabaseClient.from('referrals').insert({
+                referrer_id: referrerUserId,
+                referred_id: referredUserId,
+                reward_claimed: false,
+                ore_target: 1000
+            });
+            if (error) throw error;
+            console.log(`Referral link created: ${referrerUserId} -> ${referredUserId}`);
+            return true;
+        } catch(e) {
+            console.error('Create referral error:', e);
+            return false;
+        }
+    }
+    
+    // Получение данных о реферале для текущего пользователя
+    async function getReferralInfo(userId) {
+        if (!supabaseInitialized) return null;
+        try {
+            const { data, error } = await supabaseClient
+                .from('referrals')
+                .select('*')
+                .eq('referrer_id', userId)
+                .maybeSingle();
+            if (error) throw error;
+            return data;
+        } catch(e) {
+            console.error('Get referral info error:', e);
+            return null;
+        }
+    }
+    
+    // Проверка выполнения условия для выдачи бонуса рефереру
+    async function checkAndRewardReferrer(referredUserId) {
+        if (!supabaseInitialized) return;
+        try {
+            // Получаем запись о реферале
+            const { data: referral, error } = await supabaseClient
+                .from('referrals')
+                .select('*')
+                .eq('referred_id', referredUserId)
+                .maybeSingle();
                 
-                // Также загружаем коллекцию
-                if (existingData.collections && existingData.collections.length > 0) {
-                    collectionMap.clear();
-                    for (const item of existingData.collections) {
-                        const fullCard = getFullCardById(item.card_id);
-                        if (fullCard) {
-                            collectionMap.set(item.card_id, { 
-                                cardData: fullCard, 
-                                animated: item.animated || false 
-                            });
-                        }
-                    }
+            if (error) throw error;
+            if (!referral || referral.reward_claimed) return;
+            
+            // Получаем ресурсы приглашенного
+            const { data: resources, error: resError } = await supabaseClient
+                .from('user_resources')
+                .select('ore')
+                .eq('user_id', referredUserId)
+                .maybeSingle();
+                
+            if (resError) throw resError;
+            if (!resources) return;
+            
+            // Если руды >= 1000
+            if (resources.ore >= 1000) {
+                // Начисляем бонус рефереру (50 кристаллов)
+                const { data: referrerRes, error: refResError } = await supabaseClient
+                    .from('user_resources')
+                    .select('crystals')
+                    .eq('user_id', referral.referrer_id)
+                    .maybeSingle();
+                    
+                if (refResError) throw refResError;
+                
+                const newCrystals = (referrerRes?.crystals || 0) + 50;
+                await supabaseClient.from('user_resources').upsert({
+                    user_id: referral.referrer_id,
+                    crystals: newCrystals,
+                    updated_at: new Date().toISOString()
+                });
+                
+                // Отмечаем бонус как выданный
+                await supabaseClient.from('referrals').update({ reward_claimed: true }).eq('id', referral.id);
+                
+                console.log(`Reward 50 crystals given to referrer ${referral.referrer_id} for referred ${referredUserId}`);
+                
+                // Если это текущий пользователь, обновляем локально
+                if (referral.referrer_id === getUserId()) {
+                    crystals += 50;
+                    updateUI();
+                    showPromoStatus("🎉 Ваш друг достиг 1000 руды! Вы получили +50💎 за приглашение!", "success");
                 }
+            }
+        } catch(e) {
+            console.error('Check referral reward error:', e);
+        }
+    }
+    
+    // Обновление UI реферальной информации
+    async function updateReferralUI() {
+        const userId = getUserId();
+        const referral = await getReferralInfo(userId);
+        const refNameSpan = document.getElementById('refUserName');
+        const refStatusSpan = document.getElementById('refBonusStatus');
+        
+        if (referral) {
+            // Получаем ник реферала
+            const { data: profile } = await supabaseClient
+                .from('user_profiles')
+                .select('nickname')
+                .eq('user_id', referral.referred_id)
+                .maybeSingle();
+            const referredName = profile?.nickname || referral.referred_id.slice(0, 16) + '...';
+            if (refNameSpan) refNameSpan.innerText = referredName;
+            if (refStatusSpan) refStatusSpan.innerText = referral.reward_claimed ? "✅ Бонус получен!" : "⏳ Ожидание (1000 руды)";
+        } else {
+            if (refNameSpan) refNameSpan.innerText = "Нет";
+            if (refStatusSpan) refStatusSpan.innerText = "—";
+        }
+    }
+    
+    // Обработка реферальной ссылки при старте
+    async function processReferralLink() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const referrerId = urlParams.get('ref');
+        const currentId = getUserId();
+        
+        if (referrerId && referrerId !== currentId) {
+            console.log(`Referral detected: ${referrerId} -> ${currentId}`);
+            // Проверяем, существует ли реферер в БД
+            const { data: referrerExists } = await supabaseClient
+                .from('user_profiles')
+                .select('user_id')
+                .eq('user_id', referrerId)
+                .maybeSingle();
                 
-                showPromoStatus("🔄 Данные синхронизированы с облаком!", "success");
+            if (referrerExists) {
+                // Создаем связь, если её еще нет
+                await createReferralLink(currentId, referrerId);
+                // Даем бонус новому игроку
+                crystals += 30;
                 updateUI();
+                showPromoStatus("🎁 Вы пришли по приглашению! Получено +30💎 бонусов!", "success");
                 saveData();
+                // Очищаем параметр из URL, чтобы не применять повторно
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+                console.log("Referrer not found in DB");
             }
         }
     }
+    
+    // ========== ФУНКЦИИ НИКА ==========
+    function updateNicknameUI() {
+        const nicknameSpan = document.getElementById('currentNickname');
+        if (nicknameSpan) {
+            nicknameSpan.innerText = currentNickname || 'Не установлен';
+        }
+        
+        // Отдельно показываем ID и ник в разных местах
+        const myUserIdSpan = document.getElementById('myUserId');
+        if (myUserIdSpan) {
+            // Показываем ник, если есть, иначе короткий ID
+            if (currentNickname) {
+                myUserIdSpan.innerText = currentNickname;
+                myUserIdSpan.title = `ID: ${getUserId()}`; // Подсказка с ID при наведении
+            } else {
+                myUserIdSpan.innerText = getUserId().slice(0, 20) + '...';
+                myUserIdSpan.title = getUserId();
+            }
+        }
+    }
+    
+    function showNicknameStatus(text, isError = false) {
+        const statusSpan = document.getElementById('nicknameStatus');
+        if (statusSpan) {
+            statusSpan.innerText = text;
+            statusSpan.className = `promo-status ${isError ? 'error' : 'success'}`;
+            setTimeout(() => {
+                if (statusSpan.innerText === text) {
+                    statusSpan.innerText = '';
+                    statusSpan.className = 'promo-status';
+                }
+            }, 3000);
+        }
+    }
+    
+    async function setNickname() {
+        const input = document.getElementById('nicknameInput');
+        const newNickname = input.value.trim();
+        
+        if (!newNickname) {
+            showNicknameStatus("❌ Введите ник!", true);
+            return;
+        }
+        
+        if (newNickname.length < 2 || newNickname.length > 16) {
+            showNicknameStatus("❌ Ник должен быть от 2 до 16 символов!", true);
+            return;
+        }
+        
+        if (!/^[a-zA-Zа-яА-Я0-9_]+$/.test(newNickname)) {
+            showNicknameStatus("❌ Ник может содержать только буквы, цифры и _", true);
+            return;
+        }
+        
+        showNicknameStatus("⏳ Проверка ника...", false);
+        
+        const result = await saveNicknameToCloud(newNickname);
+        
+        if (result.success) {
+            currentNickname = newNickname;
+            updateNicknameUI();
+            showNicknameStatus(`✅ Ник успешно изменён на "${newNickname}"!`, false);
+            
+            // Закрываем форму редактирования
+            document.getElementById('nicknameDisplay').style.display = 'flex';
+            document.getElementById('nicknameEditForm').style.display = 'none';
+            input.value = '';
+            
+            // Синхронизируем данные
+            await syncToCloud();
+        } else {
+            showNicknameStatus(`❌ ${result.error}`, true);
+        }
+    }
+    
+    function showNicknameEditForm() {
+        document.getElementById('nicknameDisplay').style.display = 'none';
+        document.getElementById('nicknameEditForm').style.display = 'block';
+        document.getElementById('nicknameInput').value = currentNickname || '';
+        document.getElementById('nicknameInput').focus();
+    }
+    
+    function cancelNicknameEdit() {
+        document.getElementById('nicknameDisplay').style.display = 'flex';
+        document.getElementById('nicknameEditForm').style.display = 'none';
+        document.getElementById('nicknameStatus').innerText = '';
+    }
+    
+    // Исправленная функция поиска игрока
+    async function searchAndViewPlayer() {
+        const searchTerm = document.getElementById('searchPlayerInput').value.trim();
+        if (!searchTerm) {
+            showPromoStatus("Введите ID игрока или ник для поиска", "error");
+            return;
+        }
+        
+        showPromoStatus("🔍 Поиск игрока...", "info");
+        
+        const players = await searchPlayer(searchTerm);
+        if (!players || players.length === 0) {
+            document.getElementById('noPlayerFound').style.display = 'block';
+            document.getElementById('viewingCollectionArea').style.display = 'none';
+            showPromoStatus("❌ Игрок не найден", "error");
+            return;
+        }
+        
+        document.getElementById('noPlayerFound').style.display = 'none';
+        const player = players[0];
+        
+        const success = await viewPlayerCollection(player.user_id);
+        if (!success) {
+            showPromoStatus("❌ Не удалось загрузить коллекцию игрока", "error");
+            return;
+        }
+        
+        isViewingOtherPlayer = true;
+        document.getElementById('viewingCollectionArea').style.display = 'block';
+        
+        const displayName = player.nickname || player.user_id.slice(0, 20) + '...';
+        const viewingNameSpan = document.getElementById('viewingPlayerName');
+        if (viewingNameSpan) {
+            viewingNameSpan.innerText = displayName;
+            viewingNameSpan.title = `ID: ${player.user_id}`;
+        }
+        
+        viewingFilter = "all";
+        renderViewingCollection();
+        
+        showPromoStatus(`✅ Загружена коллекция игрока ${displayName}`, "success");
+    }
+    
+    function renderViewingCollection() {
+        if (!isViewingOtherPlayer) return;
+        
+        let filtered = Array.from(viewingCollectionMap.values());
+        if (viewingFilter !== "all") filtered = filtered.filter(entry => entry.cardData.rank === viewingFilter);
+        let sorted = filtered.sort((a,b) => (a.cardData.rankOrder||99) - (b.cardData.rankOrder||99));
+        let html = '';
+        for (let entry of sorted) {
+            const card = entry.cardData;
+            const imgPath = getCardImage(card, entry.animated);
+            const rankClass = getRankCornerClass(card.rank);
+            html += `<div class="collection-card ${entry.animated ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="image-container"><img class="collection-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="collection-name">${card.name}${entry.animated ? '✨' : ''}</div></div>`;
+        }
+        document.getElementById('viewingCollectionList').innerHTML = html || '<div style="text-align:center; padding:20px; color:#aa8899;">📭 У игрока нет карт</div>';
+        
+        document.querySelectorAll('#viewingCollectionList .collection-card').forEach(card => {
+            const data = JSON.parse(card.dataset.card);
+            card.addEventListener('click', () => showModal(data.image, data.name, data.rank));
+        });
+    }
+    
+    // Обновленная функция загрузки топа
+    async function loadTopPlayers() {
+        const container = document.getElementById('topPlayersList');
+        if (!container) return;
+        
+        try {
+            const tops = await getTopPlayers(10);
+            
+            if (!tops || tops.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#aa8899; padding:20px;">🏆 Пока нет игроков с коллекциями<br><span style="font-size:0.7rem;">Откройте несколько паков карт, чтобы попасть в топ!</span></div>';
+                return;
+            }
+            
+            let html = '';
+            for (let i = 0; i < tops.length; i++) {
+                const player = tops[i];
+                const displayName = player.nickname || player.user_id.slice(0, 18) + '...';
+                html += `
+                    <div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="font-weight: bold; color: #ffaa66;">#${i+1}</span>
+                            <span style="color: #FFE7B6; font-size: 0.75rem;">${escapeHtml(displayName)}</span>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span style="color: #88ff88;">📚 ${player.count} карт</span>
+                            <button class="filter-btn" onclick="window.viewTopPlayer('${escapeHtml(player.user_id)}')" style="background: #ff4444; color: white; cursor: pointer;">👁️</button>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        } catch(e) {
+            console.error('Load top players error:', e);
+            container.innerHTML = '<div style="text-align:center; color:#ff8888; padding:20px;">❌ Ошибка загрузки топа игроков</div>';
+        }
+    }
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Исправленная функция просмотра топ-игрока
+    async function viewTopPlayer(playerId) {
+        if (!playerId) {
+            showPromoStatus("❌ Ошибка: ID игрока не указан", "error");
+            return;
+        }
+        
+        showPromoStatus("🔍 Загрузка коллекции игрока...", "info");
+        
+        const success = await viewPlayerCollection(playerId);
+        if (!success) {
+            showPromoStatus("❌ Не удалось загрузить коллекцию игрока", "error");
+            return;
+        }
+        
+        isViewingOtherPlayer = true;
+        const viewingArea = document.getElementById('viewingCollectionArea');
+        const viewingName = document.getElementById('viewingPlayerName');
+        
+        if (viewingArea) viewingArea.style.display = 'block';
+        
+        // Получаем ник игрока для отображения
+        try {
+            const { data: profile } = await supabaseClient
+                .from('user_profiles')
+                .select('nickname')
+                .eq('user_id', playerId)
+                .maybeSingle();
+            
+            const displayName = profile?.nickname || playerId.slice(0, 22) + '...';
+            if (viewingName) {
+                viewingName.innerText = displayName;
+                viewingName.title = `ID: ${playerId}`; // Подсказка с ID
+            }
+        } catch(e) {
+            if (viewingName) viewingName.innerText = playerId.slice(0, 22) + '...';
+        }
+        
+        viewingFilter = "all";
+        renderViewingCollection();
+        
+        // Переключаемся на вкладку игроков
+        const playersTab = document.querySelector('.tab-btn[data-tab="players"]');
+        if (playersTab) playersTab.click();
+        
+        showPromoStatus(`✅ Загружена коллекция игрока`, "success");
+    }
+
+    // Исправленная функция копирования (копируем ID, а не ник)
+    function copyUserId() {
+        const userId = getUserId();
+        navigator.clipboard.writeText(userId);
+        showPromoStatus("✅ Ваш ID скопирован в буфер обмена!", "success");
+    }
+
+    // Функция копирования ника (дополнительная)
+    function copyNickname() {
+        if (currentNickname) {
+            navigator.clipboard.writeText(currentNickname);
+            showPromoStatus(`✅ Ник "${currentNickname}" скопирован!`, "success");
+        } else {
+            showPromoStatus("❌ У вас еще нет ника", "error");
+        }
+    }
+    
+    function copyInviteLink() {
+        const userId = getUserId();
+        const link = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
+        navigator.clipboard.writeText(link);
+        const statusSpan = document.getElementById('inviteStatus');
+        if (statusSpan) {
+            statusSpan.innerText = "✅ Ссылка скопирована!";
+            statusSpan.className = "promo-status success";
+            setTimeout(() => {
+                statusSpan.innerText = "";
+                statusSpan.className = "promo-status";
+            }, 2000);
+        }
+    }
+    
+    function updateInviteLink() {
+        const userId = getUserId();
+        const link = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
+        const inviteInput = document.getElementById('inviteLinkInput');
+        if (inviteInput) {
+            inviteInput.value = link;
+        }
+    }
+    
     function getFullCardById(id) { return ALL_CARDS.find(c => c.id === id); }
     
     // ========== ОСТАЛЬНЫЕ ФУНКЦИИ ИГРЫ ==========
@@ -1665,6 +2279,10 @@
         const collectionData = Array.from(collectionMap.entries()).map(([id, data]) => ({ id, animated: data.animated || false }));
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 5 }));
         syncToCloud();
+        // После сохранения данных проверяем условия для реферального бонуса (если у текущего игрока есть реферер)
+        if (supabaseInitialized) {
+            checkAndRewardReferrer(getUserId());
+        }
     }
     
     function loadData() {
@@ -1810,27 +2428,6 @@
         allCardsListDiv.innerHTML = html;
         document.querySelectorAll('.allcards-card').forEach(card => { const data = JSON.parse(card.dataset.card); card.addEventListener('click', () => showModal(data.image, data.name, data.rank)); });
         totalAllCardsCountSpan.innerText = CATALOG_CARDS.length;
-    }
-    
-    function renderViewingCollection() {
-        if (!isViewingOtherPlayer) return;
-        
-        let filtered = Array.from(viewingCollectionMap.values());
-        if (viewingFilter !== "all") filtered = filtered.filter(entry => entry.cardData.rank === viewingFilter);
-        let sorted = filtered.sort((a,b) => (a.cardData.rankOrder||99) - (b.cardData.rankOrder||99));
-        let html = '';
-        for (let entry of sorted) {
-            const card = entry.cardData;
-            const imgPath = getCardImage(card, entry.animated);
-            const rankClass = getRankCornerClass(card.rank);
-            html += `<div class="collection-card ${entry.animated ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="image-container"><img class="collection-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="collection-name">${card.name}${entry.animated ? '✨' : ''}</div></div>`;
-        }
-        document.getElementById('viewingCollectionList').innerHTML = html || '<div style="text-align:center; padding:20px; color:#aa8899;">📭 У игрока нет карт</div>';
-        
-        document.querySelectorAll('#viewingCollectionList .collection-card').forEach(card => {
-            const data = JSON.parse(card.dataset.card);
-            card.addEventListener('click', () => showModal(data.image, data.name, data.rank));
-        });
     }
     
     function showPromoStatus(text, type = "info") {
@@ -2037,42 +2634,6 @@
         return true;
     }
     
-    // ========== ФУНКЦИИ ПРОСМОТРА КОЛЛЕКЦИЙ ==========
-    async function searchAndViewPlayer() {
-        const searchTerm = document.getElementById('searchPlayerInput').value.trim();
-        if (!searchTerm) {
-            showPromoStatus("Введите ID игрока для поиска", "error");
-            return;
-        }
-        
-        showPromoStatus("🔍 Поиск игрока...", "info");
-        
-        const players = await searchPlayer(searchTerm);
-        if (!players || players.length === 0) {
-            document.getElementById('noPlayerFound').style.display = 'block';
-            document.getElementById('viewingCollectionArea').style.display = 'none';
-            showPromoStatus("❌ Игрок не найден", "error");
-            return;
-        }
-        
-        document.getElementById('noPlayerFound').style.display = 'none';
-        const player = players[0];
-        
-        const success = await viewPlayerCollection(player.user_id);
-        if (!success) {
-            showPromoStatus("❌ Не удалось загрузить коллекцию игрока", "error");
-            return;
-        }
-        
-        isViewingOtherPlayer = true;
-        document.getElementById('viewingCollectionArea').style.display = 'block';
-        document.getElementById('viewingPlayerName').innerText = player.user_id.slice(0, 20) + '...';
-        viewingFilter = "all";
-        renderViewingCollection();
-        
-        showPromoStatus(`✅ Загружена коллекция игрока ${player.user_id.slice(0, 16)}...`, "success");
-    }
-    
     function closeViewing() {
         isViewingOtherPlayer = false;
         viewingPlayerId = null;
@@ -2080,82 +2641,6 @@
         document.getElementById('viewingCollectionArea').style.display = 'none';
         document.getElementById('noPlayerFound').style.display = 'none';
         document.getElementById('searchPlayerInput').value = '';
-    }
-    
-    function copyUserId() {
-        const userId = getUserId();
-        navigator.clipboard.writeText(userId);
-        showPromoStatus("✅ ID скопирован в буфер обмена!", "success");
-    }
-    
-    // Исправленная функция получения топа игроков
-    async function getTopPlayers(limit = 10) {
-        if (!supabaseInitialized) return [];
-        
-        try {
-            // Сначала получаем всех пользователей из user_collections
-            const { data: collections, error } = await supabaseClient
-                .from('user_collections')
-                .select('user_id');
-            
-            if (error) {
-                console.error('Error getting collections:', error);
-                return [];
-            }
-            
-            if (!collections || collections.length === 0) {
-                return [];
-            }
-            
-            // Подсчитываем количество карт у каждого пользователя
-            const counts = {};
-            collections.forEach(item => {
-                counts[item.user_id] = (counts[item.user_id] || 0) + 1;
-            });
-            
-            // Преобразуем в массив и сортируем
-            const topPlayers = Object.entries(counts)
-                .map(([user_id, count]) => ({ user_id, count }))
-                .sort((a, b) => b.count - a.count)
-                .slice(0, limit);
-            
-            return topPlayers;
-        } catch(e) {
-            console.error('Top players error:', e);
-            return [];
-        }
-    }
-    
-    // Исправленная функция просмотра топ-игрока
-    async function viewTopPlayer(playerId) {
-        if (!playerId) {
-            showPromoStatus("❌ Ошибка: ID игрока не указан", "error");
-            return;
-        }
-        
-        showPromoStatus("🔍 Загрузка коллекции игрока...", "info");
-        
-        const success = await viewPlayerCollection(playerId);
-        if (!success) {
-            showPromoStatus("❌ Не удалось загрузить коллекцию игрока", "error");
-            return;
-        }
-        
-        isViewingOtherPlayer = true;
-        const viewingArea = document.getElementById('viewingCollectionArea');
-        const viewingName = document.getElementById('viewingPlayerName');
-        
-        if (viewingArea) viewingArea.style.display = 'block';
-        if (viewingName) viewingName.innerText = playerId.length > 25 ? playerId.slice(0, 22) + '...' : playerId;
-        
-        viewingFilter = "all";
-        renderViewingCollection();
-        
-        // Переключаемся на вкладку игроков
-        const playersTab = document.querySelector('.tab-btn[data-tab="players"]');
-        if (playersTab) playersTab.click();
-        
-        showPromoStatus(`✅ Загружена коллекция игрока`, "success");
     }
     
     function updateUI() {
@@ -2242,20 +2727,64 @@
         modal = document.getElementById('imageModal'); modalImage = document.getElementById('modalImage'); modalCaption = document.getElementById('modalCaption'); modalRank = document.getElementById('modalRank'); modalCloseBtn = document.getElementById('modalCloseBtn');
         
         loadData();
-        await syncInitialData();
-        loadFishingData();
         
         const supabaseInited = initSupabase();
         if (supabaseInited) {
+            await syncInitialData();
             await updateVisitorCounter();
             setInterval(async () => { const total = await getTotalVisitors(); document.getElementById('visitorCount').textContent = total; }, 30000);
             await loadTopPlayers();
             
             const myUserIdSpan = document.getElementById('myUserId');
-            if (myUserIdSpan) myUserIdSpan.innerText = getUserId().slice(0, 20) + '...';
+            if (myUserIdSpan && !currentNickname) {
+                myUserIdSpan.innerText = getUserId().slice(0, 20) + '...';
+            } else if (myUserIdSpan && currentNickname) {
+                myUserIdSpan.innerText = currentNickname;
+            }
+            
+            updateInviteLink();
+            // Обработка реферальной ссылки и обновление UI
+            await processReferralLink();
+            await updateReferralUI();
         } else {
             document.getElementById('visitorCount').textContent = '?';
             document.getElementById('myUserId').innerText = 'офлайн';
+        }
+        
+        loadFishingData();
+        
+        // Функция syncInitialData должна быть определена или перемещена сюда для доступа
+        async function syncInitialData() {
+            if (!supabaseInitialized) return;
+            const userId = getUserId();
+            const nickname = await loadUserNickname(userId);
+            if (nickname) {
+                currentNickname = nickname;
+                updateNicknameUI();
+            }
+            const existingData = await loadFromCloud(userId);
+            if (!existingData || !existingData.resources) {
+                console.log('Первая синхронизация...');
+                await syncToCloud();
+            } else if (existingData.resources) {
+                const cloudCrystals = existingData.resources.crystals || 0;
+                const localCrystals = crystals;
+                if (cloudCrystals > localCrystals + 10) {
+                    crystals = cloudCrystals;
+                    shards = existingData.resources.shards || 0;
+                    ore = existingData.resources.ore || 0;
+                    if (existingData.collections && existingData.collections.length > 0) {
+                        collectionMap.clear();
+                        for (const item of existingData.collections) {
+                            const fullCard = getFullCardById(item.card_id);
+                            if (fullCard) collectionMap.set(item.card_id, { cardData: fullCard, animated: item.animated || false });
+                        }
+                    }
+                    showPromoStatus("🔄 Данные синхронизированы с облаком!", "success");
+                    updateUI();
+                    saveData();
+                }
+            }
         }
         
         dailyBonusBtn.addEventListener('click', claimDaily); exchangeOreBtn.addEventListener('click', exchangeOreFunc); mineClickBtn.addEventListener('click', mine);
@@ -2273,6 +2802,17 @@
         if (searchPlayerBtn) searchPlayerBtn.addEventListener('click', searchAndViewPlayer);
         if (closeViewingBtn) closeViewingBtn.addEventListener('click', closeViewing);
         
+        // Настройка ника
+        const editNicknameBtn = document.getElementById('editNicknameBtn');
+        const saveNicknameBtn = document.getElementById('saveNicknameBtn');
+        const cancelNicknameBtn = document.getElementById('cancelNicknameBtn');
+        const copyInviteLinkBtn = document.getElementById('copyInviteLinkBtn');
+        
+        if (editNicknameBtn) editNicknameBtn.addEventListener('click', showNicknameEditForm);
+        if (saveNicknameBtn) saveNicknameBtn.addEventListener('click', setNickname);
+        if (cancelNicknameBtn) cancelNicknameBtn.addEventListener('click', cancelNicknameEdit);
+        if (copyInviteLinkBtn) copyInviteLinkBtn.addEventListener('click', copyInviteLink);
+        
         renderPromoChips();
         
         document.querySelectorAll('.tab-btn').forEach(btn => { btn.addEventListener('click', () => { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); btn.classList.add('active'); document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active'); }); });
@@ -2280,6 +2820,15 @@
         updateDailyUI(); updateMiningUI(); updateUI();
         
         setInterval(() => { updateFishingUI(); const freeEl = document.getElementById('nextFreeAttempt'); if (freeEl && document.getElementById('tab-fishing').classList.contains('active')) freeEl.innerText = getNextFreeTimeString(); }, 1000);
+        
+        const copyNicknameBtn = document.getElementById('copyNicknameBtn');
+        if (copyNicknameBtn) copyNicknameBtn.addEventListener('click', copyNickname);
+
+        // Показываем ID пользователя
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        if (userIdDisplay) {
+            userIdDisplay.innerText = getUserId();
+        }
     }
     
     document.addEventListener('DOMContentLoaded', init);
