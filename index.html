@@ -1502,7 +1502,9 @@
     const STORAGE_KEY = 'bloody_ssr_v18_promo';
     const DUPLICATE_REWARD_CRYSTALS = 7;
     
-    const PROMO_LIST = [];
+    const PROMO_LIST = [
+        { code: "MANGA2026", reward: { crystals: 500, shards: 2, ore: 0 } },
+    ];
     
     let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
     let collectionMap = new Map();
