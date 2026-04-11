@@ -570,7 +570,6 @@
             transform: scale(1.02);
         }
 
-        /* Метка наличия карты в коллекции (галочка) */
         .choice-owned-badge {
             position: absolute;
             top: 5px;
@@ -587,10 +586,6 @@
             gap: 3px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
             backdrop-filter: blur(2px);
-        }
-
-        .choice-owned-badge span {
-            font-size: 0.7rem;
         }
 
         .choice-image {
@@ -737,6 +732,10 @@
         .rank-corner-C { background: linear-gradient(135deg, #df9300, #4477aa); color: #fff; }
         .rank-corner-D { background: linear-gradient(135deg, #718b99, #4477aa); color: #fff; }
         .rank-corner-E { background: linear-gradient(135deg, #985e4b, #4477aa); color: #fff; }
+        .rank-corner-H { background: linear-gradient(135deg, #ff6600, #cc4400); color: #fff; }
+        .rank-corner-N { background: linear-gradient(135deg, #00ccff, #0099cc); color: #fff; }
+        .rank-corner-V { background: linear-gradient(135deg, #ff88cc, #cc5599); color: #fff; }
+        .rank-corner-L { background: linear-gradient(135deg, #ffaa44, #cc8822); color: #fff; }
 
         .collection-name, .allcards-name {
             font-size: 0.65rem;
@@ -744,19 +743,6 @@
             margin: 3px 0;
             word-break: break-word;
             color: #FFE7B6;
-        }
-
-        .collection-count {
-            background: #ff4444;
-            color: white;
-            border-radius: 20px;
-            padding: 1px 5px;
-            font-size: 0.55rem;
-            font-weight: 700;
-            position: absolute;
-            top: 3px;
-            right: 3px;
-            z-index: 2;
         }
 
         .upgrade-btn {
@@ -1056,6 +1042,39 @@
             margin-top: 8px;
             width: 100%;
         }
+
+        #eventPackBtn {
+            background: radial-gradient(circle at 30% 10%, #ff8833, #cc6622) !important;
+            animation: eventPackPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes eventPackPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 136, 51, 0.4); }
+            50% { box-shadow: 0 0 0 5px rgba(255, 136, 51, 0.2); }
+        }
+        
+        #eventPackBtn.disabled {
+            animation: none;
+            opacity: 0.5;
+        }
+
+        .event-banner {
+            background: linear-gradient(135deg, #ff4444, #aa2222);
+            color: white;
+            text-align: center;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            border-radius: 12px;
+            margin: 8px 12px 0 12px;
+            cursor: pointer;
+            animation: bannerPulse 1s infinite;
+        }
+
+        @keyframes bannerPulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; box-shadow: 0 0 10px rgba(255,68,68,0.5); }
+        }
     </style>
 </head>
 <body>
@@ -1083,6 +1102,8 @@
         <button class="tab-btn" data-tab="players">👥 Игроки</button>
         <button class="tab-btn" data-tab="profile">👤 Профиль</button>
     </div>
+
+    <div id="eventBanner" class="event-banner" style="display: none;"></div>
 
     <!-- Шахта -->
     <div class="tab-content active" id="tab-mine">
@@ -1146,24 +1167,25 @@
             <div class="pack-description" style="margin-top: 12px;">
                 <p><strong>🎣 Что можно поймать?</strong></p>
                 <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem;">
-                    <p><span style="color:#ffaa66;">🐟 Гнилая рыба → +5⛏️</span>
+                    <span style="color:#ffaa66;">🐟 Гнилая рыба → +5⛏️</span>
                     <span style="color:#ffaa66;">🐠 Кровавый лосось → +2💎</span>
                     <span style="color:#ffaa66;">🦑 Гигантский кальмар → +10💎 +10⛏</span>
                     <span style="color:#ffaa66;">👑 Золотая рыбка → +1⚡</span>
                     <span style="color:#ffaa66;">📜 Карта сокровищ → 🎴 случайная карта</span>
-                    <span style="color:#ffaa66;">🎁 Сундук → 🎴 бесплатный пак</span></p>
+                    <span style="color:#ffaa66;">🎁 Сундук → 🎴 бесплатный пак</span>
                 </div>
                 <div class="pack-rules" style="margin-top: 10px;">
-                    <p><span style="color:#ffaa66;">⏰ Бесплатно: 1 раз / 30 минут</span>
-                    <span style="color:#ffaa66;">⚡ Платно: до 10 раз в день за 2⚡</span>
-                    <span style="color:#ffaa66;">🔄 Сброс в 00:00</span></p>
+                    <span>⏰ Бесплатно: 1 раз / 30 минут</span>
+                    <span>⚡ Платно: до 10 раз в день за 2⚡</span>
+                    <span>🔄 Сброс в 00:00</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Паки -->
+    <!-- Паки карт -->
     <div class="tab-content" id="tab-pack">
+        <!-- Обычный пак -->
         <div class="pack-section">
             <div class="pack-header"><div class="pack-icon">🎴🩸</div><h3>Кровавые паки</h3></div>
             <div class="pack-description">
@@ -1172,6 +1194,25 @@
             </div>
             <button class="open-btn" id="openPackBtn">🎁 КУПИТЬ ПАК ЗА 70💎</button>
         </div>
+
+        <!-- Ивентовый пак (появляется только в сезон) -->
+        <div class="pack-section" id="eventPackSection" style="border: 1px solid rgba(255, 200, 100, 0.6); background: linear-gradient(135deg, #2a1a2a, #1a0f2a);">
+            <div class="pack-header">
+                <div class="pack-icon">🎪🎴</div>
+                <h3 style="color: #ffcc88;">🎪 ИВЕНТОВЫЙ ПАК</h3>
+            </div>
+            <div class="pack-description">
+                <p><strong>🎪 Что это?</strong> Содержит уникальную ивент-карту текущего сезона!</p>
+                <p>✨ Временные ивент-карты, которые можно получить ТОЛЬКО в сезон!</p>
+                <div class="pack-rules">
+                    <span>🎴 1 карта в паке</span>
+                    <span>⚡ Цена: 5 осколков</span>
+                    <span>🎪 Ранги: H (Хэллоуин) / N (Новый год) / V (Весна) / L (Лето)</span>
+                </div>
+            </div>
+            <button class="open-btn" id="eventPackBtn">🎪 ОТКРЫТЬ ЗА 5⚡</button>
+        </div>
+
         <div id="selectionArea" class="selection-area" style="display: none;">
             <div style="font-size: 0.8rem; margin-bottom: 10px;">🎲 ВЫБЕРИ ОДНУ КАРТУ</div>
             <div id="choiceCardsContainer" class="choice-cards"></div>
@@ -1189,6 +1230,8 @@
             <button class="filter-btn" data-filter="G">G</button><button class="filter-btn" data-filter="B">B</button>
             <button class="filter-btn" data-filter="C">C</button><button class="filter-btn" data-filter="D">D</button>
             <button class="filter-btn" data-filter="E">E</button>
+            <button class="filter-btn" data-filter="H">H</button><button class="filter-btn" data-filter="N">N</button>
+            <button class="filter-btn" data-filter="V">V</button><button class="filter-btn" data-filter="L">L</button>
         </div>
         <div id="collectionList" class="collection-grid"></div>
     </div>
@@ -1203,6 +1246,8 @@
             <button class="filter-btn" data-filter="G">G</button><button class="filter-btn" data-filter="B">B</button>
             <button class="filter-btn" data-filter="C">C</button><button class="filter-btn" data-filter="D">D</button>
             <button class="filter-btn" data-filter="E">E</button>
+            <button class="filter-btn" data-filter="H">H</button><button class="filter-btn" data-filter="N">N</button>
+            <button class="filter-btn" data-filter="V">V</button><button class="filter-btn" data-filter="L">L</button>
         </div>
         <div id="allCardsList" class="allcards-grid"></div>
     </div>
@@ -1219,7 +1264,7 @@
                 <button class="promo-activate-btn" id="searchPlayerBtn">🔍 Найти</button>
             </div>
             <div style="font-size: 0.7rem; color: #aa8899; margin-top: 8px;">
-                💡 Ваш ID: <span id="myUserId" style="color:#ffaa66; cursor:pointer;" onclick="copyUserId()">загрузка...</span>
+                💡 Ваш ID: <span id="myUserId" style="color:#ffaa66; cursor:pointer;">загрузка...</span>
                 <button onclick="copyUserId()" style="background:none; border:none; color:#ffaa66; cursor:pointer;">📋</button>
             </div>
         </div>
@@ -1300,7 +1345,6 @@
             <div class="promo-status" id="inviteStatus"></div>
         </div>
         
-        <!-- Реферальная информация -->
         <div class="referral-info" id="referralInfoBlock">
             <div class="promo-header">
                 <span class="promo-icon">🎁</span>
@@ -1340,6 +1384,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+    // ==================== КОНФИГУРАЦИЯ SUPABASE ====================
     const SUPABASE_URL = 'https://tixgzuqpdepyxgueriqw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpeGd6dXFwZGVweXhndWVyaXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzAzMjIsImV4cCI6MjA5MTM0NjMyMn0.sskc8yr9bfHuCzAMVpupM7dJWXhfqg2GWg-1StQcQDM';
     
@@ -1351,7 +1396,7 @@
     let viewingFilter = "all";
     let viewingCollectionMap = new Map();
 
-    // БАЗА КАРТ
+    // ==================== БАЗА КАРТ ====================
     const ALL_CARDS = [
         { id: "osk01", name: "Осколок", emoji: "⚔️", rank: "A+", set: "Эхокалипсис", rankLabel: "A+", color: "#772ce8", rankOrder: 3, image: "images/osk.png", canUpgrade: false, animImage: null },
         { id: "cc01", name: "C.C.", emoji: "🍊", rank: "X", set: "X", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/cc01.png", canUpgrade: false, animImage: null },
@@ -1479,15 +1524,22 @@
         { id: "Ekurina01", name: "Курин", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/kurina01.png", canUpgrade: false, animImage: null },      
         { id: "Ehimetto01", name: "Хеметто", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/himetto01.png", canUpgrade: false, animImage: null },
         { id: "Eset01", name: "Сет", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/set01.png", canUpgrade: false, animImage: null },
-        { id: "Enil01", name: "Нил", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/nil01.png", canUpgrade: false, animImage: null },  
+        { id: "Enil01", name: "Нил", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/nil01.png", canUpgrade: false, animImage: null },
+        
+        // ========== ИВЕНТОВЫЕ КАРТЫ ==========
+        { id: "Halbedo01", name: "Альбедо", rank: "H", rankLabel: "H", color: "#ff6600", rankOrder: 1.5, image: "images/events/halloween/albedo01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "halloween" },
+        { id: "Nzani01", name: "Зани", rank: "N", rankLabel: "N", color: "#00ccff", rankOrder: 1.6, image: "images/events/newyear/zani01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "newyear" },
+        { id: "Varlekino01", name: "Арлекино", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/arlekino01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "spring" },
+        { id: "Lkafka01", name: "Кафка", rank: "L", rankLabel: "L", color: "#ffaa44", rankOrder: 1.8, image: "images/events/summer/kafka01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "summer" }
     ];
 
     const CATALOG_CARDS = ALL_CARDS.filter(card => card.rank !== "A+" && card.id !== "osk01");
 
+    // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
     function getDefaultImageForRank(card) {
-        const rankFolders = { 'X': 'X', 'S': 'S', 'A': 'A', 'A+': 'A', 'P': 'P', 'G': 'G', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E' };
+        const rankFolders = { 'X': 'X', 'S': 'S', 'A': 'A', 'A+': 'A', 'P': 'P', 'G': 'G', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'H': 'H', 'N': 'N', 'V': 'V', 'L': 'L' };
         const folder = rankFolders[card.rank] || 'E';
-        const setName = card.set || 'Эхокалипсис';
+        const setName = card.set === "Ивенты" ? "events" : (card.set || 'Эхокалипсис');
         return `images/${setName}/${folder}/default.png`;
     }
 
@@ -1496,6 +1548,18 @@
         return card.image || getDefaultImageForRank(card);
     }
 
+    function getRankCornerClass(rank) {
+        const map = { 
+            'X':'rank-corner-X', 'S':'rank-corner-S', 'A+':'rank-corner-Aplus',
+            'A':'rank-corner-A', 'P':'rank-corner-P', 'G':'rank-corner-G',
+            'B':'rank-corner-B', 'C':'rank-corner-C', 'D':'rank-corner-D',
+            'E':'rank-corner-E', 'H':'rank-corner-H', 'N':'rank-corner-N',
+            'V':'rank-corner-V', 'L':'rank-corner-L'
+        };
+        return map[rank] || 'rank-corner-E';
+    }
+
+    // ==================== ИГРОВЫЕ КОНСТАНТЫ ====================
     const RANK_WEIGHTS = { "X": 1, "S": 4, "A+": 2, "A": 8, "P": 12, "G": 12, "B": 12, "C": 16, "D": 20, "E": 35 };
     const PACK_PRICE = 70;
     const START_CRYSTALS = 40;
@@ -1503,7 +1567,7 @@
     const DUPLICATE_REWARD_CRYSTALS = 7;
     
     const PROMO_LIST = [
-        { code: "MANGA2026", reward: { crystals: 500, shards: 2, ore: 0 } },
+          { code: "MANGA2026", reward: { crystals: 500, shards: 2, ore: 0 } },
     ];
     
     let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
@@ -1528,6 +1592,7 @@
     let promoInput, activatePromoBtn, promoStatusSpan, promoCodesListDiv;
     let modal, modalImage, modalCaption, modalRank, modalCloseBtn;
 
+    // ==================== SUPABASE ФУНКЦИИ ====================
     function initSupabase() {
         if (typeof supabase === 'undefined') {
             console.error('⚠️ Supabase библиотека не загружена!');
@@ -1556,7 +1621,6 @@
     async function syncToCloud() {
         if (!supabaseInitialized) return;
         const userId = getUserId();
-        
         try {
             await supabaseClient.from('user_resources').upsert({
                 user_id: userId,
@@ -1565,37 +1629,24 @@
                 ore: ore,
                 updated_at: new Date().toISOString()
             });
-            
             const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
-                user_id: userId,
-                card_id: cardId,
-                animated: data.animated || false
+                user_id: userId, card_id: cardId, animated: data.animated || false
             }));
-            
             for (const card of collectionData) {
                 await supabaseClient.from('user_collections').upsert(card);
             }
-            
             await supabaseClient.from('user_profiles').upsert({
-                user_id: userId,
-                nickname: currentNickname || null,
-                last_active: new Date().toISOString()
+                user_id: userId, nickname: currentNickname || null, last_active: new Date().toISOString()
             });
-        } catch(e) {
-            console.error('Sync error:', e);
-        }
+        } catch(e) { console.error('Sync error:', e); }
     }
     
     async function loadUserNickname(userId) {
         if (!supabaseInitialized) return null;
         try {
-            const { data, error } = await supabaseClient
-                .from('user_profiles')
-                .select('nickname')
-                .eq('user_id', userId)
-                .maybeSingle();
+            const { data, error } = await supabaseClient.from('user_profiles').select('nickname').eq('user_id', userId).maybeSingle();
             if (!error && data && data.nickname) return data.nickname;
-        } catch(e) { console.error('Load nickname error:', e); }
+        } catch(e) { return null; }
         return null;
     }
     
@@ -1617,9 +1668,7 @@
             const isUnique = await isNicknameUnique(nickname, userId);
             if (!isUnique) return { success: false, error: "Этот ник уже занят!" };
             const { error } = await supabaseClient.from('user_profiles').upsert({
-                user_id: userId,
-                nickname: nickname,
-                last_active: new Date().toISOString()
+                user_id: userId, nickname: nickname, last_active: new Date().toISOString()
             });
             if (error) return { success: false, error: "Ошибка сохранения" };
             return { success: true };
@@ -1647,23 +1696,14 @@
         try {
             let resources = null;
             try {
-                const { data, error } = await supabaseClient
-                    .from('user_resources')
-                    .select('*')
-                    .eq('user_id', targetId)
-                    .maybeSingle();
+                const { data, error } = await supabaseClient.from('user_resources').select('*').eq('user_id', targetId).maybeSingle();
                 if (!error && data) resources = data;
             } catch(e) {}
-            
             let collections = [];
             try {
-                const { data, error } = await supabaseClient
-                    .from('user_collections')
-                    .select('*')
-                    .eq('user_id', targetId);
+                const { data, error } = await supabaseClient.from('user_collections').select('*').eq('user_id', targetId);
                 if (!error && data) collections = data;
             } catch(e) {}
-            
             return { resources, collections };
         } catch(e) { return null; }
     }
@@ -1671,9 +1711,7 @@
     async function getTopPlayers(limit = 10) {
         if (!supabaseInitialized) return [];
         try {
-            const { data: collections, error: collError } = await supabaseClient
-                .from('user_collections')
-                .select('user_id');
+            const { data: collections, error: collError } = await supabaseClient.from('user_collections').select('user_id');
             if (collError) return [];
             if (!collections || collections.length === 0) return [];
             const counts = {};
@@ -1681,10 +1719,7 @@
             const userIds = Object.keys(counts);
             let nicknames = {};
             if (userIds.length > 0) {
-                const { data: profiles } = await supabaseClient
-                    .from('user_profiles')
-                    .select('user_id, nickname')
-                    .in('user_id', userIds);
+                const { data: profiles } = await supabaseClient.from('user_profiles').select('user_id, nickname').in('user_id', userIds);
                 if (profiles) profiles.forEach(p => { nicknames[p.user_id] = p.nickname; });
             }
             return Object.entries(counts).map(([user_id, count]) => ({ user_id, count, nickname: nicknames[user_id] || user_id.slice(0, 16) + '...' })).sort((a, b) => b.count - a.count).slice(0, limit);
@@ -1718,57 +1753,24 @@
         } catch(e) { return false; }
     }
 
-    // ========== РЕФЕРАЛЬНЫЕ ФУНКЦИИ ==========
-    
+    // ==================== РЕФЕРАЛЬНЫЕ ФУНКЦИИ ====================
     async function createReferralLink(referredUserId, referrerUserId) {
         if (!supabaseInitialized) return false;
         try {
-            // Двойная проверка: не привязан ли уже пользователь
-            const { data: existing, error: checkError } = await supabaseClient
-                .from('referrals')
-                .select('id')
-                .eq('referred_id', referredUserId)
-                .maybeSingle();
-                
-            if (checkError) {
-                console.error('Ошибка проверки:', checkError);
-                return false;
-            }
-            
-            if (existing) {
-                console.log(`Пользователь ${referredUserId} уже имеет реферера, пропускаем`);
-                return false;
-            }
-            
-            const { error } = await supabaseClient.from('referrals').insert({
-                referrer_id: referrerUserId,
-                referred_id: referredUserId,
-                reward_claimed: false,
-                ore_target: 1000
-            });
-            
-            if (error) {
-                console.error('Ошибка вставки:', error);
-                return false;
-            }
-            
+            const { data: existing, error: checkError } = await supabaseClient.from('referrals').select('id').eq('referred_id', referredUserId).maybeSingle();
+            if (checkError) { console.error('Ошибка проверки:', checkError); return false; }
+            if (existing) { console.log(`Пользователь ${referredUserId} уже имеет реферера`); return false; }
+            const { error } = await supabaseClient.from('referrals').insert({ referrer_id: referrerUserId, referred_id: referredUserId, reward_claimed: false, ore_target: 1000 });
+            if (error) { console.error('Ошибка вставки:', error); return false; }
             console.log(`✅ Реферальная связь создана: ${referrerUserId} -> ${referredUserId}`);
             return true;
-            
-        } catch(e) {
-            console.error('Create referral error:', e);
-            return false;
-        }
+        } catch(e) { console.error('Create referral error:', e); return false; }
     }
     
     async function getReferralInfo(userId) {
         if (!supabaseInitialized) return null;
         try {
-            const { data, error } = await supabaseClient
-                .from('referrals')
-                .select('*')
-                .eq('referrer_id', userId)
-                .maybeSingle();
+            const { data, error } = await supabaseClient.from('referrals').select('*').eq('referrer_id', userId).maybeSingle();
             if (error) throw error;
             return data;
         } catch(e) { return null; }
@@ -1776,75 +1778,30 @@
     
     async function checkAndRewardReferrer(referredUserId) {
         if (!supabaseInitialized) return;
-        
         try {
-            // Получаем запись о реферале
-            const { data: referral, error } = await supabaseClient
-                .from('referrals')
-                .select('*')
-                .eq('referred_id', referredUserId)
-                .maybeSingle();
-                
+            const { data: referral, error } = await supabaseClient.from('referrals').select('*').eq('referred_id', referredUserId).maybeSingle();
             if (error) throw error;
-            
-            // Если нет записи ИЛИ бонус уже выдан - выходим
             if (!referral || referral.reward_claimed) return;
-            
-            // Получаем ресурсы приглашённого
-            const { data: resources, error: resError } = await supabaseClient
-                .from('user_resources')
-                .select('ore')
-                .eq('user_id', referredUserId)
-                .maybeSingle();
-                
+            const { data: resources, error: resError } = await supabaseClient.from('user_resources').select('ore').eq('user_id', referredUserId).maybeSingle();
             if (resError) throw resError;
             if (!resources) return;
-            
-            // Проверяем условие (руды >= 1000)
             if (resources.ore >= 1000) {
-                // *** ВАЖНО: Сначала помечаем бонус как выданный, чтобы избежать повторных начислений ***
-                const { error: updateError } = await supabaseClient
-                    .from('referrals')
-                    .update({ reward_claimed: true })
-                    .eq('id', referral.id);
-                    
+                const { error: updateError } = await supabaseClient.from('referrals').update({ reward_claimed: true }).eq('id', referral.id);
                 if (updateError) throw updateError;
-                
-                // Затем начисляем бонус рефереру (ровно 50 кристаллов)
-                const { data: referrerRes } = await supabaseClient
-                    .from('user_resources')
-                    .select('crystals')
-                    .eq('user_id', referral.referrer_id)
-                    .maybeSingle();
-                
+                const { data: referrerRes } = await supabaseClient.from('user_resources').select('crystals').eq('user_id', referral.referrer_id).maybeSingle();
                 const currentCrystals = referrerRes?.crystals || 0;
-                const newCrystals = currentCrystals + 50; // ← СТРОГО 50, не 300!
-                
-                const { error: upsertError } = await supabaseClient
-                    .from('user_resources')
-                    .upsert({
-                        user_id: referral.referrer_id,
-                        crystals: newCrystals,
-                        updated_at: new Date().toISOString()
-                    });
-                    
+                const newCrystals = currentCrystals + 50;
+                const { error: upsertError } = await supabaseClient.from('user_resources').upsert({ user_id: referral.referrer_id, crystals: newCrystals, updated_at: new Date().toISOString() });
                 if (upsertError) throw upsertError;
-                
-                console.log(`✅ Бонус 50💎 выдан рефереру ${referral.referrer_id} за приглашение ${referredUserId}`);
-                
-                // Если текущий пользователь - реферер, обновляем локально
+                console.log(`✅ Бонус 50💎 выдан рефереру ${referral.referrer_id}`);
                 if (referral.referrer_id === getUserId()) {
                     crystals += 50;
                     updateUI();
                     showPromoStatus(`🎉 Ваш друг достиг 1000 руды! Вы получили +50💎 за приглашение!`, "success");
                 }
-                
-                // Обновляем UI реферальной информации
                 await updateReferralUI();
             }
-        } catch(e) {
-            console.error('Check referral reward error:', e);
-        }
+        } catch(e) { console.error('Check referral reward error:', e); }
     }
     
     async function updateReferralUI() {
@@ -1852,13 +1809,8 @@
         const referral = await getReferralInfo(userId);
         const refNameSpan = document.getElementById('refUserName');
         const refStatusSpan = document.getElementById('refBonusStatus');
-        
         if (referral) {
-            const { data: profile } = await supabaseClient
-                .from('user_profiles')
-                .select('nickname')
-                .eq('user_id', referral.referred_id)
-                .maybeSingle();
+            const { data: profile } = await supabaseClient.from('user_profiles').select('nickname').eq('user_id', referral.referred_id).maybeSingle();
             const referredName = profile?.nickname || referral.referred_id.slice(0, 16) + '...';
             if (refNameSpan) refNameSpan.innerText = referredName;
             if (refStatusSpan) refStatusSpan.innerText = referral.reward_claimed ? "✅ Бонус получен!" : "⏳ Ожидание (1000 руды)";
@@ -1870,108 +1822,96 @@
     
     async function processReferralLink() {
         if (!supabaseInitialized) return;
-        
         const urlParams = new URLSearchParams(window.location.search);
         const referrerId = urlParams.get('ref');
         const currentId = getUserId();
-        
-        // Проверяем, что реферер указан, это не сам пользователь и у нас есть подключение к БД
         if (!referrerId || referrerId === currentId) return;
-        
         try {
-            // *** ГЛАВНОЕ: Проверяем, не привязан ли уже этот пользователь к какому-либо рефереру ***
-            const { data: existingReferral, error: checkError } = await supabaseClient
-                .from('referrals')
-                .select('referrer_id')
-                .eq('referred_id', currentId)
-                .maybeSingle();
-                
-            if (checkError) {
-                console.error('Ошибка проверки существующего реферала:', checkError);
-                return;
-            }
-            
-            // Если пользователь уже привязан к кому-то (даже если бонус не получен) - выходим
+            const { data: existingReferral, error: checkError } = await supabaseClient.from('referrals').select('referrer_id').eq('referred_id', currentId).maybeSingle();
+            if (checkError) { console.error('Ошибка проверки:', checkError); return; }
             if (existingReferral) {
-                console.log(`Пользователь ${currentId} уже приглашён пользователем ${existingReferral.referrer_id}`);
-                // Показываем сообщение, но не навязчиво
-                showPromoStatus(`ℹ️ Вы уже были приглашены ранее`, "info");
-                // Очищаем параметр из URL, чтобы не проверять при каждом обновлении
+                console.log(`Пользователь ${currentId} уже приглашён`);
                 window.history.replaceState({}, document.title, window.location.pathname);
                 return;
             }
-            
-            // Проверяем, существует ли реферер в БД
-            const { data: referrerExists, error: refError } = await supabaseClient
-                .from('user_profiles')
-                .select('user_id')
-                .eq('user_id', referrerId)
-                .maybeSingle();
-                
-            if (refError || !referrerExists) {
-                console.log(`Реферер ${referrerId} не найден в БД`);
-                return;
-            }
-            
-            // Все проверки пройдены - создаём связь и даём бонус
+            const { data: referrerExists, error: refError } = await supabaseClient.from('user_profiles').select('user_id').eq('user_id', referrerId).maybeSingle();
+            if (refError || !referrerExists) { console.log(`Реферер ${referrerId} не найден`); return; }
             const success = await createReferralLink(currentId, referrerId);
-            
             if (success) {
-                // Даём бонус новому игроку за переход по ссылке
                 crystals += 30;
                 updateUI();
                 saveData();
-                showPromoStatus(`🎁 Вы пришли по приглашению! Получено +30💎! Пригласивший получит +50💎, когда вы накопите 1000 руды.`, "success");
-                
-                // Обновляем UI реферальной информации для текущего пользователя
+                showPromoStatus(`🎁 Вы пришли по приглашению! +30💎! Пригласивший получит +50💎, когда вы накопите 1000 руды.`, "success");
                 await updateReferralUI();
             } else {
                 showPromoStatus(`❌ Не удалось активировать реферальную ссылку`, "error");
             }
-            
-            // Очищаем параметр из URL
             window.history.replaceState({}, document.title, window.location.pathname);
-            
-        } catch(e) {
-            console.error('Ошибка обработки реферальной ссылки:', e);
-        }
+        } catch(e) { console.error('Ошибка:', e); }
     }
     
-    // Функция для проверки, есть ли у пользователя реферер
-    async function hasReferrer(userId) {
-        if (!supabaseInitialized) return false;
-        try {
-            const { data, error } = await supabaseClient
-                .from('referrals')
-                .select('referrer_id')
-                .eq('referred_id', userId)
-                .maybeSingle();
-            if (error) return false;
-            return !!data;
-        } catch(e) {
-            return false;
-        }
-    }
-
     async function forceCheckReferralBonus() {
-        if (!supabaseInitialized) {
-            showPromoStatus("❌ Облачный сервис недоступен", "error");
-            return;
-        }
+        if (!supabaseInitialized) { showPromoStatus("❌ Облачный сервис недоступен", "error"); return; }
         showPromoStatus("🔍 Проверка реферального бонуса...", "info");
         await checkAndRewardReferrer(getUserId());
         await updateReferralUI();
         showPromoStatus("✅ Проверка завершена", "success");
     }
 
-    // ========== ОСНОВНЫЕ ФУНКЦИИ ИГРЫ ==========
-    
-    function getFullCardById(id) { return ALL_CARDS.find(c => c.id === id); }
-    
-    function getRankCornerClass(rank) {
-        const map = { 'X':'rank-corner-X','S':'rank-corner-S','A+':'rank-corner-Aplus','A':'rank-corner-A','P':'rank-corner-P','G':'rank-corner-G','B':'rank-corner-B','C':'rank-corner-C','D':'rank-corner-D','E':'rank-corner-E' };
-        return map[rank] || '';
+    // ==================== ИВЕНТЫ ====================
+    function getCurrentSeason() {
+        const now = new Date();
+        const month = now.getMonth();
+        const day = now.getDate();
+        if ((month === 9 && day >= 15) || (month === 10 && day <= 10)) return "halloween";
+        if ((month === 11 && day >= 15) || (month === 0 && day <= 15)) return "newyear";
+        if (month >= 2 && month <= 4) return "spring";
+        if (month >= 5 && month <= 7) return "summer";
+        return null;
     }
+    
+    function getSeasonName(season) {
+        const names = { halloween: "🎃 Хэллоуин", newyear: "🎄 Новый год", spring: "🌸 Весна", summer: "☀️ Лето" };
+        return names[season] || season;
+    }
+    
+    function isDoubleOreEventActive() {
+        const day = new Date().getDay();
+        return day === 0 || day === 6;
+    }
+    
+    function getCurrentSeasonEventCards() {
+        const currentSeason = getCurrentSeason();
+        if (!currentSeason) return [];
+        return ALL_CARDS.filter(c => c.season === currentSeason);
+    }
+    
+    function getRandomEventPackCard() {
+        const seasonCards = getCurrentSeasonEventCards();
+        if (seasonCards.length === 0) return null;
+        return { ...seasonCards[Math.floor(Math.random() * seasonCards.length)] };
+    }
+    
+    function updateEventBanner() {
+        const banner = document.getElementById('eventBanner');
+        if (!banner) return;
+        const activeEvents = [];
+        if (isDoubleOreEventActive()) activeEvents.push(`💎 КРИСТАЛЬНЫЙ УИКЕНД x2`);
+        const currentSeason = getCurrentSeason();
+        if (currentSeason) activeEvents.push(`🎪 ${getSeasonName(currentSeason)} ИВЕНТОВЫЙ ПАК`);
+        if (activeEvents.length === 0) { banner.style.display = 'none'; return; }
+        banner.style.display = 'block';
+        banner.innerHTML = `🎉 АКТИВНЫЕ ИВЕНТЫ: ${activeEvents.join(' • ')} 🎉`;
+        banner.onclick = () => {
+            let msg = "✨ ТЕКУЩИЕ ИВЕНТЫ ✨\n\n";
+            if (isDoubleOreEventActive()) msg += `🔹 КРИСТАЛЬНЫЙ УИКЕНД\n   Вся руда x2 по выходным!\n\n`;
+            if (currentSeason) msg += `🔹 ИВЕНТОВЫЙ ПАК\n   Сезон: ${getSeasonName(currentSeason)}\n   Уникальные карты за 5⚡!\n`;
+            alert(msg);
+        };
+    }
+
+    // ==================== ОСНОВНЫЕ ИГРОВЫЕ ФУНКЦИИ ====================
+    function getFullCardById(id) { return ALL_CARDS.find(c => c.id === id); }
     
     function showModal(imageUrl, cardName, rank) {
         modalImage.src = imageUrl;
@@ -2040,17 +1980,16 @@
     
     function mine() { 
         if (miningClicksToday >= 100) return; 
-        const gain = Math.floor(Math.random() * 6) + 10; 
+        let gain = Math.floor(Math.random() * 6) + 10; 
+        if (isDoubleOreEventActive()) {
+            gain = gain * 2;
+            if (Math.random() < 0.2) showPromoStatus(`✨ ИВЕНТ! +${gain} руды (x2) ✨`, "success");
+        }
         miningClicksToday++; 
         ore += gain; 
         updateMiningUI(); 
         updateUI();
-        
-        // Проверяем реферальный бонус, но с защитой от дублирования
-        // Функция checkAndRewardReferrer уже проверяет reward_claimed
-        if (supabaseInitialized) {
-            checkAndRewardReferrer(getUserId());
-        }
+        if (supabaseInitialized) checkAndRewardReferrer(getUserId());
     }
     
     function exchangeOreFunc() { if (ore < 100) return; const exchangeAmount = Math.floor(ore / 100); crystals += exchangeAmount; ore -= exchangeAmount * 100; updateUI(); }
@@ -2061,7 +2000,7 @@
         for (let [rank, w] of Object.entries(RANK_WEIGHTS)) {
             acc += w;
             if (rand <= acc) {
-                const pool = ALL_CARDS.filter(c => c.rank === rank);
+                const pool = ALL_CARDS.filter(c => c.rank === rank && !c.season);
                 if (pool.length === 0) return { ...ALL_CARDS[0] };
                 return { ...pool[Math.floor(Math.random() * pool.length)] };
             }
@@ -2071,14 +2010,12 @@
     
     function generateOffer() { const cards = [], used = new Set(); while (cards.length < 3) { const card = getRandomCardForPack(); if (!used.has(card.id)) { used.add(card.id); cards.push(card); } } return cards; }
     
-    // *** ОБНОВЛЕННАЯ ФУНКЦИЯ ОТОБРАЖЕНИЯ ВЫБОРА КАРТ С ГАЛОЧКОЙ "ЕСТЬ" ***
     function renderChoice() {
         let html = '';
         currentOfferedCards.forEach((card, i) => {
             const imgPath = getCardImage(card, false);
             const rankClass = getRankCornerClass(card.rank);
             const isOwned = collectionMap.has(card.id);
-            // Добавляем бейдж "Есть" если карта уже в коллекции
             const ownedBadge = isOwned ? `<div class="choice-owned-badge">✔️ Есть</div>` : '';
             html += `<div class="choice-card ${selectedCardIndex === i ? 'selected' : ''}" data-index="${i}">
                         ${ownedBadge}
@@ -2091,8 +2028,7 @@
         });
         choiceCardsContainer.innerHTML = html;
         document.querySelectorAll('.choice-card').forEach(el => { 
-            el.addEventListener('click', (e) => { 
-                // Если кликнули по бейджу или его содержимому — всё равно выбираем карту
+            el.addEventListener('click', () => { 
                 selectedCardIndex = parseInt(el.dataset.index); 
                 renderChoice(); 
                 confirmChoiceBtn.disabled = false; 
@@ -2103,7 +2039,6 @@
     function confirmChoiceCard() {
         if (selectedCardIndex === null) return;
         const card = currentOfferedCards[selectedCardIndex];
-        
         if (card.rank === "A+") {
             shards += 1;
             showPromoStatus(`⚡ Получен осколок! +1⚡`, "success");
@@ -2132,6 +2067,99 @@
         confirmChoiceBtn.disabled = true; 
     }
     
+    // ==================== ИВЕНТОВЫЙ ПАК ====================
+    let currentEventOfferedCards = [];
+    let selectedEventCardIndex = null;
+    
+    function buyEventPack() {
+        const currentSeason = getCurrentSeason();
+        if (!currentSeason) {
+            showPromoStatus("❌ Сейчас нет активного ивента! Дождитесь Хэллоуина, Нового года, Весны или Лета", "error");
+            return;
+        }
+        if (shards < 5) {
+            showPromoStatus(`❌ Недостаточно осколков! Нужно 5⚡`, "error");
+            return;
+        }
+        if (selectionArea.style.display === 'block' && currentEventOfferedCards.length > 0) {
+            showPromoStatus("❌ Сначала завершите текущий выбор карты", "error");
+            return;
+        }
+        shards -= 5;
+        updateUI();
+        currentEventOfferedCards = [];
+        const card = getRandomEventPackCard();
+        if (card) currentEventOfferedCards.push(card);
+        if (currentEventOfferedCards.length === 0) {
+            shards += 5;
+            updateUI();
+            showPromoStatus("❌ Ошибка: нет доступных ивент-карт. Осколки возвращены", "error");
+            return;
+        }
+        selectedEventCardIndex = null;
+        selectionArea.style.display = 'block';
+        renderEventChoice();
+        confirmChoiceBtn.disabled = true;
+        const selectionTitle = document.querySelector('#selectionArea > div:first-child');
+        if (selectionTitle) {
+            selectionTitle.innerHTML = `🎪 ВЫБЕРИ ИВЕНТ-КАРТУ (сезон: ${getSeasonName(currentSeason)}) 🎪`;
+        }
+    }
+    
+    function renderEventChoice() {
+        let html = '';
+        currentEventOfferedCards.forEach((card, i) => {
+            const imgPath = getCardImage(card, false);
+            const rankClass = getRankCornerClass(card.rank);
+            const isOwned = collectionMap.has(card.id);
+            const ownedBadge = isOwned ? `<div class="choice-owned-badge">✔️ Есть</div>` : '';
+            html += `<div class="choice-card ${selectedEventCardIndex === i ? 'selected' : ''}" data-index="${i}">
+                        ${ownedBadge}
+                        <div class="choice-image-container">
+                            <img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${getDefaultImageForRank(card)}';">
+                            <div class="choice-rank-corner ${rankClass}">${card.rankLabel}</div>
+                        </div>
+                        <div class="choice-name">${card.name}</div>
+                        <div style="font-size:0.55rem; color:#ffaa66; margin-top:2px;">🎪 Ивент</div>
+                     </div>`;
+        });
+        choiceCardsContainer.innerHTML = html;
+        document.querySelectorAll('.choice-card').forEach(el => {
+            el.addEventListener('click', () => {
+                selectedEventCardIndex = parseInt(el.dataset.index);
+                renderEventChoice();
+                confirmChoiceBtn.disabled = false;
+            });
+        });
+    }
+    
+    function confirmEventChoice() {
+        if (selectedEventCardIndex === null) return;
+        const card = currentEventOfferedCards[selectedEventCardIndex];
+        if (collectionMap.has(card.id)) {
+            crystals += DUPLICATE_REWARD_CRYSTALS;
+            showPromoStatus(`🔄 Дубликат ивент-карты! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за "${card.name}"`, "success");
+        } else {
+            const fullCard = getFullCardById(card.id);
+            if (fullCard) {
+                collectionMap.set(card.id, { cardData: fullCard, animated: false });
+                showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
+            } else {
+                const newCard = { ...card };
+                ALL_CARDS.push(newCard);
+                collectionMap.set(card.id, { cardData: newCard, animated: false });
+                showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
+            }
+        }
+        currentEventOfferedCards = [];
+        selectedEventCardIndex = null;
+        selectionArea.style.display = 'none';
+        const selectionTitle = document.querySelector('#selectionArea > div:first-child');
+        if (selectionTitle) selectionTitle.innerHTML = `🎲 ВЫБЕРИ ОДНУ КАРТУ`;
+        updateUI();
+    }
+    
+    // ==================== ПРОЧИЕ ФУНКЦИИ ====================
     function upgradeCard(cardId) { const entry = collectionMap.get(cardId); if (!entry || !entry.cardData.canUpgrade || entry.animated || shards < 3) return; shards -= 3; entry.animated = true; updateUI(); }
     
     function renderCollection() {
@@ -2160,7 +2188,8 @@
             const isOwned = collectionMap.has(card.id);
             const imgPath = getCardImage(card, false);
             const rankClass = getRankCornerClass(card.rank);
-            html += `<div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'><div class="card-owned" style="background:${isOwned ? '#4a6741' : '#332233'};">${isOwned ? '✔️' : '❌'}</div><div class="image-container"><img class="allcards-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="allcards-name">${card.name}</div></div>`;
+            const isEvent = card.season !== undefined;
+            html += `<div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}' data-event="${isEvent}"><div class="card-owned" style="background:${isOwned ? '#4a6741' : '#332233'};">${isOwned ? '✔️' : '❌'}</div><div class="image-container"><img class="allcards-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';"><div class="card-rank-corner ${rankClass}">${card.rankLabel}</div></div><div class="allcards-name">${card.name}${isEvent ? ' 🎪' : ''}</div></div>`;
         }
         allCardsListDiv.innerHTML = html;
         document.querySelectorAll('.allcards-card').forEach(card => { const data = JSON.parse(card.dataset.card); card.addEventListener('click', () => showModal(data.image, data.name, data.rank)); });
@@ -2198,12 +2227,10 @@
         document.querySelectorAll('.promo-chip').forEach(chip => { chip.addEventListener('click', () => fillPromoCode(chip.dataset.code)); });
     }
     
-    // ========== РЫБАЛКА ==========
+    // ==================== РЫБАЛКА ====================
     function loadFishingData() {
         const saved = localStorage.getItem('bloody_fishing_v1');
-        if (saved) {
-            try { fishingData = JSON.parse(saved); } catch(e) {}
-        }
+        if (saved) { try { fishingData = JSON.parse(saved); } catch(e) {} }
         resetFishingIfNeeded();
     }
     
@@ -2221,18 +2248,15 @@
     function getFreeAttemptsLeft() {
         if (!fishingData.freeLastUsed) return 1;
         const lastUsed = new Date(fishingData.freeLastUsed);
-        const now = new Date();
-        const minutesPassed = (now - lastUsed) / 1000 / 60;
+        const minutesPassed = (new Date() - lastUsed) / 1000 / 60;
         return minutesPassed >= 30 ? 1 : 0;
     }
     
     function getNextFreeTimeString() {
         if (!fishingData.freeLastUsed) return "Готово!";
-        const lastUsed = new Date(fishingData.freeLastUsed);
-        const nextAvailable = new Date(lastUsed.getTime() + 30 * 60 * 1000);
-        const now = new Date();
-        if (nextAvailable <= now) return "Готово!";
-        const diffMs = nextAvailable - now;
+        const nextAvailable = new Date(new Date(fishingData.freeLastUsed).getTime() + 30 * 60 * 1000);
+        if (nextAvailable <= new Date()) return "Готово!";
+        const diffMs = nextAvailable - new Date();
         const minutes = Math.floor(diffMs / 1000 / 60);
         const seconds = Math.floor((diffMs % 60000) / 1000);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -2266,8 +2290,7 @@
     
     function getRandomCatch() {
         const totalWeight = fishingRewards.reduce((sum, r) => sum + r.weight, 0);
-        let rand = Math.random() * totalWeight;
-        let accum = 0;
+        let rand = Math.random() * totalWeight, accum = 0;
         for (const reward of fishingRewards) {
             accum += reward.weight;
             if (rand <= accum) return reward;
@@ -2295,7 +2318,7 @@
     }
     
     function giveRandomCard() {
-        const nonAPlusCards = ALL_CARDS.filter(c => c.rank !== "A+" && c.id !== "osk01");
+        const nonAPlusCards = ALL_CARDS.filter(c => c.rank !== "A+" && c.id !== "osk01" && !c.season);
         if (nonAPlusCards.length === 0) return false;
         const randomCard = nonAPlusCards[Math.floor(Math.random() * nonAPlusCards.length)];
         const imgPath = getCardImage(randomCard, false);
@@ -2366,8 +2389,16 @@
         crystalDisplay.innerText = crystals; oreDisplay.innerText = ore; shardDisplay.innerText = shards;
         totalCardsCountSpan.innerText = collectionMap.size;
         if (openPackBtn) openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
+        const eventPackBtn = document.getElementById('eventPackBtn');
+        if (eventPackBtn) {
+            const currentSeason = getCurrentSeason();
+            if (!currentSeason) { eventPackBtn.disabled = true; eventPackBtn.classList.add('disabled'); eventPackBtn.textContent = "⏸️ ИВЕНТ НЕ АКТИВЕН"; }
+            else if (shards < 5) { eventPackBtn.disabled = true; eventPackBtn.classList.add('disabled'); eventPackBtn.textContent = `🎪 НЕТ 5⚡`; }
+            else { eventPackBtn.disabled = false; eventPackBtn.classList.remove('disabled'); eventPackBtn.textContent = `🎪 ОТКРЫТЬ ${getSeasonName(currentSeason).toUpperCase()} ПАК ЗА 5⚡`; }
+        }
         renderCollection(); renderAllCards(); saveData();
         updateFishingUI();
+        updateEventBanner();
     }
     
     function setupFilters() {
@@ -2632,6 +2663,7 @@
     window.viewTopPlayer = viewTopPlayer;
     window.copyUserId = copyUserId;
     
+    // ==================== ИНИЦИАЛИЗАЦИЯ ====================
     async function init() {
         crystalDisplay = document.getElementById('crystalDisplay');
         oreDisplay = document.getElementById('oreDisplay');
@@ -2681,7 +2713,11 @@
         exchangeOreBtn.addEventListener('click', exchangeOreFunc);
         mineClickBtn.addEventListener('click', mine);
         openPackBtn.addEventListener('click', buyPack);
-        confirmChoiceBtn.addEventListener('click', confirmChoiceCard);
+        document.getElementById('eventPackBtn')?.addEventListener('click', buyEventPack);
+        confirmChoiceBtn.addEventListener('click', () => {
+            if (currentEventOfferedCards.length > 0) confirmEventChoice();
+            else confirmChoiceCard();
+        });
         modalCloseBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
         activatePromoBtn.addEventListener('click', activatePromoCode);
@@ -2722,6 +2758,7 @@
         }, 1000);
         
         document.getElementById('userIdDisplay').innerText = getUserId();
+        updateEventBanner();
     }
     
     document.addEventListener('DOMContentLoaded', init);
