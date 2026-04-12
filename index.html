@@ -1217,6 +1217,7 @@
         .quest-title {
             font-weight: bold;
             font-size: 0.85rem;
+            color: #FFE7B6;
         }
 
         .quest-desc {
@@ -1676,13 +1677,13 @@
 
     <!-- Профиль -->
     <div class="tab-content" id="tab-profile">
-        <div class="level-progress" id="levelProgressBlock">
+<!--         <div class="level-progress" id="levelProgressBlock">
             <div>⭐ УРОВЕНЬ <span id="levelValueProfile">1</span> <span id="nextLevelBonus"></span></div>
             <div class="level-progress-bar">
                 <div class="level-progress-fill" id="levelProgressFill"></div>
             </div>
             <div style="font-size: 0.7rem;" id="expTextProfile">Опыт: 0 / 100</div>
-        </div>
+        </div> -->
         <div class="nickname-section">
             <div class="promo-header">
                 <span class="promo-icon">👤</span>
@@ -2498,9 +2499,7 @@
         const STORAGE_KEY = 'bloody_ssr_v18_promo';
         const DUPLICATE_REWARD_CRYSTALS = 7;
         
-        const PROMO_LIST = [
-            { code: "NIGHT", reward: { crystals: 300, shards: 20, ore: 0 } },
-        ];
+        const PROMO_LIST = [];
         
         let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
         let collectionMap = new Map();
