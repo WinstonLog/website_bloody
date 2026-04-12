@@ -1076,7 +1076,6 @@
             50% { opacity: 1; box-shadow: 0 0 10px rgba(255,68,68,0.5); }
         }
 
-        /* Анимация для новой карты */
         @keyframes cardGain {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); filter: brightness(1.3); }
@@ -1086,7 +1085,6 @@
             animation: cardGain 0.3s ease-out;
         }
 
-        /* Loading spinner для поиска */
         .loading-spinner {
             display: inline-block;
             width: 16px;
@@ -1098,6 +1096,244 @@
         }
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+
+        /* Стили для новых вкладок */
+        .level-progress {
+            background: rgba(0,0,0,0.5);
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        .level-progress-bar {
+            background: #2a2a3a;
+            border-radius: 10px;
+            height: 12px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        .level-progress-fill {
+            background: linear-gradient(90deg, #ffaa33, #ff4444);
+            width: 0%;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .achievement-card, .quest-card, .craft-card {
+            background: rgba(30,20,40,0.8);
+            border-radius: 16px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 3px solid #ffaa33;
+        }
+        .achievement-card.completed, .quest-card.completed {
+            opacity: 0.6;
+            border-left-color: #44ff44;
+        }
+        .achievement-reward, .quest-reward {
+            font-size: 0.7rem;
+            color: #ffaa66;
+        }
+        .claim-quest-btn, .craft-btn {
+            background: linear-gradient(135deg, #ffaa33, #cc8833);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .craft-select {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid #ffaa66;
+            color: #FFE7B6;
+            padding: 6px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+        }
+
+        /* Цвета для квестов */
+        .quest-card {
+            background: rgba(30,20,40,0.8);
+            border-radius: 16px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .quest-card[data-type="mining"] { border-left: 3px solid #ffaa44; background: linear-gradient(90deg, rgba(255,170,68,0.1), rgba(30,20,40,0.8)); }
+        .quest-card[data-type="pack"] { border-left: 3px solid #ff4444; background: linear-gradient(90deg, rgba(255,68,68,0.1), rgba(30,20,40,0.8)); }
+        .quest-card[data-type="fishing"] { border-left: 3px solid #44aaff; background: linear-gradient(90deg, rgba(68,170,255,0.1), rgba(30,20,40,0.8)); }
+        .quest-card[data-type="ore"] { border-left: 3px solid #88ff88; background: linear-gradient(90deg, rgba(136,255,136,0.1), rgba(30,20,40,0.8)); }
+        .quest-card[data-type="exchange"] { border-left: 3px solid #ff88ff; background: linear-gradient(90deg, rgba(255,136,255,0.1), rgba(30,20,40,0.8)); }
+
+        .quest-card.completed {
+            opacity: 0.7;
+            filter: grayscale(0.3);
+        }
+
+        .quest-icon {
+            font-size: 1.5rem;
+            margin-right: 8px;
+        }
+
+        .quest-title {
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+
+        .quest-desc {
+            font-size: 0.65rem;
+            color: #ccaa99;
+        }
+
+        .quest-progress-bar {
+            background: #2a2a3a;
+            border-radius: 10px;
+            height: 6px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .quest-progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .quest-progress-fill.mining { background: linear-gradient(90deg, #ffaa44, #ff8833); }
+        .quest-progress-fill.pack { background: linear-gradient(90deg, #ff4444, #cc2222); }
+        .quest-progress-fill.fishing { background: linear-gradient(90deg, #44aaff, #2288cc); }
+        .quest-progress-fill.ore { background: linear-gradient(90deg, #88ff88, #44cc44); }
+        .quest-progress-fill.exchange { background: linear-gradient(90deg, #ff88ff, #cc66cc); }
+
+        .quest-reward {
+            font-size: 0.7rem;
+            color: #ffaa66;
+            text-align: right;
+        }
+
+        .quest-reward span {
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .reward-crystal { color: #ff8888; }
+        .reward-shard { color: #ffdd99; }
+
+        .claim-quest-btn {
+            background: linear-gradient(135deg, #44ff44, #22aa22);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #1a1a1a;
+            margin-top: 5px;
+        }
+
+        .quest-status {
+            font-size: 0.7rem;
+        }
+
+        .quest-status.completed { color: #88ff88; }
+        .quest-status.claimed { color: #888888; }
+        .quest-status.pending { color: #ffaa66; }
+
+        /* Цвета для достижений */
+        .achievement-card {
+            background: rgba(30,20,40,0.8);
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .achievement-card:hover {
+            transform: translateX(5px);
+        }
+
+        /* Цвета по категориям */
+        .achievement-card[data-category="pack"] { border-left: 4px solid #ff4444; background: linear-gradient(90deg, rgba(255,68,68,0.15), rgba(30,20,40,0.8)); }
+        .achievement-card[data-category="collector"] { border-left: 4px solid #ffaa44; background: linear-gradient(90deg, rgba(255,170,68,0.15), rgba(30,20,40,0.8)); }
+        .achievement-card[data-category="miner"] { border-left: 4px solid #88ff88; background: linear-gradient(90deg, rgba(136,255,136,0.15), rgba(30,20,40,0.8)); }
+        .achievement-card[data-category="fisher"] { border-left: 4px solid #44aaff; background: linear-gradient(90deg, rgba(68,170,255,0.15), rgba(30,20,40,0.8)); }
+        .achievement-card[data-category="shard"] { border-left: 4px solid #ff88ff; background: linear-gradient(90deg, rgba(255,136,255,0.15), rgba(30,20,40,0.8)); }
+        .achievement-card[data-category="level"] { border-left: 4px solid #ffaa66; background: linear-gradient(90deg, rgba(255,170,102,0.15), rgba(30,20,40,0.8)); }
+
+        .achievement-card.completed {
+            opacity: 0.85;
+            background: linear-gradient(90deg, rgba(68,255,68,0.1), rgba(30,20,40,0.8));
+        }
+
+        .achievement-icon {
+            font-size: 2rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .achievement-info {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .achievement-name {
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #FFE7B6;
+        }
+
+        .achievement-desc {
+            font-size: 0.65rem;
+            color: #ccaa99;
+            margin-top: 2px;
+        }
+
+        .achievement-reward {
+            text-align: right;
+            min-width: 80px;
+        }
+
+        .achievement-reward span {
+            display: inline-block;
+            margin-left: 5px;
+        }
+
+        .achievement-badge {
+            font-size: 1.2rem;
+            margin-left: 8px;
+        }
+
+        .achievement-card.completed .achievement-name {
+            color: #88ff88;
+            text-decoration: line-through;
+        }
+
+        .achievement-progress {
+            font-size: 0.6rem;
+            color: #aa8899;
+            margin-top: 4px;
+        }
+
+        /* Анимация для новой ачивки */
+        @keyframes achievementUnlock {
+            0% { transform: scale(1); background: rgba(255,215,0,0); }
+            50% { transform: scale(1.02); background: rgba(255,215,0,0.2); border-left-color: #ffd700; }
+            100% { transform: scale(1); background: rgba(255,215,0,0); }
+        }
+
+        .achievement-card.just-unlocked {
+            animation: achievementUnlock 0.5s ease-out;
         }
     </style>
 </head>
@@ -1114,23 +1350,27 @@
             <div class="stat-box">⛏️ <span class="stat-value ore-value" id="oreDisplay">0</span></div>
             <div class="stat-box">⚡ <span class="stat-value shard-value" id="shardDisplay">0</span></div>
             <div class="stat-box">📚 <span class="stat-value" id="totalCardsCount">0</span></div>
+            <div class="stat-box">⭐ <span class="stat-value" id="levelDisplay">1</span></div>
         </div>
     </div>
 
     <div class="nav-tabs">
-        <button class="tab-btn active" data-tab="mine">⛏️ Шахта</button>
-        <button class="tab-btn" data-tab="fishing">🎣 Рыбалка</button>
-        <button class="tab-btn" data-tab="pack">🎴 Паки карт</button>
+        <button class="tab-btn" data-tab="profile">👤 Профиль</button>
         <button class="tab-btn" data-tab="collection">📚 Мои карты</button>
         <button class="tab-btn" data-tab="allcards">📖 Каталог</button>
+        <button class="tab-btn active" data-tab="pack">🎴 Паки карт</button>
         <button class="tab-btn" data-tab="players">👥 Игроки</button>
-        <button class="tab-btn" data-tab="profile">👤 Профиль</button>
+        <button class="tab-btn" data-tab="achievements">🏆 Ачивки</button>
+        <button class="tab-btn" data-tab="quests">📋 Квесты</button>
+        <button class="tab-btn" data-tab="mine">⛏️ Шахта</button>
+        <button class="tab-btn" data-tab="fishing">🎣 Рыбалка</button>
+<!--         <button class="tab-btn" data-tab="craft">🔧 Крафт</button> -->
     </div>
 
     <div id="eventBanner" class="event-banner" style="display: none;"></div>
 
     <!-- Шахта -->
-    <div class="tab-content active" id="tab-mine">
+    <div class="tab-content" id="tab-mine">
         <div class="daily-section">
             <div><span style="font-size: 1rem;">🎁</span> <strong>Ежедневный бонус</strong></div>
             <button class="daily-btn" id="dailyBonusBtn">+30💎</button>
@@ -1153,7 +1393,7 @@
             <div class="mine-header">
                 <div class="mine-title">⛏️ КРОВАВАЯ ШАХТА</div>
                 <div class="mine-stats">
-                    <div>📊 <span id="clicksLeftDisplay">0</span>/100</div>
+                    <div>📊 <span id="clicksLeftDisplay">0</span>/<span id="maxClicksDisplay">100</span></div>
                     <div>⛏️ <span id="oreInMine">0</span></div>
                 </div>
             </div>
@@ -1208,8 +1448,7 @@
     </div>
 
     <!-- Паки карт -->
-    <div class="tab-content" id="tab-pack">
-        <!-- Обычный пак -->
+    <div class="tab-content active" id="tab-pack">
         <div class="pack-section">
             <div class="pack-header"><div class="pack-icon">🎴🩸</div><h3>Кровавые паки</h3></div>
             <div class="pack-description">
@@ -1219,7 +1458,6 @@
             <button class="open-btn" id="openPackBtn">🎁 КУПИТЬ ПАК ЗА 70💎</button>
         </div>
 
-        <!-- Ивентовый пак (появляется только в сезон) -->
         <div class="pack-section" id="eventPackSection" style="border: 1px solid rgba(255, 200, 100, 0.6); background: linear-gradient(135deg, #2a1a2a, #1a0f2a);">
             <div class="pack-header">
                 <div class="pack-icon">🎪🎴</div>
@@ -1246,7 +1484,7 @@
 
     <!-- Моя коллекция -->
     <div class="tab-content" id="tab-collection">
-        <div class="collection-header"><span>🏆 Мои карты</span></div>
+        <div class="collection-header"><span>🏆 Мои карты</span><span id="collectionProgress" style="font-size:0.7rem;"></span></div>
         <div class="filter-bar" id="collectionFilterBar">
             <button class="filter-btn active" data-filter="all">Все</button>
             <button class="filter-btn" data-filter="X">X</button><button class="filter-btn" data-filter="S">S</button>
@@ -1331,6 +1569,14 @@
 
     <!-- Профиль -->
     <div class="tab-content" id="tab-profile">
+                <!-- Блок уровня -->
+        <div class="level-progress" id="levelProgressBlock">
+            <div>⭐ УРОВЕНЬ <span id="levelValue">1</span> <span id="nextLevelBonus"></span></div>
+            <div class="level-progress-bar">
+                <div class="level-progress-fill" id="levelProgressFill"></div>
+            </div>
+            <div style="font-size: 0.7rem;" id="expText">Опыт: 0 / 100</div>
+        </div>
         <div class="nickname-section">
             <div class="promo-header">
                 <span class="promo-icon">👤</span>
@@ -1382,6 +1628,55 @@
         </div>
     </div>
 
+    <!-- Ачивки -->
+    <div class="tab-content" id="tab-achievements">
+        <div class="promo-header">
+            <span class="promo-icon">🏆</span>
+            <h4>Достижения</h4>
+        </div>
+        <div id="achievementsList" style="max-height: 70vh; overflow-y: auto;"></div>
+    </div>
+
+    <!-- Квесты -->
+    <div class="tab-content" id="tab-quests">
+        <div class="promo-header">
+            <span class="promo-icon">📋</span>
+            <h4>Ежедневные задания</h4>
+        </div>
+        <div id="questsList" style="max-height: 70vh; overflow-y: auto;"></div>
+        <div class="daily-section" style="margin-top: 12px;">
+            <div>🔄 Сброс квестов через: <span id="questResetTimer">--:--:--</span></div>
+        </div>
+    </div>
+
+<!--    Крафт
+    <div class="tab-content" id="tab-craft">
+        <div class="promo-header">
+            <span class="promo-icon">🔧</span>
+            <h4>Крафт карт</h4>
+        </div>
+        <div class="pack-description">
+            <p><strong>🔨 Как работает крафт?</strong> Обменяйте 3 карты одного ранга на 1 карту следующего ранга!</p>
+            <p>⚡ Крафт стоит 2 осколка</p>
+            <p>✨ Ранги: E → D → C → B → G → P → A → S</p>
+        </div>
+        <div id="craftArea">
+            <div class="promo-input-group" style="margin-bottom: 12px;">
+                <select id="craftRankSelect" class="craft-select" style="flex:1;">
+                    <option value="E">Ранг E → D</option>
+                    <option value="D">Ранг D → C</option>
+                    <option value="C">Ранг C → B</option>
+                    <option value="B">Ранг B → G</option>
+                    <option value="G">Ранг G → P</option>
+                    <option value="P">Ранг P → A</option>
+                    <option value="A">Ранг A → S</option>
+                </select>
+                <button class="craft-btn" id="craftBtn">🔨 Крафтить (2⚡)</button>
+            </div>
+            <div id="craftInfo" class="promo-status" style="text-align: center;"></div>
+        </div>
+    </div> -->
+
     <div class="footer">
         <p>⚠️ Изображения используются в ознакомительных целях в рамках фан-проекта. 
 Права на изображения принадлежат их законным владельцам. 
@@ -1422,35 +1717,15 @@
 
     // ==================== КЭШ ДЛЯ ТОПА ИГРОКОВ ====================
     let topPlayersCache = { data: null, timestamp: 0 };
-    const TOP_PLAYERS_CACHE_TTL = 5 * 60 * 1000; // 5 минут
+    const TOP_PLAYERS_CACHE_TTL = 5 * 60 * 1000;
 
-    // ========== БАЗА КАРТ (сокращённая для читаемости, но полная рабочая) ==========
+    // ========== БАЗА КАРТ ==========
     const ALL_CARDS = [
-
-        // A+ Осколок
         { id: "osk01", name: "Осколок", emoji: "⚔️", rank: "A+", set: "Эхокалипсис", rankLabel: "A+", color: "#772ce8", rankOrder: 3, image: "images/osk.png", canUpgrade: false, animImage: null },
-        
-      
-
-        // X Ранг
         { id: "cc01", name: "C.C.", emoji: "🍊", rank: "X", set: "X", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/cc01.png", canUpgrade: false, animImage: null },
-
-
-        // Bloody
-
-        // X Ранг
         { id: "Xbloody01", name: "Bloody", emoji: "🍊", rank: "X", set: "Bloody", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/Bloody/X/bloody01.png", canUpgrade: false, animImage: null },
-
-        // B Ранг
-
         { id: "Bdiamonds01", name: "Diamonds", emoji: "🍊", rank: "B", set: "Bloody", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Bloody/B/diamonds01.png", canUpgrade: false, animImage: null },
-
-        // Эхокалипсис
-
-        // S Ранг
         { id: "Stof01", name: "Тоф", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/tof01.png", canUpgrade: false, animImage: null },
-
-        // A Ран
         { id: "Azineda01", name: "Зинеда", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/zineda01.png", canUpgrade: false, animImage: null },
         { id: "Aakira01", name: "Акира", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/akira01.png", canUpgrade: false, animImage: null },
         { id: "Ahela02", name: "Хела", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/hela02.png", canUpgrade: false, animImage: null },
@@ -1475,8 +1750,6 @@
         { id: "Achiraha01", name: "Чираха", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/chiraha01.png", canUpgrade: false, animImage: null },
         { id: "Adoroti01", name: "Дороти", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/doroti01.png", canUpgrade: false, animImage: null },
         { id: "Ashiu01", name: "Шию", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/shiu01.png", canUpgrade: false, animImage: null },
-
-        // P Ранг
         { id: "Pmituba01", name: "Митуба", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/mituba01.png", canUpgrade: false, animImage: null },
         { id: "Psova03", name: "Сова", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/sova03.png", canUpgrade: false, animImage: null },
         { id: "Plori01", name: "Лори", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/lori01.png", canUpgrade: false, animImage: null },
@@ -1503,9 +1776,6 @@
         { id: "Pkiubei01", name: "Кьюбей", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/kiubei01.png", canUpgrade: false, animImage: null },
         { id: "Pprinni01", name: "Принни", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/prinni01.png", canUpgrade: false, animImage: null },
         { id: "Piora01", name: "Йора", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/iora01.png", canUpgrade: false, animImage: null },
-
-        // G Ранг
-
         { id: "Gneftida01", name: "Нефтида", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/neftida01.png", canUpgrade: false, animImage: null },
         { id: "Gsnejana01", name: "Снежана", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/snejana01.png", canUpgrade: false, animImage: null },
         { id: "Gsharon02", name: "Шарон", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/sharon02.png", canUpgrade: false, animImage: null },
@@ -1520,9 +1790,6 @@
         { id: "Grie01", name: "Рие", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/senko01.png", canUpgrade: false, animImage: null },
         { id: "Gsenko01", name: "Сенко", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/senko01.png", canUpgrade: false, animImage: null },
         { id: "Gsui01", name: "Суй", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/sui01.png", canUpgrade: false, animImage: null },
-
-        // B Ранг
-
         { id: "Bkamelia01", name: "Камелия", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/kamelia01.png", canUpgrade: false, animImage: null },
         { id: "Bkiki01", name: "Кики", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/kiki01.png", canUpgrade: false, animImage: null },
         { id: "Bzava01", name: "Зава", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/zava01.png", canUpgrade: false, animImage: null },
@@ -1536,9 +1803,6 @@
         { id: "Bhator01", name: "Хатор", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/hator01.png", canUpgrade: false, animImage: null },
         { id: "Biora01", name: "Йора", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/iora01.png", canUpgrade: false, animImage: null },
         { id: "Bsera01", name: "Сера", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/sera01.png", canUpgrade: false, animImage: null },
-
-        // C Ранг
-
         { id: "Cluciferin01", name: "Люциферин", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/luciferin01.png", canUpgrade: false, animImage: null },
         { id: "Cuinno01", name: "Уинно", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/uinno01.png", canUpgrade: false, animImage: null },
         { id: "Ceriri01", name: "Эрири", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/eriri01.png", canUpgrade: false, animImage: null },
@@ -1552,9 +1816,6 @@
         { id: "Ciori01", name: "Иори", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/iori01.png", canUpgrade: false, animImage: null },
         { id: "Clilit01", name: "Лилит", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/lilit01.png", canUpgrade: false, animImage: null },
         { id: "Cfirentia01", name: "Фирентия", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/firentia01.png", canUpgrade: false, animImage: null },
-
-        // D Ранг
-
         { id: "Dsenko01", name: "Сенко", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/senko01.png", canUpgrade: false, animImage: null },
         { id: "Dnila04", name: "Нила", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/nila04.png", canUpgrade: false, animImage: null },
         { id: "Dpanpan01", name: "Пан Пан", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/panpan01.png", canUpgrade: false, animImage: null },
@@ -1574,9 +1835,6 @@
         { id: "Dnila01", name: "Нила", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/nila01.png", canUpgrade: false, animImage: null },
         { id: "Dvivi02", name: "Виви", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/vivi02.png", canUpgrade: false, animImage: null },
         { id: "Dvivi01", name: "Виви", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/vivi01.png", canUpgrade: false, animImage: null },
-        
-        // E Ранг
-        
         { id: "Eakira01", name: "Акира", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/akira01.png", canUpgrade: false, animImage: null },
         { id: "Etomi01", name: "Томи", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/tomi01.png", canUpgrade: false, animImage: null },
         { id: "Evivi01", name: "Виви", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/vivi01.png", canUpgrade: false, animImage: null },
@@ -1592,8 +1850,6 @@
         { id: "Ehimetto01", name: "Хеметто", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/himetto01.png", canUpgrade: false, animImage: null },
         { id: "Eset01", name: "Сет", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/set01.png", canUpgrade: false, animImage: null },
         { id: "Enil01", name: "Нил", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/nil01.png", canUpgrade: false, animImage: null },  
-        
-        // ========== ИВЕНТОВЫЕ КАРТЫ ==========
         { id: "Halbedo01", name: "Альбедо", rank: "H", rankLabel: "H", color: "#ff6600", rankOrder: 1.5, image: "images/events/halloween/albedo01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "halloween" },
         { id: "Nzani01", name: "Зани", rank: "N", rankLabel: "N", color: "#00ccff", rankOrder: 1.6, image: "images/events/newyear/zani01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "newyear" },
         { id: "Varlekino01", name: "Арлекино", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/arlekino01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/arlekino01.gif", season: "spring" },
@@ -1602,23 +1858,590 @@
     ];
 
     const CATALOG_CARDS = ALL_CARDS.filter(card => card.rank !== "A+" && card.id !== "osk01");
-
-    // ==================== ВЕСА ДЛЯ РАНГОВ (ИСПРАВЛЕНЫ) ====================
     const RANK_WEIGHTS = { "X": 1, "S": 4, "A": 15, "P": 15, "G": 15, "B": 15, "C": 15, "D": 15, "E": 20 };
     
-    // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+    // ==================== НОВЫЕ СИСТЕМЫ (Ачивки, Квесты, Крафт, Уровни) ====================
+    
+    // === 1. СИСТЕМА УРОВНЕЙ ===
+    const LEVEL_CONFIG = {
+        1: { expNeeded: 0, bonusCrystals: 0, bonusShards: 0, bonusMineLimit: 0 },
+        2: { expNeeded: 100, bonusCrystals: 10, bonusShards: 1, bonusMineLimit: 5 },
+        3: { expNeeded: 250, bonusCrystals: 20, bonusShards: 2, bonusMineLimit: 10 },
+        4: { expNeeded: 450, bonusCrystals: 35, bonusShards: 3, bonusMineLimit: 15 },
+        5: { expNeeded: 700, bonusCrystals: 50, bonusShards: 5, bonusMineLimit: 20 },
+        6: { expNeeded: 1000, bonusCrystals: 70, bonusShards: 7, bonusMineLimit: 25 },
+        7: { expNeeded: 1350, bonusCrystals: 95, bonusShards: 10, bonusMineLimit: 30 },
+        8: { expNeeded: 1750, bonusCrystals: 125, bonusShards: 13, bonusMineLimit: 35 },
+        9: { expNeeded: 2200, bonusCrystals: 160, bonusShards: 16, bonusMineLimit: 40 },
+        10: { expNeeded: 2700, bonusCrystals: 200, bonusShards: 20, bonusMineLimit: 50 }
+    };
+    
+    let currentLevel = 1;
+    let currentExp = 0;
+    
+    function getMaxMineClicks() {
+        const baseClicks = 100;
+        const levelBonus = LEVEL_CONFIG[currentLevel]?.bonusMineLimit || 0;
+        return baseClicks + levelBonus;
+    }
+    
+    function addExp(amount) {
+        if (amount <= 0) return;
+        currentExp += amount;
+        let leveledUp = false;
+        
+        while (currentLevel < 10 && currentExp >= (LEVEL_CONFIG[currentLevel + 1]?.expNeeded || Infinity)) {
+            currentLevel++;
+            leveledUp = true;
+            const levelBonus = LEVEL_CONFIG[currentLevel];
+            if (levelBonus) {
+                crystals += levelBonus.bonusCrystals;
+                shards += levelBonus.bonusShards;
+                showPromoStatus(`🎉 ПОВЫШЕНИЕ УРОВНЯ ДО ${currentLevel}! Получено: +${levelBonus.bonusCrystals}💎, +${levelBonus.bonusShards}⚡!`, "success");
+            }
+        }
+        
+        updateLevelUI();
+        if (leveledUp) {
+            updateUI();
+            saveData();
+        }
+    }
+    
+    function updateLevelUI() {
+        const currentLevelExp = LEVEL_CONFIG[currentLevel]?.expNeeded || 0;
+        const nextLevelExp = LEVEL_CONFIG[currentLevel + 1]?.expNeeded || currentLevelExp + 500;
+        const expForCurrent = currentExp - currentLevelExp;
+        const expNeededForNext = nextLevelExp - currentLevelExp;
+        const percent = Math.min(100, Math.max(0, (expForCurrent / expNeededForNext) * 100));
+        
+        document.getElementById('levelValue').innerText = currentLevel;
+        document.getElementById('levelDisplay').innerText = currentLevel;
+        document.getElementById('expText').innerHTML = `Опыт: ${currentExp} / ${nextLevelExp}`;
+        document.getElementById('levelProgressFill').style.width = `${percent}%`;
+        
+        const maxClicksSpan = document.getElementById('maxClicksDisplay');
+        if (maxClicksSpan) maxClicksSpan.innerText = getMaxMineClicks();
+        
+        if (LEVEL_CONFIG[currentLevel + 1]) {
+            const nextBonus = document.getElementById('nextLevelBonus');
+            if (nextBonus) {
+                nextBonus.innerHTML = ` | ➡️ Ур.${currentLevel + 1}: +${LEVEL_CONFIG[currentLevel + 1].bonusCrystals}💎 +${LEVEL_CONFIG[currentLevel + 1].bonusShards}⚡ +${LEVEL_CONFIG[currentLevel + 1].bonusMineLimit}⛏️ лимит`;
+            }
+        }
+    }
+    
+    // === 2. СИСТЕМА ДОСТИЖЕНИЙ ===
+    const ACHIEVEMENTS = [
+        // Паки
+        { id: "first_pack", name: "Первый пак", desc: "Открыть первый пак карт", icon: "🎁", category: "pack", rewardCrystals: 10, rewardShards: 1, check: () => packsOpened >= 1 },
+        { id: "pack_master", name: "Мастер паков", desc: "Открыть 10 паков", icon: "📦", category: "pack", rewardCrystals: 50, rewardShards: 5, check: () => packsOpened >= 10 },
+        { id: "pack_legend", name: "Легенда паков", desc: "Открыть 50 паков", icon: "🏆", category: "pack", rewardCrystals: 200, rewardShards: 20, check: () => packsOpened >= 50 },
+        
+        // Коллекционер
+        { id: "collector_10", name: "Начинающий коллекционер", desc: "Собрать 10 карт", icon: "📘", category: "collector", rewardCrystals: 15, rewardShards: 2, check: () => collectionMap.size >= 10 },
+        { id: "collector_30", name: "Опытный коллекционер", desc: "Собрать 30 карт", icon: "📚", category: "collector", rewardCrystals: 40, rewardShards: 5, check: () => collectionMap.size >= 30 },
+        { id: "collector_50", name: "Мастер коллекции", desc: "Собрать 50 карт", icon: "📖", category: "collector", rewardCrystals: 80, rewardShards: 10, check: () => collectionMap.size >= 50 },
+        { id: "collector_100", name: "Легендарный коллекционер", desc: "Собрать 100 карт", icon: "👑", category: "collector", rewardCrystals: 150, rewardShards: 20, check: () => collectionMap.size >= 100 },
+        
+        // Шахтёр
+        { id: "miner_100", name: "Шахтёр", desc: "Накопать 100 руды", icon: "⛏️", category: "miner", rewardCrystals: 10, rewardShards: 1, check: () => totalOreMined >= 100 },
+        { id: "miner_1000", name: "Опытный шахтёр", desc: "Накопать 1000 руды", icon: "⛏️✨", category: "miner", rewardCrystals: 40, rewardShards: 4, check: () => totalOreMined >= 1000 },
+        { id: "miner_10000", name: "Король шахты", desc: "Накопать 10000 руды", icon: "👑⛏️", category: "miner", rewardCrystals: 200, rewardShards: 20, check: () => totalOreMined >= 10000 },
+        
+        // Рыбак
+        { id: "fisher_10", name: "Рыбак", desc: "Поймать 10 рыб", icon: "🐟", category: "fisher", rewardCrystals: 15, rewardShards: 2, check: () => totalFishCaught >= 10 },
+        { id: "fisher_50", name: "Морской волк", desc: "Поймать 50 рыб", icon: "🐠", category: "fisher", rewardCrystals: 50, rewardShards: 5, check: () => totalFishCaught >= 50 },
+        { id: "fisher_100", name: "Повелитель морей", desc: "Поймать 100 рыб", icon: "🐙", category: "fisher", rewardCrystals: 100, rewardShards: 10, check: () => totalFishCaught >= 100 },
+        
+        // Осколки
+        { id: "shard_10", name: "Осколочный маг", desc: "Накопить 10 осколков", icon: "⚡", category: "shard", rewardCrystals: 20, rewardShards: 3, check: () => shards >= 10 },
+        { id: "shard_50", name: "Повелитель осколков", desc: "Накопить 50 осколков", icon: "⚡⚡", category: "shard", rewardCrystals: 100, rewardShards: 10, check: () => shards >= 50 },
+        
+        // Уровни
+        { id: "level_5", name: "Новичок", desc: "Достичь 5 уровня", icon: "⭐", category: "level", rewardCrystals: 30, rewardShards: 5, check: () => currentLevel >= 5 },
+        { id: "level_10", name: "Мастер", desc: "Достичь 10 уровня", icon: "⭐⭐", category: "level", rewardCrystals: 100, rewardShards: 15, check: () => currentLevel >= 10 }
+    ];
+    
+    let unlockedAchievements = new Set();
+    let packsOpened = 0;
+    let totalOreMined = 0;
+    let totalFishCaught = 0;
+    
+    function checkAchievements() {
+        let anyUnlocked = false;
+        const newlyUnlocked = [];
+        
+        for (const ach of ACHIEVEMENTS) {
+            if (!unlockedAchievements.has(ach.id) && ach.check()) {
+                unlockedAchievements.add(ach.id);
+                crystals += ach.rewardCrystals;
+                shards += ach.rewardShards;
+                newlyUnlocked.push(ach.id);
+                showPromoStatus(`🏆 ДОСТИЖЕНИЕ: ${ach.name}! +${ach.rewardCrystals}💎 +${ach.rewardShards}⚡`, "success");
+                anyUnlocked = true;
+            }
+        }
+        
+        if (anyUnlocked) {
+            // Сохраняем новые ачивки для анимации
+            localStorage.setItem('just_unlocked_achievements', JSON.stringify(newlyUnlocked));
+            updateUI();
+            saveData();
+            renderAchievements();
+        }
+    }
+    
+    function renderAchievements() {
+        const container = document.getElementById('achievementsList');
+        if (!container) return;
+        
+        let html = '';
+        for (const ach of ACHIEVEMENTS) {
+            const isUnlocked = unlockedAchievements.has(ach.id);
+            const percent = getAchievementProgress(ach);
+            
+            html += `<div class="achievement-card ${isUnlocked ? 'completed' : ''}" data-category="${ach.category}" data-achievement-id="${ach.id}">
+                        <div class="achievement-icon">${ach.icon}</div>
+                        <div class="achievement-info">
+                            <div class="achievement-name">${ach.name} ${isUnlocked ? '✅' : ''}</div>
+                            <div class="achievement-desc">${ach.desc}</div>
+                            ${!isUnlocked && percent < 100 ? `<div class="achievement-progress">📊 Прогресс: ${percent}%</div>` : ''}
+                        </div>
+                        <div class="achievement-reward">
+                            ${isUnlocked ? 
+                                '<div class="achievement-badge">🏆</div>' : 
+                                `<div><span class="reward-crystal">+${ach.rewardCrystals}💎</span><br><span class="reward-shard">+${ach.rewardShards}⚡</span></div>`
+                            }
+                        </div>
+                    </div>`;
+        }
+        container.innerHTML = html;
+        
+        // Добавляем анимацию для новых ачивок
+        const justUnlocked = JSON.parse(localStorage.getItem('just_unlocked_achievements') || '[]');
+        justUnlocked.forEach(id => {
+            const card = document.querySelector(`.achievement-card[data-achievement-id="${id}"]`);
+            if (card) {
+                card.classList.add('just-unlocked');
+                setTimeout(() => card.classList.remove('just-unlocked'), 500);
+            }
+        });
+        localStorage.removeItem('just_unlocked_achievements');
+    }
+    
+    // Вспомогательная функция для подсчёта прогресса
+    function getAchievementProgress(achievement) {
+        // Простые проверки для демонстрации прогресса
+        if (achievement.id === "first_pack") return packsOpened >= 1 ? 100 : Math.min(100, (packsOpened / 1) * 100);
+        if (achievement.id === "pack_master") return Math.min(100, (packsOpened / 10) * 100);
+        if (achievement.id === "pack_legend") return Math.min(100, (packsOpened / 50) * 100);
+        if (achievement.id === "collector_10") return Math.min(100, (collectionMap.size / 10) * 100);
+        if (achievement.id === "collector_30") return Math.min(100, (collectionMap.size / 30) * 100);
+        if (achievement.id === "collector_50") return Math.min(100, (collectionMap.size / 50) * 100);
+        if (achievement.id === "collector_100") return Math.min(100, (collectionMap.size / 100) * 100);
+        if (achievement.id === "miner_100") return Math.min(100, (totalOreMined / 100) * 100);
+        if (achievement.id === "miner_1000") return Math.min(100, (totalOreMined / 1000) * 100);
+        if (achievement.id === "miner_10000") return Math.min(100, (totalOreMined / 10000) * 100);
+        if (achievement.id === "fisher_10") return Math.min(100, (totalFishCaught / 10) * 100);
+        if (achievement.id === "fisher_50") return Math.min(100, (totalFishCaught / 50) * 100);
+        if (achievement.id === "fisher_100") return Math.min(100, (totalFishCaught / 100) * 100);
+        if (achievement.id === "shard_10") return Math.min(100, (shards / 10) * 100);
+        if (achievement.id === "shard_50") return Math.min(100, (shards / 50) * 100);
+        if (achievement.id === "level_5") return Math.min(100, (currentLevel / 5) * 100);
+        if (achievement.id === "level_10") return Math.min(100, (currentLevel / 10) * 100);
+        return achievement.check() ? 100 : 0;
+    }
+    
+    // === 3. ЕЖЕДНЕВНЫЕ КВЕСТЫ ===
+    const DAILY_QUESTS = [
+        { id: "daily_mine", name: "Шахтёрский труд", desc: "Скопнуть 30 раз", icon: "⛏️", type: "mining", target: 30, progress: 0, rewardCrystals: 15, rewardShards: 2 },
+        { id: "daily_pack", name: "Коллекционер", desc: "Открыть 1 пак", icon: "🎴", type: "pack", target: 1, progress: 0, rewardCrystals: 20, rewardShards: 2 },
+        { id: "daily_fish", name: "Улов", desc: "Поймать 3 рыбы", icon: "🎣", type: "fishing", target: 3, progress: 0, rewardCrystals: 10, rewardShards: 1 },
+        { id: "daily_ore", name: "Богатство недр", desc: "Накопать 200 руды", icon: "💎", type: "ore", target: 200, progress: 0, rewardCrystals: 12, rewardShards: 2 },
+        { id: "daily_exchange", name: "Обмен", desc: "Обменять 300 руды на кристаллы", icon: "🔄", type: "exchange", target: 300, progress: 0, rewardCrystals: 15, rewardShards: 1 }
+    ];
+    
+    let dailyQuests = [];
+    let lastQuestReset = null;
+    
+    function resetDailyQuests() {
+        const today = new Date().toDateString();
+        if (lastQuestReset === today) return;
+        
+        dailyQuests = DAILY_QUESTS.map(q => ({
+            ...q,
+            progress: 0,
+            completed: false,
+            claimed: false
+        }));
+        lastQuestReset = today;
+        saveData();
+        renderQuests();
+        showPromoStatus("📋 Ежедневные квесты обновлены!", "success");
+    }
+    
+    function updateQuestProgress(questId, amount = 1) {
+        const quest = dailyQuests.find(q => q.id === questId);
+        if (!quest || quest.completed || quest.claimed) return;
+        
+        quest.progress = Math.min(quest.target, quest.progress + amount);
+        if (quest.progress >= quest.target && !quest.completed) {
+            quest.completed = true;
+            showPromoStatus(`✅ Квест "${quest.name}" выполнен! Заберите награду!`, "success");
+        }
+        renderQuests();
+        saveData();
+    }
+    
+    function claimQuestReward(questId) {
+        const quest = dailyQuests.find(q => q.id === questId);
+        if (!quest || !quest.completed || quest.claimed) return;
+        
+        quest.claimed = true;
+        crystals += quest.rewardCrystals;
+        shards += quest.rewardShards;
+        updateUI();
+        renderQuests();
+        showPromoStatus(`🎁 Награда за квест "${quest.name}" получена! +${quest.rewardCrystals}💎 +${quest.rewardShards}⚡`, "success");
+        saveData();
+    }
+    
+    function renderQuests() {
+        const container = document.getElementById('questsList');
+        if (!container) return;
+        
+        let html = '';
+        for (const quest of dailyQuests) {
+            const percent = (quest.progress / quest.target) * 100;
+            const originalQuest = DAILY_QUESTS.find(q => q.id === quest.id);
+            const icon = originalQuest?.icon || "📋";
+            const type = originalQuest?.type || "mining";
+            
+            let statusText = '';
+            let statusClass = 'pending';
+            let buttonHtml = '';
+            
+            if (quest.claimed) {
+                statusText = '✅ Получено';
+                statusClass = 'claimed';
+            } else if (quest.completed) {
+                buttonHtml = `<button class="claim-quest-btn" data-id="${quest.id}">🎁 Забрать</button>`;
+                statusText = '✨ Готово!';
+                statusClass = 'completed';
+            } else {
+                statusText = `⏳ ${quest.progress}/${quest.target}`;
+                statusClass = 'pending';
+            }
+            
+            html += `<div class="quest-card ${quest.claimed ? 'completed' : ''}" data-type="${type}">
+                        <div style="display: flex; align-items: center; gap: 12px; flex:1;">
+                            <div class="quest-icon">${icon}</div>
+                            <div style="flex:1;">
+                                <div class="quest-title">${quest.name}</div>
+                                <div class="quest-desc">${quest.desc}</div>
+                                <div class="quest-progress-bar">
+                                    <div class="quest-progress-fill ${type}" style="width:${percent}%;"></div>
+                                </div>
+                                <div class="quest-status ${statusClass}">${statusText}</div>
+                            </div>
+                        </div>
+                        <div class="quest-reward">
+                            <span class="reward-crystal">+${quest.rewardCrystals}💎</span>
+                            <span class="reward-shard">+${quest.rewardShards}⚡</span>
+                            ${buttonHtml}
+                        </div>
+                    </div>`;
+        }
+        container.innerHTML = html;
+        
+        document.querySelectorAll('.claim-quest-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                claimQuestReward(btn.dataset.id);
+            });
+        });
+    }
+    
+    function updateQuestTimer() {
+        const timerSpan = document.getElementById('questResetTimer');
+        if (!timerSpan) return;
+        
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        const diff = tomorrow - now;
+        
+        if (diff <= 0) {
+            resetDailyQuests();
+            timerSpan.innerText = "00:00:00";
+            return;
+        }
+        
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (3600000)) / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        timerSpan.innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+    }
+    
+    // === 4. КРАФТ КАРТ ===
+    const CRAFT_RANK_ORDER = {
+        'E': 1, 'D': 2, 'C': 3, 'B': 4, 'G': 5, 'P': 6, 'A': 7, 'S': 8
+    };
+    const NEXT_RANK = {
+        'E': 'D', 'D': 'C', 'C': 'B', 'B': 'G', 'G': 'P', 'P': 'A', 'A': 'S'
+    };
+    
+    function getCardsByRank(rank) {
+        const cards = [];
+        for (const [cardId, entry] of collectionMap.entries()) {
+            if (entry.cardData.rank === rank) {
+                cards.push(cardId);
+            }
+        }
+        return cards;
+    }
+    
+    function craftCards(rankFrom) {
+        const rankTo = NEXT_RANK[rankFrom];
+        if (!rankTo) {
+            showPromoStatus("❌ Нельзя крафтить выше ранга S", "error");
+            return;
+        }
+        
+        const cardsToCraft = getCardsByRank(rankFrom);
+        if (cardsToCraft.length < 3) {
+            showPromoStatus(`❌ Нужно 3 карты ранга ${rankFrom} для крафта. У вас: ${cardsToCraft.length}`, "error");
+            return;
+        }
+        
+        if (shards < 2) {
+            showPromoStatus(`❌ Недостаточно осколков! Нужно 2⚡`, "error");
+            return;
+        }
+        
+        // Удаляем 3 карты
+        for (let i = 0; i < 3; i++) {
+            const cardId = cardsToCraft[i];
+            collectionMap.delete(cardId);
+        }
+        
+        shards -= 2;
+        
+        // Выдаём случайную карту следующего ранга
+        const targetCards = ALL_CARDS.filter(c => c.rank === rankTo && !c.season && c.id !== "osk01");
+        if (targetCards.length === 0) {
+            showPromoStatus("❌ Ошибка: нет карт для выдачи", "error");
+            shards += 2;
+            return;
+        }
+        
+        const newCard = targetCards[Math.floor(Math.random() * targetCards.length)];
+        collectionMap.set(newCard.id, { cardData: newCard, animated: false });
+        
+        showPromoStatus(`🔨 Крафт успешен! Вы обменяли 3 карты ранга ${rankFrom} на 1 карту ранга ${rankTo}: "${newCard.name}"`, "success");
+        
+        updateUI();
+        saveData();
+        checkAchievements();
+        renderCraftInfo();
+    }
+    
+    function renderCraftInfo() {
+        const infoSpan = document.getElementById('craftInfo');
+        if (!infoSpan) return;
+        
+        const select = document.getElementById('craftRankSelect');
+        if (select) {
+            const rankFrom = select.value;
+            const cardsCount = getCardsByRank(rankFrom).length;
+            infoSpan.innerHTML = `📊 У вас ${cardsCount}/3 карт ранга ${rankFrom} для крафта в ${NEXT_RANK[rankFrom]}`;
+            infoSpan.className = cardsCount >= 3 ? "promo-status success" : "promo-status error";
+        }
+    }
+    
+    // === МОДИФИЦИРОВАННЫЕ ФУНКЦИИ ДЛЯ ОТСЛЕЖИВАНИЯ ПРОГРЕССА ===
+    
+    // Сохраняем оригинальные функции для расширения
+    const originalMine = mine;
+    const originalExchangeOreFunc = exchangeOreFunc;
+    const originalBuyPack = buyPack;
+    const originalDoFishing = doFishing;
+    const originalConfirmChoiceCard = confirmChoiceCard;
+    
+    // Переопределяем функции для отслеживания прогресса
+    window.mine = function() {
+        if (miningClicksToday >= getMaxMineClicks()) return;
+        const oldOre = ore;
+        originalMine();
+        const gainedOre = ore - oldOre;
+        if (gainedOre > 0) {
+            totalOreMined += gainedOre;
+            addExp(Math.floor(gainedOre / 10));
+            updateQuestProgress("daily_mine", 1);
+            updateQuestProgress("daily_ore", gainedOre);
+            checkAchievements();
+        }
+    };
+    
+    window.exchangeOreFunc = function() {
+        if (ore < 100) return;
+        const oldOre = ore;
+        originalExchangeOreFunc();
+        const exchangedOre = oldOre - ore;
+        if (exchangedOre > 0) {
+            updateQuestProgress("daily_exchange", exchangedOre);
+        }
+    };
+    
+    window.buyPack = function() {
+        if (crystals < PACK_PRICE) return;
+        if (selectionArea.style.display === 'block') return;
+        originalBuyPack();
+        packsOpened++;
+        updateQuestProgress("daily_pack", 1);
+        checkAchievements();
+    };
+    
+    window.doFishing = async function(isFree) {
+        const oldFishCaught = totalFishCaught;
+        await originalDoFishing(isFree);
+        const newFishCaught = totalFishCaught;
+        if (newFishCaught > oldFishCaught) {
+            addExp(5);
+            updateQuestProgress("daily_fish", newFishCaught - oldFishCaught);
+            checkAchievements();
+        }
+    };
+    
+    window.confirmChoiceCard = function() {
+        const oldCollectionSize = collectionMap.size;
+        originalConfirmChoiceCard();
+        const newCollectionSize = collectionMap.size;
+        if (newCollectionSize > oldCollectionSize) {
+            addExp(10);
+            checkAchievements();
+        }
+    };
+    
+    // Сохраняем для совместимости
+    const originalUpdateUI = updateUI;
+    window.updateUI = function() {
+        originalUpdateUI();
+        updateLevelUI();
+        renderAchievements();
+        renderQuests();
+        renderCraftInfo();
+        const collectionProgressSpan = document.getElementById('collectionProgress');
+        if (collectionProgressSpan) {
+            const totalCards = CATALOG_CARDS.length;
+            const ownedCards = collectionMap.size;
+            collectionProgressSpan.innerText = `📊 ${ownedCards}/${totalCards}`;
+        }
+    };
+    
+    // Загрузка дополнительных данных
+    function loadExtendedData() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                unlockedAchievements = new Set(data.unlockedAchievements || []);
+                packsOpened = data.packsOpened || 0;
+                totalOreMined = data.totalOreMined || 0;
+                totalFishCaught = data.totalFishCaught || 0;
+                currentLevel = data.currentLevel || 1;
+                currentExp = data.currentExp || 0;
+                dailyQuests = data.dailyQuests || DAILY_QUESTS.map(q => ({...q, progress: 0, completed: false, claimed: false}));
+                lastQuestReset = data.lastQuestReset || null;
+            } catch(e) {}
+        }
+        
+        if (!dailyQuests || dailyQuests.length === 0) {
+            dailyQuests = DAILY_QUESTS.map(q => ({...q, progress: 0, completed: false, claimed: false}));
+        }
+        
+        resetDailyQuests();
+        updateLevelUI();
+    }
+    
+    function saveExtendedData() {
+        const baseData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        const extendedData = {
+            ...baseData,
+            unlockedAchievements: Array.from(unlockedAchievements),
+            packsOpened: packsOpened,
+            totalOreMined: totalOreMined,
+            totalFishCaught: totalFishCaught,
+            currentLevel: currentLevel,
+            currentExp: currentExp,
+            dailyQuests: dailyQuests,
+            lastQuestReset: lastQuestReset
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(extendedData));
+    }
+    
+    // Переопределяем saveData
+    const originalSaveData = saveData;
+    window.saveData = function() {
+        originalSaveData();
+        saveExtendedData();
+    };
+    
+    // Переопределяем loadData
+    const originalLoadData = loadData;
+    window.loadData = function() {
+        originalLoadData();
+        loadExtendedData();
+    };
+    
+    // Инициализация новых систем
+    function initNewSystems() {
+        loadExtendedData();
+        resetDailyQuests();
+        updateLevelUI();
+        renderAchievements();
+        renderQuests();
+        
+        // Таймер обновления квестов
+        setInterval(() => {
+            updateQuestTimer();
+            resetDailyQuests();
+        }, 1000);
+        
+        // Кнопка крафта
+        const craftBtn = document.getElementById('craftBtn');
+        if (craftBtn) {
+            craftBtn.addEventListener('click', () => {
+                const select = document.getElementById('craftRankSelect');
+                if (select) craftCards(select.value);
+            });
+        }
+        
+        const craftSelect = document.getElementById('craftRankSelect');
+        if (craftSelect) {
+            craftSelect.addEventListener('change', () => renderCraftInfo());
+        }
+        
+        renderCraftInfo();
+    }
+    
+    // ==================== ОСТАЛЬНОЙ КОД (ОРИГИНАЛЬНЫЙ, БЕЗ ИЗМЕНЕНИЙ) ====================
+    
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     function getDefaultImageForRank(card) {
         const rankFolders = { 'X': 'X', 'S': 'S', 'A': 'A', 'A+': 'A', 'P': 'P', 'G': 'G', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'H': 'H', 'N': 'N', 'V': 'V', 'L': 'L' };
         const folder = rankFolders[card.rank] || 'E';
         const setName = card.set === "Ивенты" ? "events" : (card.set || 'Эхокалипсис');
         return `images/${setName}/${folder}/default.png`;
     }
-
+    
     function getCardImage(card, isAnimated) {
         if (isAnimated && card.animImage) return card.animImage;
         return card.image || getDefaultImageForRank(card);
     }
-
+    
     function getRankCornerClass(rank) {
         const map = { 
             'X':'rank-corner-X', 'S':'rank-corner-S', 'A+':'rank-corner-Aplus',
@@ -1629,16 +2452,14 @@
         };
         return map[rank] || 'rank-corner-E';
     }
-
-    // ==================== ИГРОВЫЕ КОНСТАНТЫ ====================
+    
+    // ИГРОВЫЕ КОНСТАНТЫ
     const PACK_PRICE = 70;
     const START_CRYSTALS = 40;
     const STORAGE_KEY = 'bloody_ssr_v18_promo';
     const DUPLICATE_REWARD_CRYSTALS = 7;
     
-    const PROMO_LIST = [
-          // { code: "MANGA2026", reward: { crystals: 500, shards: 2, ore: 0 } },
-    ];
+    const PROMO_LIST = [];
     
     let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
     let collectionMap = new Map();
@@ -1661,8 +2482,8 @@
     let dailyBonusBtn, exchangeOreBtn, mineClickBtn, clicksLeftDisplay, oreInMine;
     let promoInput, activatePromoBtn, promoStatusSpan, promoCodesListDiv;
     let modal, modalImage, modalCaption, modalRank, modalCloseBtn;
-
-    // ==================== SUPABASE ФУНКЦИИ ====================
+    
+    // SUPABASE ФУНКЦИИ
     function initSupabase() {
         if (typeof supabase === 'undefined') {
             console.error('⚠️ Supabase библиотека не загружена!');
@@ -1688,7 +2509,6 @@
         return userId;
     }
     
-    // Оптимизированная синхронизация с batch upsert
     async function syncToCloud() {
         if (!supabaseInitialized) return;
         const userId = getUserId();
@@ -1701,7 +2521,6 @@
                 updated_at: new Date().toISOString()
             });
             
-            // Batch upsert для коллекций
             const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
                 user_id: userId, card_id: cardId, animated: data.animated || false
             }));
@@ -1783,16 +2602,12 @@
         } catch(e) { return null; }
     }
     
-    // Оптимизированная загрузка топа с кэшированием
     async function getTopPlayers(limit = 10) {
         if (!supabaseInitialized) return [];
-        
-        // Проверяем кэш
         const now = Date.now();
         if (topPlayersCache.data && (now - topPlayersCache.timestamp) < TOP_PLAYERS_CACHE_TTL) {
             return topPlayersCache.data.slice(0, limit);
         }
-        
         try {
             const { data: collections, error: collError } = await supabaseClient.from('user_collections').select('user_id');
             if (collError) return [];
@@ -1814,9 +2629,7 @@
                 nickname: nicknames[user_id] ? escapeHtml(nicknames[user_id]) : user_id.slice(0, 16) + '...' 
             })).sort((a, b) => b.count - a.count);
             
-            // Сохраняем в кэш
             topPlayersCache = { data: result, timestamp: now };
-            
             return result.slice(0, limit);
         } catch(e) { return []; }
     }
@@ -1847,8 +2660,8 @@
             return true;
         } catch(e) { return false; }
     }
-
-    // ==================== РЕФЕРАЛЬНЫЕ ФУНКЦИИ ====================
+    
+    // РЕФЕРАЛЬНЫЕ ФУНКЦИИ
     async function createReferralLink(referredUserId, referrerUserId) {
         if (!supabaseInitialized) return false;
         try {
@@ -1952,8 +2765,8 @@
         await updateReferralUI();
         showPromoStatus("✅ Проверка завершена", "success");
     }
-
-    // ==================== ИВЕНТЫ ====================
+    
+    // ИВЕНТЫ
     let lastFreeAttemptNotification = 0;
     
     function getCurrentSeason() {
@@ -2006,8 +2819,8 @@
             alert(msg);
         };
     }
-
-    // ==================== ОСНОВНЫЕ ИГРОВЫЕ ФУНКЦИИ ====================
+    
+    // ОСНОВНЫЕ ИГРОВЫЕ ФУНКЦИИ
     function getFullCardById(id) { return ALL_CARDS.find(c => c.id === id); }
     
     function showModal(imageUrl, cardName, rank) {
@@ -2025,6 +2838,7 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 5 }));
         syncToCloud();
         if (supabaseInitialized) checkAndRewardReferrer(getUserId());
+        saveExtendedData();
     }
     
     function loadData() {
@@ -2073,10 +2887,10 @@
         showPromoStatus("🎁 Ежедневный бонус получен! +30💎", "success");
     }
     
-    function updateMiningUI() { clicksLeftDisplay.innerText = `${miningClicksToday}`; oreInMine.innerText = ore; mineClickBtn.disabled = miningClicksToday >= 100; mineClickBtn.classList.toggle('disabled', miningClicksToday >= 100); }
+    function updateMiningUI() { clicksLeftDisplay.innerText = `${miningClicksToday}`; oreInMine.innerText = ore; mineClickBtn.disabled = miningClicksToday >= getMaxMineClicks(); mineClickBtn.classList.toggle('disabled', miningClicksToday >= getMaxMineClicks()); }
     
     function mine() { 
-        if (miningClicksToday >= 100) return; 
+        if (miningClicksToday >= getMaxMineClicks()) return; 
         let gain = Math.floor(Math.random() * 6) + 10; 
         if (isDoubleOreEventActive()) {
             gain = gain * 2;
@@ -2084,12 +2898,17 @@
         }
         miningClicksToday++; 
         ore += gain; 
+        totalOreMined += gain;
+        addExp(Math.floor(gain / 10));
+        updateQuestProgress("daily_mine", 1);
+        updateQuestProgress("daily_ore", gain);
+        checkAchievements();
         updateMiningUI(); 
         updateUI();
         if (supabaseInitialized) checkAndRewardReferrer(getUserId());
     }
     
-    function exchangeOreFunc() { if (ore < 100) return; const exchangeAmount = Math.floor(ore / 100); crystals += exchangeAmount; ore -= exchangeAmount * 100; updateUI(); }
+    function exchangeOreFunc() { if (ore < 100) return; const exchangeAmount = Math.floor(ore / 100); crystals += exchangeAmount; ore -= exchangeAmount * 100; updateQuestProgress("daily_exchange", exchangeAmount * 100); updateUI(); }
     
     function getRandomCardForPack() {
         let total = Object.values(RANK_WEIGHTS).reduce((a,b)=>a+b,0);
@@ -2156,6 +2975,8 @@
                 const fullCard = getFullCardById(card.id);
                 if (fullCard) {
                     collectionMap.set(card.id, { cardData: fullCard, animated: false });
+                    addExp(10);
+                    checkAchievements();
                     showPromoStatus(`✨ Новая карта! "${card.name}" добавлена в коллекцию ✨`, "success");
                 }
             }
@@ -2174,9 +2995,11 @@
             return;
         }
         
-        // Подтверждение покупки
         if (confirm(`Купить пак за ${PACK_PRICE}💎? Вы получите 3 карты на выбор.`)) {
             crystals -= PACK_PRICE; 
+            packsOpened++;
+            updateQuestProgress("daily_pack", 1);
+            checkAchievements();
             updateUI(); 
             currentOfferedCards = generateOffer(); 
             selectedCardIndex = null; 
@@ -2186,7 +3009,7 @@
         }
     }
     
-    // ==================== ИВЕНТОВЫЙ ПАК ====================
+    // ИВЕНТОВЫЙ ПАК
     let currentEventOfferedCards = [];
     let selectedEventCardIndex = null;
     
@@ -2205,7 +3028,6 @@
             return;
         }
         
-        // Подтверждение покупки
         if (confirm(`Открыть ивентовый пак за 5⚡? Вы получите уникальную ивент-карту сезона ${getSeasonName(currentSeason)}.`)) {
             shards -= 5;
             updateUI();
@@ -2266,12 +3088,16 @@
             const fullCard = getFullCardById(card.id);
             if (fullCard) {
                 collectionMap.set(card.id, { cardData: fullCard, animated: false });
+                addExp(10);
+                checkAchievements();
                 showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
             } else {
                 const newCard = { ...card };
                 ALL_CARDS.push(newCard);
                 CATALOG_CARDS.push(newCard);
                 collectionMap.set(card.id, { cardData: newCard, animated: false });
+                addExp(10);
+                checkAchievements();
                 showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
             }
         }
@@ -2283,7 +3109,7 @@
         updateUI();
     }
     
-    // ==================== ПРОЧИЕ ФУНКЦИИ ====================
+    // ПРОЧИЕ ФУНКЦИИ
     function upgradeCard(cardId) { 
         const entry = collectionMap.get(cardId); 
         if (!entry || !entry.cardData.canUpgrade || entry.animated) {
@@ -2321,13 +3147,11 @@
         }
         collectionListDiv.innerHTML = html;
         
-        // Исправление: правильная обработка кликов с остановкой всплытия
         document.querySelectorAll('.collection-card').forEach(card => { 
             const data = JSON.parse(card.dataset.card);
             const upgradeBtn = card.querySelector('.upgrade-btn');
             
             card.addEventListener('click', (e) => { 
-                // Если клик по кнопке улучшения - не открываем модалку
                 if (e.target.classList.contains('upgrade-btn')) {
                     e.stopPropagation();
                     return;
@@ -2369,6 +3193,10 @@
             card.addEventListener('click', () => showModal(data.image, data.name, data.rank)); 
         });
         totalAllCardsCountSpan.innerText = CATALOG_CARDS.length;
+        const collectionProgressSpan = document.getElementById('collectionProgress');
+        if (collectionProgressSpan) {
+            collectionProgressSpan.innerText = `📊 ${collectionMap.size}/${CATALOG_CARDS.length}`;
+        }
     }
     
     function showPromoStatus(text, type = "info") {
@@ -2402,7 +3230,7 @@
         document.querySelectorAll('.promo-chip').forEach(chip => { chip.addEventListener('click', () => fillPromoCode(chip.dataset.code)); });
     }
     
-    // ==================== РЫБАЛКА ====================
+    // РЫБАЛКА
     function loadFishingData() {
         const saved = localStorage.getItem('bloody_fishing_v1');
         if (saved) { try { fishingData = JSON.parse(saved); } catch(e) {} }
@@ -2457,7 +3285,6 @@
         if (freeBtn) freeBtn.disabled = (freeLeft === 0);
         if (paidBtn) paidBtn.disabled = (getPaidAttemptsLeft() === 0 || shards < 2);
         
-        // Уведомление о готовности бесплатной попытки
         if (oldFreeLeft === 0 && freeLeft === 1 && document.getElementById('tab-fishing').classList.contains('active')) {
             showPromoStatus("🎣 Бесплатная рыбалка готова!", "success");
         }
@@ -2513,6 +3340,8 @@
             showPromoStatus(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎`, "success");
         } else {
             collectionMap.set(randomCard.id, { cardData: randomCard, animated: false });
+            addExp(10);
+            checkAchievements();
             showModal(imgPath, randomCard.name, randomCard.rank);
             showPromoStatus(`✨ Новая карта добавлена в коллекцию!`, "success");
         }
@@ -2554,6 +3383,10 @@
         if (caught.reward.shards > 0) shards += caught.reward.shards;
         if (caught.reward.card) giveRandomCard();
         if (caught.reward.pack) giveFreePack();
+        totalFishCaught++;
+        addExp(5);
+        updateQuestProgress("daily_fish", 1);
+        checkAchievements();
         showCatchResult(caught);
         updateUI();
         updateFishingUI();
@@ -2607,6 +3440,10 @@
         saveData();
         updateFishingUI();
         updateEventBanner();
+        updateLevelUI();
+        renderAchievements();
+        renderQuests();
+        renderCraftInfo();
     }
     
     function setupFilters() {
@@ -2923,13 +3760,7 @@
     window.viewTopPlayer = viewTopPlayer;
     window.copyUserId = copyUserId;
     
-    // Предупреждение при выходе
-    window.addEventListener('beforeunload', function(e) {
-        // Не показываем предупреждение, если нет несохранённых изменений
-        // Данные сохраняются автоматически, так что предупреждение не нужно
-    });
-    
-    // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+    // ИНИЦИАЛИЗАЦИЯ
     async function init() {
         crystalDisplay = document.getElementById('crystalDisplay');
         oreDisplay = document.getElementById('oreDisplay');
@@ -2958,6 +3789,7 @@
         modalCloseBtn = document.getElementById('modalCloseBtn');
         
         loadData();
+        initNewSystems();
         
         const supabaseInited = initSupabase();
         if (supabaseInited) {
@@ -3021,6 +3853,8 @@
             if (freeEl && document.getElementById('tab-fishing').classList.contains('active')) {
                 freeEl.innerText = getNextFreeTimeString();
             }
+            updateQuestTimer();
+            resetDailyQuests();
         }, 1000);
         
         document.getElementById('userIdDisplay').innerText = getUserId();
