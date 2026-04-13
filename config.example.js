@@ -1,4 +1,3 @@
-// config.example.js - скопируйте в config.js и заполните своими данными
 const SUPABASE_CONFIG = {
     URL: "https://your-project.supabase.co",
     ANON_KEY: "your-anon-key"
