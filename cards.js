@@ -9,6 +9,58 @@ const ALL_CARDS = [
 
     // Лазурный путь
 
+    // S
+    { id: "LPSagir01", name: "Lpsagir", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSagir01.png", canUpgrade: false, animImage: null },
+    { id: "LPSbremerton01", name: "Lpsbremerton", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSbremerton01.png", canUpgrade: false, animImage: null },
+    { id: "LPSbrennus01", name: "Lpsbrennus", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSbrennus01.png", canUpgrade: false, animImage: null },
+    { id: "LPSdjersi01", name: "Lpsdjersi", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSdjersi01.png", canUpgrade: false, animImage: null },
+    { id: "LPShakyhoy01", name: "Lpshakyhoy", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPShakyhoy01.png", canUpgrade: false, animImage: null },
+    { id: "LPSmarbelhed01", name: "Lpsmarbelhed", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSmarbelhed01.png", canUpgrade: false, animImage: null },
+    { id: "LPSmesti", name: "Lpsmesti", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSmesti.png", canUpgrade: false, animImage: null },
+    { id: "LPSmusashi01", name: "Lpsmusashi", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSmusashi01.png", canUpgrade: false, animImage: null },
+    { id: "LPSmusashi02", name: "Lpsmusashi", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSmusashi02.png", canUpgrade: false, animImage: null },
+    { id: "LPSneukrotimi01", name: "Lpsneukrotimi", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSneukrotimi01.png", canUpgrade: false, animImage: null },
+    { id: "LPSsundzua", name: "Lpssundzua", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPSsundzua.png", canUpgrade: false, animImage: null },
+    { id: "LPStaiho01", name: "Lpstaiho", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPStaiho01.png", canUpgrade: false, animImage: null },
+    { id: "LPStaiho02", name: "Lpstaiho", emoji: "🍊", rank: "S", set: "Лазурный Путь", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Лазурный Путь/S/LPStaiho02.png", canUpgrade: false, animImage: null },
+
+
+    // A
+    { id: "LPAagir01", name: "Lpaagir", emoji: "🍊", rank: "A", set: "Лазурный Путь", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Лазурный Путь/A/LPAagir01.png", canUpgrade: false, animImage: null },
+    { id: "LPAalabama", name: "Lpaalabama", emoji: "🍊", rank: "A", set: "Лазурный Путь", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Лазурный Путь/A/LPAalabama.png", canUpgrade: false, animImage: null },
+    { id: "LPAformidebl01", name: "Lpaformidebl", emoji: "🍊", rank: "A", set: "Лазурный Путь", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Лазурный Путь/A/LPAformidebl01.png", canUpgrade: false, animImage: null },
+    { id: "LPAginderbug01", name: "Lpaginderbug", emoji: "🍊", rank: "A", set: "Лазурный Путь", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Лазурный Путь/A/LPAginderbug01.png", canUpgrade: false, animImage: null },
+    { id: "LPAnosiro01", name: "Lpanosiro", emoji: "🍊", rank: "A", set: "Лазурный Путь", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Лазурный Путь/A/LPAnosiro01.png", canUpgrade: false, animImage: null },
+    { id: "LPAoumi01", name: "Lpaoumi", emoji: "🍊", rank: "A", set: "Лазурный Путь", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Лазурный Путь/A/LPAoumi01.png", canUpgrade: false, animImage: null },
+    { id: "LPAtaiho01", name: "Lpataiho", emoji: "🍊", rank: "A", set: "Лазурный Путь", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Лазурный Путь/A/LPAtaiho01.png", canUpgrade: false, animImage: null },
+
+
+    // P
+    { id: "LPPdjersi01", name: "Lppdjersi", emoji: "🍊", rank: "P", set: "Лазурный Путь", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Лазурный Путь/P/LPPdjersi01.png", canUpgrade: false, animImage: null },
+    { id: "LPPeljas01", name: "Lppeljas", emoji: "🍊", rank: "P", set: "Лазурный Путь", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Лазурный Путь/P/LPPeljas01.png", canUpgrade: false, animImage: null },
+    { id: "LPPshinano01", name: "Lppshinano", emoji: "🍊", rank: "P", set: "Лазурный Путь", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Лазурный Путь/P/LPPshinano01.png", canUpgrade: false, animImage: null },
+    { id: "LPPundzein01", name: "Lppundzein", emoji: "🍊", rank: "P", set: "Лазурный Путь", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Лазурный Путь/P/LPPundzein01.png", canUpgrade: false, animImage: null },
+
+
+    // G
+    { id: "LPGadmiral01", name: "Lpgadmiral", emoji: "🍊", rank: "G", set: "Лазурный Путь", rankLabel: "G", color: "#093", rankOrder: 6, image: "Лазурный Путь/G/LPGadmiral01.png", canUpgrade: false, animImage: null },
+    { id: "LPGneumolimi01", name: "Lpgneumolimi", emoji: "🍊", rank: "G", set: "Лазурный Путь", rankLabel: "G", color: "#093", rankOrder: 6, image: "Лазурный Путь/G/LPGneumolimi01.png", canUpgrade: false, animImage: null },
+    { id: "LPGsirius01", name: "Lpgsirius", emoji: "🍊", rank: "G", set: "Лазурный Путь", rankLabel: "G", color: "#093", rankOrder: 6, image: "Лазурный Путь/G/LPGsirius01.png", canUpgrade: false, animImage: null },
+
+
+    // B
+    { id: "LPBhvadja01", name: "Lpbhvadja", emoji: "🍊", rank: "B", set: "Лазурный Путь", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Лазурный Путь/B/LPBhvadja01.png", canUpgrade: false, animImage: null },
+    { id: "LPBmogador01", name: "Lpbmogador", emoji: "🍊", rank: "B", set: "Лазурный Путь", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Лазурный Путь/B/LPBmogador01.png", canUpgrade: false, animImage: null },
+    { id: "LPBmusashi01", name: "Lpbmusashi", emoji: "🍊", rank: "B", set: "Лазурный Путь", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Лазурный Путь/B/LPBmusashi01.png", canUpgrade: false, animImage: null },
+    { id: "LPBz1101", name: "Lpbz", emoji: "🍊", rank: "B", set: "Лазурный Путь", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Лазурный Путь/B/LPBz1101.png", canUpgrade: false, animImage: null },
+
+
+    // C
+    { id: "LPCbremerton01", name: "Lpcbremerton", emoji: "🍊", rank: "C", set: "Лазурный Путь", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Лазурный Путь/C/LPCbremerton01.png", canUpgrade: false, animImage: null },
+    { id: "LPClaion01", name: "Lpclaion", emoji: "🍊", rank: "C", set: "Лазурный Путь", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Лазурный Путь/C/LPClaion01.png", canUpgrade: false, animImage: null },
+    { id: "LPCneumolimi01", name: "Lpcneumolimi", emoji: "🍊", rank: "C", set: "Лазурный Путь", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Лазурный Путь/C/LPCneumolimi01.png", canUpgrade: false, animImage: null },
+
+
     // D
 
     { id: "LPDankoridji01", name: "Ankoridji", emoji: "🍊", rank: "D", set: "Лазурный Путь", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Лазурный Путь/D/ankoridji01.png", canUpgrade: false, animImage: null },
