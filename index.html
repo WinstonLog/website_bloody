@@ -1457,24 +1457,6 @@
 
     <!-- Шахта -->
     <div class="tab-content" id="tab-mine">
-        <div class="daily-section">
-            <div><span style="font-size: 1rem;">🎁</span> <strong>Ежедневный бонус</strong></div>
-            <button class="daily-btn" id="dailyBonusBtn">+30💎</button>
-        </div>
-
-        <div class="promo-section">
-            <div class="promo-header">
-                <span class="promo-icon">🏷️</span>
-                <h4>Активировать промокод</h4>
-            </div>
-            <div class="promo-input-group">
-                <input type="text" class="promo-input" id="promoInput" placeholder="Введите код...">
-                <button class="promo-activate-btn" id="activatePromoBtn">Активировать</button>
-            </div>
-            <div class="promo-codes-list" id="promoCodesList"></div>
-            <div class="promo-status" id="promoStatus">⌛ Готов к активации</div>
-        </div>
-
         <div class="mine-section">
             <div class="mine-header">
                 <div class="mine-title">⛏️ КРОВАВАЯ ШАХТА</div>
@@ -1677,13 +1659,23 @@
 
     <!-- Профиль -->
     <div class="tab-content" id="tab-profile">
-<!--         <div class="level-progress" id="levelProgressBlock">
-            <div>⭐ УРОВЕНЬ <span id="levelValueProfile">1</span> <span id="nextLevelBonus"></span></div>
-            <div class="level-progress-bar">
-                <div class="level-progress-fill" id="levelProgressFill"></div>
+        <div class="daily-section">
+            <div><span style="font-size: 1rem;">🎁</span> <strong>Ежедневный бонус</strong></div>
+            <button class="daily-btn" id="dailyBonusBtn">+30💎</button>
+        </div>
+
+        <div class="promo-section">
+            <div class="promo-header">
+                <span class="promo-icon">🏷️</span>
+                <h4>Активировать промокод</h4>
             </div>
-            <div style="font-size: 0.7rem;" id="expTextProfile">Опыт: 0 / 100</div>
-        </div> -->
+            <div class="promo-input-group">
+                <input type="text" class="promo-input" id="promoInput" placeholder="Введите код...">
+                <button class="promo-activate-btn" id="activatePromoBtn">Активировать</button>
+            </div>
+            <div class="promo-codes-list" id="promoCodesList"></div>
+            <div class="promo-status" id="promoStatus">⌛ Готов к активации</div>
+        </div>
         <div class="nickname-section">
             <div class="promo-header">
                 <span class="promo-icon">👤</span>
@@ -1784,11 +1776,9 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
     <script>
-        // ==================== КОНФИГУРАЦИЯ SUPABASE ====================
-        const SUPABASE_URL = 'https://tixgzuqpdepyxgueriqw.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpeGd6dXFwZGVweXhndWVyaXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NzAzMjIsImV4cCI6MjA5MTM0NjMyMn0.sskc8yr9bfHuCzAMVpupM7dJWXhfqg2GWg-1StQcQDM';
-        
+    
         let supabaseClient = null;
         let supabaseInitialized = false;
         let currentNickname = null;
@@ -1804,9 +1794,62 @@
         // ========== БАЗА КАРТ ==========
         const ALL_CARDS = [
             { id: "osk01", name: "Осколок", emoji: "⚔️", rank: "A+", set: "Эхокалипсис", rankLabel: "A+", color: "#772ce8", rankOrder: 3, image: "images/osk.png", canUpgrade: false, animImage: null },
+
+            // X
+
             { id: "Xcc01", name: "C.C.", emoji: "🍊", rank: "X", set: "X", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/cc01.png", canUpgrade: false, animImage: null },
             { id: "Xreze01", name: "Резе", emoji: "🍊", rank: "X", set: "X", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/reze01.png", canUpgrade: true, animImage: "images/events/spring/anim/reze01.gif" },
+
+            // S
+
+            { id: "Sbafomet01", name: "Бафомет", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/bafomet01.png", canUpgrade: false, animImage: null },
+            { id: "Spantera01", name: "Пантера", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/pantera01.png", canUpgrade: false, animImage: null },
+            { id: "Stof03", name: "Тоф", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/tof03.png", canUpgrade: false, animImage: null },
+            { id: "Sgfinevra01", name: "Гвиневра", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/gfinevra01.png", canUpgrade: false, animImage: null },
+            { id: "Ssfinks01", name: "Сфинкс", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/sfinks01.png", canUpgrade: false, animImage: null },
+            { id: "Sgarula01", name: "Гарула", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/garula01.png", canUpgrade: false, animImage: null },
+            { id: "Sshui02", name: "Шию", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/shiu02.png", canUpgrade: false, animImage: null },
+            { id: "Skuri01", name: "Кури", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/kuri01.png", canUpgrade: false, animImage: null },
+            { id: "Szava01", name: "Зава", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/zava01.png", canUpgrade: false, animImage: null },
+            { id: "Smordred01", name: "Мордред", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/mordred01.png", canUpgrade: false, animImage: null },
+            { id: "Svivi02", name: "Виви", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/vivi02.png", canUpgrade: false, animImage: null },
+            { id: "Slevia02", name: "Левия", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/levia02.png", canUpgrade: false, animImage: null },
+            { id: "Schiraha02", name: "Чираха", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/chiraha02.png", canUpgrade: false, animImage: null },
+            { id: "Seriri01", name: "Эрири", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/eriri01.png", canUpgrade: false, animImage: null },
+            { id: "Sniz01", name: "Низ", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/niz01.png", canUpgrade: false, animImage: null },
+            { id: "Ssnejana01", name: "Снежана", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/snejana01.png", canUpgrade: false, animImage: null },
+            { id: "Ssera01", name: "Сера", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/sera01.png", canUpgrade: false, animImage: null },
+            { id: "Sludmera01", name: "Людмера", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/ludmera01.png", canUpgrade: false, animImage: null },
+            { id: "Sroksi02", name: "Рокси", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/roksi02.png", canUpgrade: false, animImage: null },
+            { id: "Slevia01", name: "Левия", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/levia01.png", canUpgrade: false, animImage: null },
+            { id: "Snil02", name: "Нил", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/nil02.png", canUpgrade: false, animImage: null },
+            { id: "Siora01", name: "Йора", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/iora01.png", canUpgrade: false, animImage: null },
+            { id: "Smicuha01", name: "Мицуха Мочизуки", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/micuha01.png", canUpgrade: false, animImage: null },
+            { id: "Sulia01", name: "Юлия", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/ulia01.png", canUpgrade: false, animImage: null },
+            { id: "Sshiu01", name: "Шию", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/shiu01.png", canUpgrade: false, animImage: null },
+            { id: "Svivi01", name: "Виви", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/vivi01.png", canUpgrade: false, animImage: null },
+            { id: "Sroksi01", name: "Рокси", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/roksi01.png", canUpgrade: false, animImage: null },
+            { id: "Snue01", name: "Нуэ", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/nue01.png", canUpgrade: false, animImage: null },
+            { id: "Snil01", name: "Нил", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/nil01.png", canUpgrade: false, animImage: null },
+            { id: "Skarolina01", name: "Каролина", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/karolina01.png", canUpgrade: false, animImage: null },
+            { id: "Snila01", name: "Нила", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/nila01.png", canUpgrade: false, animImage: null },
+            { id: "Shimetto01", name: "Хеметто", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/himetto01.png", canUpgrade: true, animImage: "images/Эхокалипсис/S/anim/himetto01.gif" },
+            { id: "Sanubis", name: "Анубис", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/anubis01.png", canUpgrade: false, animImage: null },
+            { id: "Slili03", name: "Лилит", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/lilit03.png", canUpgrade: false, animImage: null },
+            { id: "Stof02", name: "Тоф", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/tof02.png", canUpgrade: false, animImage: null },
+            { id: "Sbastet01", name: "Бастет", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/bastet01.png", canUpgrade: false, animImage: null },
+            { id: "Sdeizi01", name: "Дэйзи", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/deizi01.png", canUpgrade: false, animImage: null },
+            { id: "Slilit02", name: "Лилит", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/lilit02.png", canUpgrade: false, animImage: null },
+            { id: "Slilit01", name: "Лилит", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/lilit01.png", canUpgrade: false, animImage: null },
+            { id: "Spanpan01", name: "Пан Пан", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/panpan01.png", canUpgrade: false, animImage: null },
+            { id: "Schiraha01", name: "Чираха", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/chiraha01.png", canUpgrade: false, animImage: null },
+            { id: "Slira01", name: "Лира", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/lira01.png", canUpgrade: true, animImage: "images/Эхокалипсис/S/anim/lira01.gif" },
             { id: "Stof01", name: "Тоф", emoji: "🍊", rank: "S", set: "Эхокалипсис", rankLabel: "S", color: "#f54972", rankOrder: 2, image: "images/Эхокалипсис/S/tof01.png", canUpgrade: false, animImage: null },
+
+            // A
+
+            { id: "Azineda01", name: "Зинеда", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/zineda01.png", canUpgrade: false, animImage: null },
+            { id: "Azineda01", name: "Зинеда", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/zineda01.png", canUpgrade: false, animImage: null },
             { id: "Azineda01", name: "Зинеда", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/zineda01.png", canUpgrade: false, animImage: null },
             { id: "Aakira01", name: "Акира", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/akira01.png", canUpgrade: false, animImage: null },
             { id: "Ahela02", name: "Хела", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/hela02.png", canUpgrade: false, animImage: null },
@@ -1831,6 +1874,9 @@
             { id: "Achiraha01", name: "Чираха", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/chiraha01.png", canUpgrade: false, animImage: null },
             { id: "Adoroti01", name: "Дороти", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/doroti01.png", canUpgrade: false, animImage: null },
             { id: "Ashiu01", name: "Шию", emoji: "🍊", rank: "A", set: "Эхокалипсис", rankLabel: "A", color: "#fc363b", rankOrder: 4, image: "images/Эхокалипсис/A/shiu01.png", canUpgrade: false, animImage: null },
+
+            // P
+
             { id: "Pmituba01", name: "Митуба", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/mituba01.png", canUpgrade: false, animImage: null },
             { id: "Psova03", name: "Сова", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/sova03.png", canUpgrade: false, animImage: null },
             { id: "Plori01", name: "Лори", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/lori01.png", canUpgrade: false, animImage: null },
@@ -1857,6 +1903,9 @@
             { id: "Pkiubei01", name: "Кьюбей", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/kiubei01.png", canUpgrade: false, animImage: null },
             { id: "Pprinni01", name: "Принни", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/prinni01.png", canUpgrade: false, animImage: null },
             { id: "Piora01", name: "Йора", emoji: "🍊", rank: "P", set: "Эхокалипсис", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Эхокалипсис/P/iora01.png", canUpgrade: false, animImage: null },
+
+            // G
+
             { id: "Gneftida01", name: "Нефтида", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/neftida01.png", canUpgrade: false, animImage: null },
             { id: "Gsnejana01", name: "Снежана", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/snejana01.png", canUpgrade: false, animImage: null },
             { id: "Gsharon02", name: "Шарон", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/sharon02.png", canUpgrade: false, animImage: null },
@@ -1871,6 +1920,9 @@
             { id: "Grie01", name: "Рие", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/senko01.png", canUpgrade: false, animImage: null },
             { id: "Gsenko01", name: "Сенко", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/senko01.png", canUpgrade: false, animImage: null },
             { id: "Gsui01", name: "Суй", emoji: "🍊", rank: "G", set: "Эхокалипсис", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Эхокалипсис/G/sui01.png", canUpgrade: false, animImage: null },
+
+            // B
+
             { id: "Bkamelia01", name: "Камелия", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/kamelia01.png", canUpgrade: false, animImage: null },
             { id: "Bkiki01", name: "Кики", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/kiki01.png", canUpgrade: false, animImage: null },
             { id: "Bzava01", name: "Зава", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/zava01.png", canUpgrade: false, animImage: null },
@@ -1884,6 +1936,9 @@
             { id: "Bhator01", name: "Хатор", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/hator01.png", canUpgrade: false, animImage: null },
             { id: "Biora01", name: "Йора", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/iora01.png", canUpgrade: false, animImage: null },
             { id: "Bsera01", name: "Сера", emoji: "🍊", rank: "B", set: "Эхокалипсис", rankLabel: "B", color: "#eb5d9b", rankOrder: 7, image: "images/Эхокалипсис/B/sera01.png", canUpgrade: false, animImage: null },
+
+            // C
+
             { id: "Cluciferin01", name: "Люциферин", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/luciferin01.png", canUpgrade: false, animImage: null },
             { id: "Cuinno01", name: "Уинно", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/uinno01.png", canUpgrade: false, animImage: null },
             { id: "Ceriri01", name: "Эрири", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/eriri01.png", canUpgrade: false, animImage: null },
@@ -1897,6 +1952,9 @@
             { id: "Ciori01", name: "Иори", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/iori01.png", canUpgrade: false, animImage: null },
             { id: "Clilit01", name: "Лилит", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/lilit01.png", canUpgrade: false, animImage: null },
             { id: "Cfirentia01", name: "Фирентия", emoji: "🍊", rank: "C", set: "Эхокалипсис", rankLabel: "C", color: "#df9300", rankOrder: 8, image: "images/Эхокалипсис/C/firentia01.png", canUpgrade: false, animImage: null },
+
+            // D
+
             { id: "Dsenko01", name: "Сенко", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/senko01.png", canUpgrade: false, animImage: null },
             { id: "Dnila04", name: "Нила", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/nila04.png", canUpgrade: false, animImage: null },
             { id: "Dpanpan01", name: "Пан Пан", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/panpan01.png", canUpgrade: false, animImage: null },
@@ -1916,6 +1974,9 @@
             { id: "Dnila01", name: "Нила", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/nila01.png", canUpgrade: false, animImage: null },
             { id: "Dvivi02", name: "Виви", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/vivi02.png", canUpgrade: false, animImage: null },
             { id: "Dvivi01", name: "Виви", emoji: "🍊", rank: "D", set: "Эхокалипсис", rankLabel: "D", color: "#718b99", rankOrder: 9, image: "images/Эхокалипсис/D/vivi01.png", canUpgrade: false, animImage: null },
+
+            // E
+
             { id: "Eakira01", name: "Акира", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/akira01.png", canUpgrade: false, animImage: null },
             { id: "Etomi01", name: "Томи", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/tomi01.png", canUpgrade: false, animImage: null },
             { id: "Evivi01", name: "Виви", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/vivi01.png", canUpgrade: false, animImage: null },
@@ -1930,16 +1991,29 @@
             { id: "Ekurina01", name: "Курин", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/kurina01.png", canUpgrade: false, animImage: null },      
             { id: "Ehimetto01", name: "Хеметто", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/himetto01.png", canUpgrade: false, animImage: null },
             { id: "Eset01", name: "Сет", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/set01.png", canUpgrade: false, animImage: null },
-            { id: "Enil01", name: "Нил", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/nil01.png", canUpgrade: false, animImage: null },  
+            { id: "Enil01", name: "Нил", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/nil01.png", canUpgrade: false, animImage: null },
+
             // Ивентовые
+
+            // H
+
             { id: "Halbedo01", name: "Альбедо", rank: "H", rankLabel: "H", color: "#ff6600", rankOrder: 1.5, image: "images/events/halloween/albedo01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "halloween" },
+
+            // N
+
             { id: "Nzani01", name: "Зани", rank: "N", rankLabel: "N", color: "#00ccff", rankOrder: 1.6, image: "images/events/newyear/zani01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "newyear" },
+
+            // V
+
             { id: "Vmiku01", name: "Мику", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/miku01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/miku01.gif", season: "spring" },
             { id: "Vmei01", name: "Жуань Мэй", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/mei01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/mei01.gif", season: "spring" },
             { id: "Vchoso01", name: "Чосо", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/choso01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "spring" },
             { id: "Vm01", name: "Мужчина", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/m01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "spring" },
             { id: "Varlekino01", name: "Арлекино", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/arlekino01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/arlekino01.gif", season: "spring" },
             { id: "Vrio01", name: "Рио", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/rio01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/rio01.gif", season: "spring" },
+
+            // L
+
             { id: "Lmiku01", name: "Хацунэ Мику", rank: "L", rankLabel: "L", color: "#ffaa44", rankOrder: 1.8, image: "images/events/summer/miku01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/miku01.gif", season: "summer" },
             { id: "Lkafka01", name: "Кафка", rank: "L", rankLabel: "L", color: "#ffaa44", rankOrder: 1.8, image: "images/events/summer/kafka01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "summer" }
         ];
@@ -2492,15 +2566,16 @@
             };
             return map[rank] || 'rank-corner-E';
         }
-        
-        // ИГРОВЫЕ КОНСТАНТЫ
-        const PACK_PRICE = 70;
-        const START_CRYSTALS = 40;
-        const STORAGE_KEY = 'bloody_ssr_v18_promo';
-        const DUPLICATE_REWARD_CRYSTALS = 7;
-        
+
+        const PACK_PRICE = GAME_CONFIG.PACK_PRICE;
+        const START_CRYSTALS = GAME_CONFIG.START_CRYSTALS;
+        const STORAGE_KEY = GAME_CONFIG.STORAGE_KEY;
+        const DUPLICATE_REWARD_CRYSTALS = GAME_CONFIG.DUPLICATE_REWARD_CRYSTALS;
+        const SUPABASE_URL = SUPABASE_CONFIG.URL;
+        const SUPABASE_ANON_KEY = SUPABASE_CONFIG.ANON_KEY;
+
         const PROMO_LIST = [
-             { code: "NIGHT", reward: { crystals: 300, shards: 20, ore: 0 } },
+            { code: "NIGHT", reward: { crystals: 300, shards: 20, ore: 0 } }, 
         ];
         
         let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
