@@ -6,7 +6,7 @@ const ALL_CARDS = [
 
     { id: "Xcc01", name: "C.C.", emoji: "🍊", rank: "X", set: "Код Гиас", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/cc01.png", canUpgrade: false, animImage: null },
     { id: "Xreze01", name: "Резе", emoji: "🍊", rank: "X", set: "Человек Бензопила", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/reze01.png", canUpgrade: true, animImage: "images/X/anim/reze01.gif" },
-
+    
     // Геншенский удар
 
     // B
