@@ -2905,7 +2905,10 @@
         }
         
         function renderCollection() {
-            if (collectionMap.size === 0) { collectionListDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#aa8899;">📭 Коллекция пуста</div>'; return; }
+            if (collectionMap.size === 0) { 
+                collectionListDiv.innerHTML = '<div style="text-align:center; padding:20px; color:#aa8899;">📭 Коллекция пуста</div>'; 
+                return; 
+            }
             let filtered = Array.from(collectionMap.values());
             if (collectionFilter !== "all") filtered = filtered.filter(entry => entry.cardData.rank === collectionFilter);
             let sorted = filtered.sort((a,b) => (a.cardData.rankOrder||99) - (b.cardData.rankOrder||99));
@@ -2914,14 +2917,17 @@
                 const card = entry.cardData, isAnim = entry.animated, canUp = card.canUpgrade === true && !isAnim;
                 const imgPath = getCardImage(card, isAnim);
                 const rankClass = getRankCornerClass(card.rank);
-                html += `<div class="collection-card ${isAnim ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}' data-card-id="${card.id}">
-                            <div class="image-container">
-                                <img class="collection-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';" alt="${card.name}">
-                                <div class="card-rank-corner ${rankClass}">${card.rankLabel}</div>
-                            </div>
-                            <div class="collection-name">${card.name}${isAnim ? '✨' : ''}</div>
-                            ${!isAnim && canUp ? `<button class="upgrade-btn" data-id="${card.id}">⬆️ Улучшить (3⚡)</button>` : ''}
-                        </div>`;
+                const setName = card.set || 'Обычная';
+                const isEvent = card.season !== undefined;
+                html += `<div class="collection-card ${isAnim ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath, set: setName})}' data-card-id="${card.id}">
+                                    <div class="image-container">
+                                        <img class="collection-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';" alt="${card.name}">
+                                        <div class="card-rank-corner ${rankClass}">${card.rankLabel}</div>
+                                    </div>
+                                    <div class="collection-name">${card.name}${isAnim ? '✨' : ''}${isEvent ? ' 🎪' : ''}</div>
+                                    <div style="font-size:0.55rem; color:#88aaff; margin-top:2px; text-align:center;">📀 ${setName}</div>
+                                    ${!isAnim && canUp ? `<button class="upgrade-btn" data-id="${card.id}">⬆️ Улучшить (3⚡)</button>` : ''}
+                                </div>`;
             }
             collectionListDiv.innerHTML = html;
             
@@ -2956,15 +2962,16 @@
                 const imgPath = getCardImage(card, false);
                 const rankClass = getRankCornerClass(card.rank);
                 const isEvent = card.season !== undefined;
-                html += `<div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath, set: card.set || 'Обычная'})}' data-event="${isEvent}">
-                            <div class="card-owned" style="background:${isOwned ? '#4a6741' : '#332233'};">${isOwned ? '✔️' : '❌'}</div>
-                            <div class="image-container">
-                                <img class="allcards-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';" alt="${card.name}">
-                                <div class="card-rank-corner ${rankClass}">${card.rankLabel}</div>
-                            </div>
-                            <div class="allcards-name">${card.name}${isEvent ? ' 🎪' : ''}</div>
-                            <div style="font-size:0.55rem; color:#88aaff;">${card.set || 'Обычная'}</div>
-                        </div>`;
+                const setName = card.set || 'Обычная';
+                html += `<div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath, set: setName})}' data-event="${isEvent}">
+                                    <div class="card-owned" style="background:${isOwned ? '#4a6741' : '#332233'};">${isOwned ? '✔️' : '❌'}</div>
+                                    <div class="image-container">
+                                        <img class="allcards-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';" alt="${card.name}">
+                                        <div class="card-rank-corner ${rankClass}">${card.rankLabel}</div>
+                                    </div>
+                                    <div class="allcards-name">${card.name}${isEvent ? ' 🎪' : ''}</div>
+                                    <div style="font-size:0.55rem; color:#88aaff; margin-top:2px;">📀 ${setName}</div>
+                                </div>`;
             }
             allCardsListDiv.innerHTML = html;
             document.querySelectorAll('.allcards-card').forEach(card => { 
@@ -3244,13 +3251,16 @@
                 const card = entry.cardData;
                 const imgPath = getCardImage(card, entry.animated);
                 const rankClass = getRankCornerClass(card.rank);
-                html += `<div class="collection-card ${entry.animated ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}'>
-                            <div class="image-container">
-                                <img class="collection-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';" alt="${card.name}">
-                                <div class="card-rank-corner ${rankClass}">${card.rankLabel}</div>
-                            </div>
-                            <div class="collection-name">${card.name}${entry.animated ? '✨' : ''}</div>
-                        </div>`;
+                const setName = card.set || 'Обычная';
+                const isEvent = card.season !== undefined;
+                html += `<div class="collection-card ${entry.animated ? 'animated' : ''}" style="border-left-color:${card.color}" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath, set: setName})}'>
+                                    <div class="image-container">
+                                        <img class="collection-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';" alt="${card.name}">
+                                        <div class="card-rank-corner ${rankClass}">${card.rankLabel}</div>
+                                    </div>
+                                    <div class="collection-name">${card.name}${entry.animated ? '✨' : ''}${isEvent ? ' 🎪' : ''}</div>
+                                    <div style="font-size:0.55rem; color:#88aaff; margin-top:2px;">📀 ${setName}</div>
+                                </div>`;
             }
             document.getElementById('viewingCollectionList').innerHTML = html || '<div style="text-align:center; padding:20px; color:#aa8899;">📭 У игрока нет карт</div>';
             document.querySelectorAll('#viewingCollectionList .collection-card').forEach(card => {
