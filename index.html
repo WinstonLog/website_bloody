@@ -2241,15 +2241,16 @@
                 const rankClass = getRankCornerClass(card.rank);
                 const isOwned = collectionMap.has(card.id);
                 const ownedBadge = isOwned ? `<div class="choice-owned-badge">✔️ Есть</div>` : '';
+                const seasonName = card.season ? (card.season === 'halloween' ? '🎃 Хэллоуин' : (card.season === 'newyear' ? '🎄 Новый год' : (card.season === 'spring' ? '🌸 Весна' : (card.season === 'summer' ? '☀️ Лето' : '🎪 Ивент')))) : (card.set || 'Ивент');
                 html += `<div class="choice-card ${selectedEventCardIndex === i ? 'selected' : ''}" data-index="${i}">
-                            ${ownedBadge}
-                            <div class="choice-image-container">
-                                <img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${getDefaultImageForRank(card)}';">
-                                <div class="choice-rank-corner ${rankClass}">${card.rankLabel}</div>
-                            </div>
-                            <div class="choice-name">${card.name}</div>
-                            <div style="font-size:0.55rem; color:#ffaa66; margin-top:2px;">🎪 Ивент</div>
-                         </div>`;
+                                    ${ownedBadge}
+                                    <div class="choice-image-container">
+                                        <img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${getDefaultImageForRank(card)}';">
+                                        <div class="choice-rank-corner ${rankClass}">${card.rankLabel}</div>
+                                    </div>
+                                    <div class="choice-name">${card.name}</div>
+                                    <div style="font-size:0.55rem; color:#ffaa66; margin-top:2px;">🎪 ${seasonName}</div>
+                                 </div>`;
             });
             container.innerHTML = html;
             document.querySelectorAll('#eventChoiceCardsContainer .choice-card').forEach(el => {
@@ -2349,7 +2350,7 @@
         const SUPABASE_ANON_KEY = SUPABASE_CONFIG.ANON_KEY;
 
         const PROMO_LIST = [
-            { code: "LUCKY", reward: { crystals: 700, shards: 15, ore: 0 } }, 
+            { code: "NIGHT", reward: { crystals: 300, shards: 20, ore: 0 } }, 
         ];
         
         let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
@@ -2808,14 +2809,16 @@
                 const rankClass = getRankCornerClass(card.rank);
                 const isOwned = collectionMap.has(card.id);
                 const ownedBadge = isOwned ? `<div class="choice-owned-badge">✔️ Есть</div>` : '';
+                const setName = card.set || 'Обычная';
                 html += `<div class="choice-card ${selectedCardIndex === i ? 'selected' : ''}" data-index="${i}">
-                            ${ownedBadge}
-                            <div class="choice-image-container">
-                                <img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${getDefaultImageForRank(card)}';">
-                                <div class="choice-rank-corner ${rankClass}">${card.rankLabel}</div>
-                            </div>
-                            <div class="choice-name">${card.name}</div>
-                         </div>`;
+                                    ${ownedBadge}
+                                    <div class="choice-image-container">
+                                        <img class="choice-image" src="${imgPath}" alt="${card.name}" onerror="this.src='${getDefaultImageForRank(card)}';">
+                                        <div class="choice-rank-corner ${rankClass}">${card.rankLabel}</div>
+                                    </div>
+                                    <div class="choice-name">${card.name}</div>
+                                    <div style="font-size:0.55rem; color:#88aaff; margin-top:2px;">📀 ${setName}</div>
+                                 </div>`;
             });
             choiceCardsContainer.innerHTML = html;
             document.querySelectorAll('.choice-card').forEach(el => { 
@@ -2953,13 +2956,14 @@
                 const imgPath = getCardImage(card, false);
                 const rankClass = getRankCornerClass(card.rank);
                 const isEvent = card.season !== undefined;
-                html += `<div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath})}' data-event="${isEvent}">
+                html += `<div class="allcards-card" style="border-left-color:${card.color}; opacity: ${isOwned ? '1' : '0.7'};" data-card='${JSON.stringify({name: card.name, rank: card.rank, image: imgPath, set: card.set || 'Обычная'})}' data-event="${isEvent}">
                             <div class="card-owned" style="background:${isOwned ? '#4a6741' : '#332233'};">${isOwned ? '✔️' : '❌'}</div>
                             <div class="image-container">
                                 <img class="allcards-image" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';" alt="${card.name}">
                                 <div class="card-rank-corner ${rankClass}">${card.rankLabel}</div>
                             </div>
                             <div class="allcards-name">${card.name}${isEvent ? ' 🎪' : ''}</div>
+                            <div style="font-size:0.55rem; color:#88aaff;">${card.set || 'Обычная'}</div>
                         </div>`;
             }
             allCardsListDiv.innerHTML = html;
