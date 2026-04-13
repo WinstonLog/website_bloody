@@ -79,7 +79,6 @@ const ALL_CARDS = [
     { id: "GEseniora01", name: "Синьора", emoji: "🍊", rank: "E", set: "Геншинский удар", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "imgaes/Геншинский удар/E/GEseniora01.png", canUpgrade: true, animImage: "images/Геншинский удар/C/anim/GEseniora01.gif" },
     { id: "GEunicezin01", name: "Юнь Цзинь", emoji: "🍊", rank: "E", set: "Геншинский удар", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "imgaes/Геншинский удар/E/GEunicezin01.png", canUpgrade: false, animImage: null },
     { id: "GEyanfei01", name: "Янь Фэй", emoji: "🍊", rank: "E", set: "Геншинский удар", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "imgaes/Геншинский удар/E/GEyanfei01.png", canUpgrade: false, animImage: null },
->>>>>>> Stashed changes
 
     // Лазурный путь
 
