@@ -4,8 +4,8 @@ const ALL_CARDS = [
 
     // X
 
-    { id: "Xcc01", name: "C.C.", emoji: "🍊", rank: "X", set: "Карты X", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/cc01.png", canUpgrade: false, animImage: null },
-    { id: "Xreze01", name: "Резе", emoji: "🍊", rank: "X", set: "Карты X", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/reze01.png", canUpgrade: true, animImage: "images/X/anim/reze01.gif" },
+    { id: "Xcc01", name: "C.C.", emoji: "🍊", rank: "X", set: "Код Гиас", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/cc01.png", canUpgrade: false, animImage: null },
+    { id: "Xreze01", name: "Резе", emoji: "🍊", rank: "X", set: "Человек Бензопила", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/reze01.png", canUpgrade: true, animImage: "images/X/anim/reze01.gif" },
 
     // Лазурный путь
 
@@ -329,28 +329,28 @@ const ALL_CARDS = [
 
     // H
 
-    { id: "Halbedo01", name: "Альбедо", rank: "H", rankLabel: "H", color: "#ff6600", rankOrder: 1.5, image: "images/events/halloween/albedo01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "halloween" },
+    { id: "Halbedo01", name: "Альбедо", rank: "H", rankLabel: "H", color: "#ff6600", rankOrder: 1.5, image: "images/events/halloween/albedo01.png", set: "Хэллоуин", canUpgrade: false, animImage: null, season: "halloween" },
 
     // N 2025-2026
 
-    { id: "Nzani01", name: "Зани", rank: "N", rankLabel: "N", color: "#00ccff", rankOrder: 1.6, image: "images/events/newyear/zani01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "newyear" },
+    { id: "Nzani01", name: "Зани", rank: "N", rankLabel: "N", color: "#00ccff", rankOrder: 1.6, image: "images/events/newyear/zani01.png", set: "Новый год", canUpgrade: false, animImage: null, season: "newyear" },
 
     // N 2024-2025
 
-    { id: "Nasuna01", name: "Асуна", rank: "N", rankLabel: "N", color: "#00ccff", rankOrder: 1.6, image: "images/events/newyear/asuna01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/newyear/anim/asuna01.gif", season: "newyear" },
+    { id: "Nasuna01", name: "Асуна", rank: "N", rankLabel: "N", color: "#00ccff", rankOrder: 1.6, image: "images/events/newyear/asuna01.png", set: "Новый год", canUpgrade: true, animImage: "images/events/newyear/anim/asuna01.gif", season: "newyear" },
 
     // V
 
-    { id: "Vmakima01", name: "Макима", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/makima01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/makima01.gif", season: "spring" },
-    { id: "Vmiku01", name: "Мику", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/miku01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/miku01.gif", season: "spring" },
-    { id: "Vmei01", name: "Жуань Мэй", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/mei01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/mei01.gif", season: "spring" },
-    { id: "Vchoso01", name: "Чосо", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/choso01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "spring" },
-    { id: "Vm01", name: "Мужчина", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/m01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "spring" },
-    { id: "Varlekino01", name: "Арлекино", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/arlekino01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/arlekino01.gif", season: "spring" },
-    { id: "Vrio01", name: "Рио", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/rio01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/rio01.gif", season: "spring" },
+    { id: "Vmakima01", name: "Макима", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/makima01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/makima01.gif", season: "spring" },
+    { id: "Vmiku01", name: "Мику", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/miku01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/miku01.gif", season: "spring" },
+    { id: "Vmei01", name: "Жуань Мэй", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/mei01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/mei01.gif", season: "spring" },
+    { id: "Vchoso01", name: "Чосо", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/choso01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Vm01", name: "Мужчина", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/m01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Varlekino01", name: "Арлекино", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/arlekino01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/arlekino01.gif", season: "spring" },
+    { id: "Vrio01", name: "Рио", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/rio01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/rio01.gif", season: "spring" },
 
     // L
 
-    { id: "Lmiku01", name: "Хацунэ Мику", rank: "L", rankLabel: "L", color: "#ffaa44", rankOrder: 1.8, image: "images/events/summer/miku01.png", set: "Ивенты", canUpgrade: true, animImage: "images/events/spring/anim/miku01.gif", season: "summer" },
-    { id: "Lkafka01", name: "Кафка", rank: "L", rankLabel: "L", color: "#ffaa44", rankOrder: 1.8, image: "images/events/summer/kafka01.png", set: "Ивенты", canUpgrade: false, animImage: null, season: "summer" }
+    { id: "Lmiku01", name: "Хацунэ Мику", rank: "L", rankLabel: "L", color: "#ffaa44", rankOrder: 1.8, image: "images/events/summer/miku01.png", set: "Летняя жара", canUpgrade: true, animImage: "images/events/spring/anim/miku01.gif", season: "summer" },
+    { id: "Lkafka01", name: "Кафка", rank: "L", rankLabel: "L", color: "#ffaa44", rankOrder: 1.8, image: "images/events/summer/kafka01.png", set: "Летняя жара", canUpgrade: false, animImage: null, season: "summer" }
 ];
