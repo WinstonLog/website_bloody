@@ -1779,7 +1779,6 @@
     <script src="config.js"></script>
     <script src="cards.js"></script>
     <script>
-    
         let supabaseClient = null;
         let supabaseInitialized = false;
         let currentNickname = null;
@@ -1787,6 +1786,10 @@
         let viewingPlayerId = null;
         let viewingFilter = "all";
         let viewingCollectionMap = new Map();
+        
+        // Флаг для отслеживания загрузки из облака
+        let cloudDataLoaded = false;
+        let currentUserId = null;
 
         // ==================== КЭШ ДЛЯ ТОПА ИГРОКОВ ====================
         let topPlayersCache = { data: null, timestamp: 0 };
@@ -1850,7 +1853,6 @@
             const expNeededForNext = nextLevelExp - currentLevelExp;
             const percent = Math.min(100, Math.max(0, (expForCurrent / expNeededForNext) * 100));
             
-            // Обновляем все элементы уровня
             const levelElements = document.querySelectorAll('#levelValue, #levelValueProfile');
             levelElements.forEach(el => { if (el) el.innerText = currentLevel; });
             
@@ -2168,7 +2170,6 @@
                 }
             }
             
-            // Показываем превью карт сезона
             if (previewContainer && currentSeason) {
                 const seasonCards = getCurrentSeasonEventCards();
                 if (seasonCards.length > 0) {
@@ -2325,35 +2326,29 @@
             };
             const folder = rankFolders[card.rank] || 'E';
             
-            // Соответствие названий сетов и папок (ВСЕ ВАШИ СЕТЫ)
             const setMap = {
-                // Оригинальные названия
                 'Эхокалипсис': 'ehokalypsis',
                 'Геншинский удар': 'genshin',
                 'Ивенты': 'events',
-                'Лазурный Путь': 'lazurniy_put',  // 👈 ВАШ НОВЫЙ СЕТ
+                'Лазурный Путь': 'lazurniy_put',
             };
     
-    // Получаем название папки для этого сета
-    let setName = setMap[card.set];
-    
-    // Если сет не найден в маппинге, используем транслитерацию
-    if (!setName) {
-        // Транслитерация с русского на латиницу
-        const translit = {
-            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
-            'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-            'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-            'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
-            'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
-        };
-        setName = card.set.toLowerCase().split('').map(ch => translit[ch] || ch).join('');
-        // Убираем пробелы
-        setName = setName.replace(/\s+/g, '_');
-    }
-    
-    return `images/${setName}/${folder}/default.png`;
-}
+            let setName = setMap[card.set];
+            
+            if (!setName) {
+                const translit = {
+                    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
+                    'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+                    'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+                    'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+                    'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+                };
+                setName = card.set.toLowerCase().split('').map(ch => translit[ch] || ch).join('');
+                setName = setName.replace(/\s+/g, '_');
+            }
+            
+            return `images/${setName}/${folder}/default.png`;
+        }
         
         function getCardImage(card, isAnimated) {
             if (isAnimated && card.animImage) return card.animImage;
@@ -2404,6 +2399,91 @@
         let promoInput, activatePromoBtn, promoStatusSpan, promoCodesListDiv;
         let modal, modalImage, modalCaption, modalRank, modalCloseBtn;
         
+        // ============ ГЛАВНАЯ ФУНКЦИЯ ПОЛУЧЕНИЯ ID ============
+        function getUserId() {
+            // Проверяем, есть ли сохранённый ID в localStorage для текущего аккаунта
+            let userId = localStorage.getItem('bloody_user_id');
+            if (!userId) {
+                // Создаём новый уникальный ID
+                userId = 'user_' + Math.random().toString(36).substr(2, 16) + Date.now();
+                localStorage.setItem('bloody_user_id', userId);
+                console.log('🆕 Создан новый ID пользователя:', userId);
+            }
+            return userId;
+        }
+        
+        // Функция для смены аккаунта (выход)
+        function logoutAndSwitchAccount() {
+            if (confirm('⚠️ ВНИМАНИЕ! При смене аккаунта текущие данные сохранятся в облаке.\nВы сможете войти в другой аккаунт. Продолжить?')) {
+                // Сохраняем текущие данные перед выходом
+                saveData();
+                // Удаляем локальный ID
+                localStorage.removeItem('bloody_user_id');
+                // Перезагружаем страницу для создания нового ID
+                window.location.reload();
+            }
+        }
+        
+        // Функция для принудительной загрузки данных из облака по текущему ID
+        async function forceLoadFromCloud() {
+            if (!supabaseInitialized) {
+                showPromoStatus("❌ Облачный сервис недоступен", "error");
+                return false;
+            }
+            
+            const userId = getUserId();
+            showPromoStatus("☁️ Загрузка данных из облака...", "info");
+            
+            try {
+                const existingData = await loadFromCloud(userId);
+                
+                if (existingData && existingData.resources) {
+                    // Загружаем данные из облака
+                    crystals = existingData.resources.crystals || START_CRYSTALS;
+                    shards = existingData.resources.shards || 0;
+                    ore = existingData.resources.ore || 0;
+                    
+                    if (existingData.collections && existingData.collections.length > 0) {
+                        collectionMap.clear();
+                        for (const item of existingData.collections) {
+                            const fullCard = getFullCardById(item.card_id);
+                            if (fullCard) {
+                                collectionMap.set(item.card_id, { 
+                                    cardData: fullCard, 
+                                    animated: item.animated || false 
+                                });
+                            }
+                        }
+                    }
+                    
+                    updateUI();
+                    saveData(); // Сохраняем локально
+                    showPromoStatus(`✅ Данные загружены из облака! 💎${crystals} ⚡${shards} 📚${collectionMap.size}`, "success");
+                    return true;
+                } else {
+                    showPromoStatus("📭 В облаке нет данных для этого ID", "info");
+                    return false;
+                }
+            } catch(e) {
+                console.error('Cloud load error:', e);
+                showPromoStatus("❌ Ошибка загрузки из облака", "error");
+                return false;
+            }
+        }
+        
+        // Функция для принудительного сохранения в облако
+        async function forceSaveToCloud() {
+            if (!supabaseInitialized) {
+                showPromoStatus("❌ Облачный сервис недоступен", "error");
+                return false;
+            }
+            
+            showPromoStatus("☁️ Сохранение данных в облако...", "info");
+            await syncToCloud();
+            showPromoStatus("✅ Данные сохранены в облаке!", "success");
+            return true;
+        }
+
         // SUPABASE ФУНКЦИИ
         function initSupabase() {
             if (typeof supabase === 'undefined') {
@@ -2419,15 +2499,6 @@
                 console.error('Ошибка:', e);
                 return false;
             }
-        }
-        
-        function getUserId() {
-            let userId = localStorage.getItem('bloody_user_id');
-            if (!userId) {
-                userId = 'user_' + Math.random().toString(36).substr(2, 16) + Date.now();
-                localStorage.setItem('bloody_user_id', userId);
-            }
-            return userId;
         }
         
         async function syncToCloud() {
@@ -2447,12 +2518,18 @@
                 }));
                 
                 if (collectionData.length > 0) {
-                    await supabaseClient.from('user_collections').upsert(collectionData);
+                    for (const item of collectionData) {
+                        await supabaseClient.from('user_collections').upsert(item, {
+                            onConflict: 'user_id,card_id'
+                        });
+                    }
                 }
                 
                 await supabaseClient.from('user_profiles').upsert({
                     user_id: userId, nickname: currentNickname || null, last_active: new Date().toISOString()
                 });
+                
+                console.log('✅ Данные синхронизированы с облаком для ID:', userId);
             } catch(e) { console.error('Sync error:', e); }
         }
         
@@ -2702,7 +2779,19 @@
         
         function saveData() {
             const collectionData = Array.from(collectionMap.entries()).map(([id, data]) => ({ id, animated: data.animated || false }));
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 5 }));
+            const saveObject = { 
+                crystals, 
+                shards, 
+                ore, 
+                dailyLastClaim, 
+                miningClicksToday, 
+                miningLastDate, 
+                collectionData, 
+                usedPromoCodes: Array.from(usedPromoCodes), 
+                updated_at: new Date().toISOString(),
+                version: 5 
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(saveObject));
             syncToCloud();
             if (supabaseInitialized) checkAndRewardReferrer(getUserId());
             saveExtendedData();
@@ -2776,6 +2865,90 @@
             currentExp = 0;
             dailyQuests = DAILY_QUESTS.map(q => ({...q, progress: 0, completed: false, claimed: false}));
             lastQuestReset = null;
+        }
+        
+        // ============ ГЛАВНАЯ ФУНКЦИЯ СИНХРОНИЗАЦИИ (ПЕРЕРАБОТАНА) ============
+        async function syncInitialData() {
+            if (!supabaseInitialized) return;
+            
+            const userId = getUserId();
+            console.log('🔄 Синхронизация для ID:', userId);
+            
+            // Загружаем ник из облака
+            const nickname = await loadUserNickname(userId);
+            if (nickname) { 
+                currentNickname = nickname; 
+                updateNicknameUI(); 
+            }
+            
+            // Проверяем, есть ли данные в облаке для этого ID
+            const existingData = await loadFromCloud(userId);
+            
+            // Если в облаке ЕСТЬ данные для этого ID - загружаем их (облако имеет приоритет)
+            if (existingData && existingData.resources) {
+                console.log("☁️ Найдены данные в облаке для этого ID, загружаем...");
+                
+                // Загружаем данные из облака
+                crystals = existingData.resources.crystals || START_CRYSTALS;
+                shards = existingData.resources.shards || 0;
+                ore = existingData.resources.ore || 0;
+                
+                if (existingData.collections && existingData.collections.length > 0) {
+                    collectionMap.clear();
+                    for (const item of existingData.collections) {
+                        const fullCard = getFullCardById(item.card_id);
+                        if (fullCard) {
+                            collectionMap.set(item.card_id, { 
+                                cardData: fullCard, 
+                                animated: item.animated || false 
+                            });
+                        }
+                    }
+                }
+                
+                updateUI();
+                saveData(); // Сохраняем облачные данные локально
+                showPromoStatus(`☁️ Данные загружены из облака! 💎${crystals} ⚡${shards} 📚${collectionMap.size}`, "success");
+                return;
+            }
+            
+            // Если в облаке НЕТ данных для этого ID, но есть локальные - сохраняем локальные в облако
+            const hasLocalData = localStorage.getItem(STORAGE_KEY) !== null;
+            if (hasLocalData && (crystals !== START_CRYSTALS || collectionMap.size > 0)) {
+                console.log("🔄 Обнаружены локальные данные для нового ID, сохраняем в облако...");
+                
+                await supabaseClient.from('user_resources').upsert({
+                    user_id: userId,
+                    crystals: crystals,
+                    shards: shards,
+                    ore: ore,
+                    updated_at: new Date().toISOString()
+                });
+                
+                const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
+                    user_id: userId, 
+                    card_id: cardId, 
+                    animated: data.animated || false
+                }));
+                
+                if (collectionData.length > 0) {
+                    for (const item of collectionData) {
+                        await supabaseClient.from('user_collections').upsert(item, {
+                            onConflict: 'user_id,card_id'
+                        });
+                    }
+                }
+                
+                await supabaseClient.from('user_profiles').upsert({
+                    user_id: userId, 
+                    nickname: currentNickname || null, 
+                    last_active: new Date().toISOString()
+                });
+                
+                showPromoStatus("☁️ Ваши данные сохранены в облаке!", "success");
+            } else {
+                console.log("📭 Новый пользователь, данные будут созданы в облаке при первом сохранении");
+            }
         }
         
         function updateDailyUI() {
@@ -3527,36 +3700,20 @@
             if (container) container.classList.remove('loading');
         }
         
-        async function syncInitialData() {
-            if (!supabaseInitialized) return;
-            const userId = getUserId();
-            const nickname = await loadUserNickname(userId);
-            if (nickname) { currentNickname = nickname; updateNicknameUI(); }
-            const existingData = await loadFromCloud(userId);
-            if (!existingData || !existingData.resources) { await syncToCloud(); }
-            else if (existingData.resources) {
-                const cloudCrystals = existingData.resources.crystals || 0;
-                if (cloudCrystals > crystals + 10) {
-                    crystals = cloudCrystals;
-                    shards = existingData.resources.shards || 0;
-                    ore = existingData.resources.ore || 0;
-                    if (existingData.collections) {
-                        collectionMap.clear();
-                        for (const item of existingData.collections) {
-                            const fullCard = getFullCardById(item.card_id);
-                            if (fullCard) collectionMap.set(item.card_id, { cardData: fullCard, animated: item.animated || false });
-                        }
-                    }
-                    showPromoStatus("🔄 Данные синхронизированы с облаком!", "success");
-                    updateUI();
-                    saveData();
+        // Добавляем кнопку смены аккаунта в интерфейс
+        function addAccountSwitchButton() {
+            const headerStats = document.querySelector('.header-stats');
+            if (headerStats) {
+                const switchBtn = document.createElement('button');
+                switchBtn.innerHTML = '🔄 Сменить аккаунт';
+                switchBtn.style.cssText = 'background: rgba(0,0,0,0.5); border: 1px solid #ff4444; color: #ff8888; padding: 4px 8px; border-radius: 20px; font-size: 0.65rem; cursor: pointer; margin-left: 8px;';
+                switchBtn.onclick = logoutAndSwitchAccount;
+                const statsRow = document.querySelector('.stats-row');
+                if (statsRow) {
+                    statsRow.appendChild(switchBtn);
                 }
             }
         }
-        
-        window.showVisitorStats = function() { alert(`👥 Всего уникальных игроков: ${document.getElementById('visitorCount').textContent}`); };
-        window.viewTopPlayer = viewTopPlayer;
-        window.copyUserId = copyUserId;
         
         // ИНИЦИАЛИЗАЦИЯ
         async function init() {
@@ -3586,10 +3743,15 @@
             modalRank = document.getElementById('modalRank');
             modalCloseBtn = document.getElementById('modalCloseBtn');
             
+            // Сначала загружаем локальные данные
             loadData();
+            
+            // Добавляем кнопку смены аккаунта
+            addAccountSwitchButton();
             
             const supabaseInited = initSupabase();
             if (supabaseInited) {
+                // Синхронизируем с облаком (облако имеет приоритет для текущего ID)
                 await syncInitialData();
                 await updateVisitorCounter();
                 setInterval(async () => { const total = await getTotalVisitors(); document.getElementById('visitorCount').textContent = total; }, 30000);
@@ -3660,6 +3822,13 @@
             document.getElementById('userIdDisplay').innerText = getUserId();
             updateEventBanner();
         }
+        
+        // Делаем функции глобальными для доступа из HTML
+        window.viewTopPlayer = viewTopPlayer;
+        window.copyUserId = copyUserId;
+        window.logoutAndSwitchAccount = logoutAndSwitchAccount;
+        window.forceSaveToCloud = forceSaveToCloud;
+        window.forceLoadFromCloud = forceLoadFromCloud;
         
         document.addEventListener('DOMContentLoaded', init);
     </script>
