@@ -2317,14 +2317,43 @@
         }
         
         // === МОДИФИЦИРОВАННЫЕ ФУНКЦИИ ДЛЯ ОТСЛЕЖИВАНИЯ ПРОГРЕССА ===
-        
-        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
         function getDefaultImageForRank(card) {
-            const rankFolders = { 'X': 'X', 'S': 'S', 'A': 'A', 'A+': 'A', 'P': 'P', 'G': 'G', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'H': 'H', 'N': 'N', 'V': 'V', 'L': 'L' };
+            const rankFolders = { 
+                'X': 'X', 'S': 'S', 'A': 'A', 'A+': 'A', 'P': 'P', 'G': 'G', 
+                'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'H': 'H', 'N': 'N', 
+                'V': 'V', 'L': 'L' 
+            };
             const folder = rankFolders[card.rank] || 'E';
-            const setName = card.set === "Ивенты" ? "events" : (card.set || 'Эхокалипсис');
-            return `images/${setName}/${folder}/default.png`;
-        }
+            
+            // Соответствие названий сетов и папок (ВСЕ ВАШИ СЕТЫ)
+            const setMap = {
+                // Оригинальные названия
+                'Эхокалипсис': 'ehokalypsis',
+                'Геншинский удар': 'genshin',
+                'Ивенты': 'events',
+                'Лазурный Путь': 'lazurniy_put',  // 👈 ВАШ НОВЫЙ СЕТ
+            };
+    
+    // Получаем название папки для этого сета
+    let setName = setMap[card.set];
+    
+    // Если сет не найден в маппинге, используем транслитерацию
+    if (!setName) {
+        // Транслитерация с русского на латиницу
+        const translit = {
+            'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
+            'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
+            'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
+            'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+            'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
+        };
+        setName = card.set.toLowerCase().split('').map(ch => translit[ch] || ch).join('');
+        // Убираем пробелы
+        setName = setName.replace(/\s+/g, '_');
+    }
+    
+    return `images/${setName}/${folder}/default.png`;
+}
         
         function getCardImage(card, isAnimated) {
             if (isAnimated && card.animImage) return card.animImage;
