@@ -64,7 +64,6 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            flex-wrap: wrap;
         }
 
         .logo-icon {
@@ -87,34 +86,6 @@
             font-weight: 700;
             font-size: 0.6rem;
             color: #ffdddd;
-        }
-
-        .telegram-badge {
-            background: linear-gradient(135deg, #2a6a9e, #1a4a7e);
-            padding: 3px 8px;
-            border-radius: 16px;
-            font-weight: 700;
-            font-size: 0.6rem;
-            color: #aaffff;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .telegram-badge:hover {
-            transform: scale(1.02);
-            background: linear-gradient(135deg, #3a7aae, #2a5a8e);
-        }
-
-        .telegram-badge.logged-in {
-            background: linear-gradient(135deg, #2a9e6a, #1a7e4a);
-            cursor: default;
-        }
-
-        .telegram-badge.logged-in:hover {
-            transform: none;
         }
 
         .stats-row {
@@ -1445,59 +1416,6 @@
         .pack-opening {
             animation: packOpen 0.4s ease-out;
         }
-
-        /* Стили для Telegram верификации */
-        .telegram-verify-popup {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.95);
-            z-index: 2000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(10px);
-        }
-        .telegram-verify-content {
-            background: linear-gradient(135deg, #1a1a2a, #0f0f1a);
-            border-radius: 24px;
-            padding: 24px;
-            max-width: 320px;
-            text-align: center;
-            border: 1px solid #ffaa66;
-        }
-        .telegram-verify-content h3 {
-            color: #ffccaa;
-            margin-bottom: 16px;
-        }
-        .telegram-verify-content p {
-            color: #aa8899;
-            font-size: 0.8rem;
-            margin-bottom: 20px;
-        }
-        .telegram-verify-btn {
-            background: linear-gradient(135deg, #2a6a9e, #1a4a7e);
-            border: none;
-            padding: 12px 24px;
-            border-radius: 35px;
-            font-weight: 700;
-            font-size: 1rem;
-            color: white;
-            cursor: pointer;
-            width: 100%;
-        }
-        .telegram-verify-close {
-            background: rgba(255,80,80,0.3);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 25px;
-            color: #ff8888;
-            cursor: pointer;
-            margin-top: 12px;
-            width: 100%;
-        }
     </style>
 </head>
 <body>
@@ -1507,9 +1425,6 @@
             <div class="logo-icon">🩸</div>
             <div class="site-title">Bloody</div>
             <div class="channel-badge">@b_loody</div>
-            <div class="telegram-badge" id="telegramBadge">
-                📱 Привязать TG
-            </div>
             <div class="level-card">
                 <div class="level-header">
                     <span class="level-number">⭐ Уровень <span id="levelValue">1</span></span>
@@ -1639,6 +1554,14 @@
                 </div>
             </div>
             
+<!--             Превью доступных ивент-карт
+            <div style="margin: 12px 0;">
+                <div style="color: #ffccaa; font-size: 0.7rem; margin-bottom: 8px;">🎴 Доступные в этом сезоне:</div>
+                <div id="eventCardsPreview" class="event-cards-preview">
+                    <div style="color: #aa8899; text-align: center;">Загрузка...</div>
+                </div>
+            </div> -->
+            
             <button class="open-btn" id="eventPackBtn" style="background: radial-gradient(circle at 30% 10%, #ff8833, #cc6622); animation: eventGlow 1.5s ease-in-out infinite;">🎪 ОТКРЫТЬ ИВЕНТ-ПАК (5⚡)</button>
         </div>
         
@@ -1694,7 +1617,7 @@
             </div>
             <div style="font-size: 0.7rem; color: #aa8899; margin-top: 8px;">
                 💡 Ваш ID: <span id="myUserId" style="color:#ffaa66; cursor:pointer;">загрузка...</span>
-                <button onclick="window.copyUserId()" style="background:none; border:none; color:#ffaa66; cursor:pointer;">📋</button>
+                <button onclick="copyUserId()" style="background:none; border:none; color:#ffaa66; cursor:pointer;">📋</button>
             </div>
         </div>
 
@@ -1775,7 +1698,7 @@
             <div style="font-size: 0.65rem; color: #aa8899; margin-top: 12px;">
                 ⚠️ Ник должен быть уникальным и содержать 2-16 символов (буквы, цифры, _)<br>
                 🔑 Ваш ID (не меняется): <span id="userIdDisplay" style="color:#ffaa66; font-family: monospace;"></span>
-                <button onclick="window.copyUserId()" style="background:none; border:none; color:#ffaa66; cursor:pointer;">📋</button>
+                <button onclick="copyUserId()" style="background:none; border:none; color:#ffaa66; cursor:pointer;">📋</button>
             </div>
         </div>
         
@@ -1856,7 +1779,7 @@
     <script src="config.js"></script>
     <script src="cards.js"></script>
     <script>
-        // Глобальные переменные
+    
         let supabaseClient = null;
         let supabaseInitialized = false;
         let currentNickname = null;
@@ -1864,17 +1787,17 @@
         let viewingPlayerId = null;
         let viewingFilter = "all";
         let viewingCollectionMap = new Map();
-        let currentUserId = null;
-        let telegramData = null;
-        
-        // Кэш для топа игроков
+
+        // ==================== КЭШ ДЛЯ ТОПА ИГРОКОВ ====================
         let topPlayersCache = { data: null, timestamp: 0 };
         const TOP_PLAYERS_CACHE_TTL = 5 * 60 * 1000;
 
         const CATALOG_CARDS = ALL_CARDS.filter(card => card.rank !== "A+" && card.id !== "osk01");
         const RANK_WEIGHTS = { "X": 1, "S": 4, "A": 15, "P": 15, "G": 15, "B": 15, "C": 15, "D": 15, "E": 20 };
         
-        // Система уровней
+        // ==================== НОВЫЕ СИСТЕМЫ (Ачивки, Квесты, Уровни) ====================
+        
+        // === 1. СИСТЕМА УРОВНЕЙ ===
         const LEVEL_CONFIG = {
             1: { expNeeded: 0, bonusCrystals: 0, bonusShards: 0, bonusMineLimit: 0 },
             2: { expNeeded: 100, bonusCrystals: 10, bonusShards: 1, bonusMineLimit: 5 },
@@ -1890,245 +1813,6 @@
         
         let currentLevel = 1;
         let currentExp = 0;
-        let crystals = GAME_CONFIG.START_CRYSTALS;
-        let shards = 0;
-        let ore = 0;
-        let dailyLastClaim = null;
-        let miningClicksToday = 0;
-        let miningLastDate = null;
-        let collectionMap = new Map();
-        let currentOfferedCards = [];
-        let selectedCardIndex = null;
-        let collectionFilter = "all";
-        let catalogFilter = "all";
-        let usedPromoCodes = new Set();
-        
-        let fishingData = { freeLastUsed: null, paidAttemptsUsed: 0, lastResetDate: null };
-        
-        // Достижения и квесты
-        const ACHIEVEMENTS = [
-            { id: "first_pack", name: "Первый пак", desc: "Открыть первый пак карт", icon: "🎁", category: "pack", rewardCrystals: 10, rewardShards: 1, check: () => packsOpened >= 1 },
-            { id: "pack_master", name: "Мастер паков", desc: "Открыть 10 паков", icon: "📦", category: "pack", rewardCrystals: 50, rewardShards: 5, check: () => packsOpened >= 10 },
-            { id: "pack_legend", name: "Легенда паков", desc: "Открыть 50 паков", icon: "🏆", category: "pack", rewardCrystals: 200, rewardShards: 20, check: () => packsOpened >= 50 },
-            { id: "collector_10", name: "Начинающий коллекционер", desc: "Собрать 10 карт", icon: "📘", category: "collector", rewardCrystals: 15, rewardShards: 2, check: () => collectionMap.size >= 10 },
-            { id: "collector_30", name: "Опытный коллекционер", desc: "Собрать 30 карт", icon: "📚", category: "collector", rewardCrystals: 40, rewardShards: 5, check: () => collectionMap.size >= 30 },
-            { id: "collector_50", name: "Мастер коллекции", desc: "Собрать 50 карт", icon: "📖", category: "collector", rewardCrystals: 80, rewardShards: 10, check: () => collectionMap.size >= 50 },
-            { id: "collector_100", name: "Легендарный коллекционер", desc: "Собрать 100 карт", icon: "👑", category: "collector", rewardCrystals: 150, rewardShards: 20, check: () => collectionMap.size >= 100 },
-            { id: "miner_100", name: "Шахтёр", desc: "Накопать 100 руды", icon: "⛏️", category: "miner", rewardCrystals: 10, rewardShards: 1, check: () => totalOreMined >= 100 },
-            { id: "miner_1000", name: "Опытный шахтёр", desc: "Накопать 1000 руды", icon: "⛏️✨", category: "miner", rewardCrystals: 40, rewardShards: 4, check: () => totalOreMined >= 1000 },
-            { id: "miner_10000", name: "Король шахты", desc: "Накопать 10000 руды", icon: "👑⛏️", category: "miner", rewardCrystals: 200, rewardShards: 20, check: () => totalOreMined >= 10000 },
-            { id: "fisher_10", name: "Рыбак", desc: "Поймать 10 рыб", icon: "🐟", category: "fisher", rewardCrystals: 15, rewardShards: 2, check: () => totalFishCaught >= 10 },
-            { id: "fisher_50", name: "Морской волк", desc: "Поймать 50 рыб", icon: "🐠", category: "fisher", rewardCrystals: 50, rewardShards: 5, check: () => totalFishCaught >= 50 },
-            { id: "fisher_100", name: "Повелитель морей", desc: "Поймать 100 рыб", icon: "🐙", category: "fisher", rewardCrystals: 100, rewardShards: 10, check: () => totalFishCaught >= 100 },
-            { id: "shard_10", name: "Осколочный маг", desc: "Накопить 10 осколков", icon: "⚡", category: "shard", rewardCrystals: 20, rewardShards: 3, check: () => shards >= 10 },
-            { id: "shard_50", name: "Повелитель осколков", desc: "Накопить 50 осколков", icon: "⚡⚡", category: "shard", rewardCrystals: 100, rewardShards: 10, check: () => shards >= 50 },
-            { id: "level_5", name: "Новичок", desc: "Достичь 5 уровня", icon: "⭐", category: "level", rewardCrystals: 30, rewardShards: 5, check: () => currentLevel >= 5 },
-            { id: "level_10", name: "Мастер", desc: "Достичь 10 уровня", icon: "⭐⭐", category: "level", rewardCrystals: 100, rewardShards: 15, check: () => currentLevel >= 10 }
-        ];
-        
-        let unlockedAchievements = new Set();
-        let packsOpened = 0;
-        let totalOreMined = 0;
-        let totalFishCaught = 0;
-        
-        // Ежедневные квесты
-        const DAILY_QUESTS = [
-            { id: "daily_mine", name: "Шахтёрский труд", desc: "Скопнуть 30 раз", icon: "⛏️", type: "mining", target: 30, progress: 0, rewardCrystals: 15, rewardShards: 2 },
-            { id: "daily_pack", name: "Коллекционер", desc: "Открыть 1 пак", icon: "🎴", type: "pack", target: 1, progress: 0, rewardCrystals: 20, rewardShards: 2 },
-            { id: "daily_fish", name: "Улов", desc: "Поймать 3 рыбы", icon: "🎣", type: "fishing", target: 3, progress: 0, rewardCrystals: 10, rewardShards: 1 },
-            { id: "daily_ore", name: "Богатство недр", desc: "Накопать 200 руды", icon: "💎", type: "ore", target: 200, progress: 0, rewardCrystals: 12, rewardShards: 2 },
-            { id: "daily_exchange", name: "Обмен", desc: "Обменять 300 руды на кристаллы", icon: "🔄", type: "exchange", target: 300, progress: 0, rewardCrystals: 15, rewardShards: 1 }
-        ];
-        
-        let dailyQuests = [];
-        let lastQuestReset = null;
-        
-        const PROMO_LIST = [
-            { code: "NIGHT", reward: { crystals: 300, shards: 20, ore: 0 } }, 
-        ];
-        
-        const PACK_PRICE = GAME_CONFIG.PACK_PRICE;
-        const START_CRYSTALS = GAME_CONFIG.START_CRYSTALS;
-        const STORAGE_KEY = GAME_CONFIG.STORAGE_KEY;
-        const DUPLICATE_REWARD_CRYSTALS = GAME_CONFIG.DUPLICATE_REWARD_CRYSTALS;
-        const SUPABASE_URL = SUPABASE_CONFIG.URL;
-        const SUPABASE_ANON_KEY = SUPABASE_CONFIG.ANON_KEY;
-        
-        const fishingRewards = [
-            { name: "🐟 Гнилая рыба", weight: 40, reward: { ore: 5, crystals: 0, shards: 0, card: null, pack: false } },
-            { name: "🐠 Кровавый лосось", weight: 30, reward: { ore: 0, crystals: 2, shards: 0, card: null, pack: false } },
-            { name: "🦑 Гигантский кальмар", weight: 15, reward: { ore: 10, crystals: 10, shards: 0, card: null, pack: false } },
-            { name: "👑 Золотая рыбка", weight: 10, reward: { ore: 0, crystals: 0, shards: 1, card: null, pack: false } },
-            { name: "📜 Карта сокровищ", weight: 4, reward: { ore: 0, crystals: 0, shards: 0, card: true, pack: false } },
-            { name: "🎁 Сундук", weight: 1, reward: { ore: 0, crystals: 0, shards: 0, card: null, pack: true } }
-        ];
-        
-        // DOM элементы
-        let crystalDisplay, oreDisplay, shardDisplay, totalCardsCountSpan, totalAllCardsCountSpan;
-        let openPackBtn, selectionArea, choiceCardsContainer, confirmChoiceBtn, collectionListDiv, allCardsListDiv;
-        let dailyBonusBtn, exchangeOreBtn, mineClickBtn, clicksLeftDisplay, oreInMine;
-        let promoInput, activatePromoBtn, promoStatusSpan, promoCodesListDiv;
-        let modal, modalImage, modalCaption, modalRank, modalCloseBtn;
-        
-        // ==================== ФУНКЦИИ АВТОРИЗАЦИИ ЧЕРЕЗ TELEGRAM ====================
-        
-        // Инициализация Telegram WebApp
-        function initTelegram() {
-            if (window.Telegram && window.Telegram.WebApp) {
-                const webApp = window.Telegram.WebApp;
-                webApp.ready();
-                webApp.expand();
-                
-                const initData = webApp.initData;
-                const initDataUnsafe = webApp.initDataUnsafe;
-                
-                if (initDataUnsafe && initDataUnsafe.user) {
-                    const user = initDataUnsafe.user;
-                    telegramData = {
-                        id: user.id,
-                        username: user.username,
-                        firstName: user.first_name,
-                        lastName: user.last_name,
-                        photoUrl: user.photo_url,
-                        authDate: initDataUnsafe.auth_date,
-                        hash: initDataUnsafe.hash,
-                        initData: initData
-                    };
-                    console.log('✅ Telegram авторизован:', telegramData.username || telegramData.firstName);
-                    return true;
-                }
-            }
-            return false;
-        }
-        
-        // Получение уникального ID пользователя (сначала Telegram ID, затем локальный)
-        function getUserId() {
-            if (telegramData && telegramData.id) {
-                return `tg_${telegramData.id}`;
-            }
-            let userId = localStorage.getItem('bloody_user_id');
-            if (!userId) {
-                userId = 'user_' + Math.random().toString(36).substr(2, 16) + Date.now();
-                localStorage.setItem('bloody_user_id', userId);
-            }
-            return userId;
-        }
-        
-        // Обновление UI привязки Telegram
-        function updateTelegramUI() {
-            const badge = document.getElementById('telegramBadge');
-            if (!badge) return;
-            
-            if (telegramData && telegramData.id) {
-                const displayName = telegramData.username || telegramData.firstName || 'TG User';
-                badge.innerHTML = `✅ ${displayName}`;
-                badge.classList.add('logged-in');
-                badge.title = `Привязан к Telegram (ID: ${telegramData.id})`;
-            } else {
-                badge.innerHTML = `📱 Привязать TG`;
-                badge.classList.remove('logged-in');
-                badge.title = 'Привяжите Telegram для сохранения прогресса';
-            }
-        }
-        
-        // Показать окно привязки Telegram
-        function showTelegramVerifyPopup() {
-            const popup = document.createElement('div');
-            popup.className = 'telegram-verify-popup';
-            popup.innerHTML = `
-                <div class="telegram-verify-content">
-                    <h3>📱 Привязка Telegram</h3>
-                    <p>Для сохранения прогресса и синхронизации между устройствами необходимо привязать аккаунт Telegram.</p>
-                    <p style="font-size:0.7rem; color:#88aaff;">✨ При привязке вы получите бонус: +50💎 и +5⚡!</p>
-                    <button class="telegram-verify-btn" id="telegramVerifyBtn">🔗 Привязать Telegram</button>
-                    <button class="telegram-verify-close" id="telegramVerifyClose">❌ Закрыть</button>
-                </div>
-            `;
-            document.body.appendChild(popup);
-            
-            document.getElementById('telegramVerifyBtn').addEventListener('click', () => {
-                window.location.href = 'https://t.me/BloodySSRBot?start=' + encodeURIComponent(getUserId());
-            });
-            
-            document.getElementById('telegramVerifyClose').addEventListener('click', () => {
-                popup.remove();
-            });
-        }
-        
-        // Проверка привязки Telegram при загрузке
-        async function checkTelegramBinding() {
-            if (!supabaseInitialized) return;
-            const userId = getUserId();
-            try {
-                const { data, error } = await supabaseClient
-                    .from('user_profiles')
-                    .select('telegram_id, telegram_username')
-                    .eq('user_id', userId)
-                    .maybeSingle();
-                
-                if (data && data.telegram_id) {
-                    // Уже привязан
-                    telegramData = { id: data.telegram_id, username: data.telegram_username };
-                    updateTelegramUI();
-                    return true;
-                }
-            } catch(e) {
-                console.error('Ошибка проверки привязки:', e);
-            }
-            return false;
-        }
-        
-        // Сохранение привязки Telegram в БД
-        async function saveTelegramBinding(telegramId, telegramUsername) {
-            if (!supabaseInitialized) return false;
-            const userId = getUserId();
-            try {
-                const { error } = await supabaseClient
-                    .from('user_profiles')
-                    .update({ 
-                        telegram_id: telegramId, 
-                        telegram_username: telegramUsername,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('user_id', userId);
-                
-                if (error) throw error;
-                return true;
-            } catch(e) {
-                console.error('Ошибка сохранения привязки:', e);
-                return false;
-            }
-        }
-        
-        // Обработка параметров URL после возврата из бота
-        async function processTelegramCallback() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const tgId = urlParams.get('tg_id');
-            const tgUsername = urlParams.get('tg_username');
-            
-            if (tgId && tgUsername) {
-                // Сохраняем привязку
-                const success = await saveTelegramBinding(parseInt(tgId), tgUsername);
-                if (success) {
-                    telegramData = { id: parseInt(tgId), username: tgUsername };
-                    updateTelegramUI();
-                    
-                    // Даем бонус за привязку
-                    crystals += 50;
-                    shards += 5;
-                    updateUI();
-                    saveData();
-                    showPromoStatus("🎉 Telegram привязан! Вы получили +50💎 и +5⚡!", "success");
-                } else {
-                    showPromoStatus("❌ Ошибка привязки Telegram", "error");
-                }
-                
-                // Очищаем URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-        }
-        
-        // ==================== ОСНОВНЫЕ ФУНКЦИИ ИГРЫ ====================
         
         function getMaxMineClicks() {
             const baseClicks = 100;
@@ -2166,6 +1850,7 @@
             const expNeededForNext = nextLevelExp - currentLevelExp;
             const percent = Math.min(100, Math.max(0, (expForCurrent / expNeededForNext) * 100));
             
+            // Обновляем все элементы уровня
             const levelElements = document.querySelectorAll('#levelValue, #levelValueProfile');
             levelElements.forEach(el => { if (el) el.innerText = currentLevel; });
             
@@ -2183,6 +1868,32 @@
                 nextBonusSpan.innerHTML = ` | ➡️ Ур.${currentLevel + 1}: +${LEVEL_CONFIG[currentLevel + 1].bonusCrystals}💎 +${LEVEL_CONFIG[currentLevel + 1].bonusShards}⚡ +${LEVEL_CONFIG[currentLevel + 1].bonusMineLimit}⛏️ лимит`;
             }
         }
+        
+        // === 2. СИСТЕМА ДОСТИЖЕНИЙ ===
+        const ACHIEVEMENTS = [
+            { id: "first_pack", name: "Первый пак", desc: "Открыть первый пак карт", icon: "🎁", category: "pack", rewardCrystals: 10, rewardShards: 1, check: () => packsOpened >= 1 },
+            { id: "pack_master", name: "Мастер паков", desc: "Открыть 10 паков", icon: "📦", category: "pack", rewardCrystals: 50, rewardShards: 5, check: () => packsOpened >= 10 },
+            { id: "pack_legend", name: "Легенда паков", desc: "Открыть 50 паков", icon: "🏆", category: "pack", rewardCrystals: 200, rewardShards: 20, check: () => packsOpened >= 50 },
+            { id: "collector_10", name: "Начинающий коллекционер", desc: "Собрать 10 карт", icon: "📘", category: "collector", rewardCrystals: 15, rewardShards: 2, check: () => collectionMap.size >= 10 },
+            { id: "collector_30", name: "Опытный коллекционер", desc: "Собрать 30 карт", icon: "📚", category: "collector", rewardCrystals: 40, rewardShards: 5, check: () => collectionMap.size >= 30 },
+            { id: "collector_50", name: "Мастер коллекции", desc: "Собрать 50 карт", icon: "📖", category: "collector", rewardCrystals: 80, rewardShards: 10, check: () => collectionMap.size >= 50 },
+            { id: "collector_100", name: "Легендарный коллекционер", desc: "Собрать 100 карт", icon: "👑", category: "collector", rewardCrystals: 150, rewardShards: 20, check: () => collectionMap.size >= 100 },
+            { id: "miner_100", name: "Шахтёр", desc: "Накопать 100 руды", icon: "⛏️", category: "miner", rewardCrystals: 10, rewardShards: 1, check: () => totalOreMined >= 100 },
+            { id: "miner_1000", name: "Опытный шахтёр", desc: "Накопать 1000 руды", icon: "⛏️✨", category: "miner", rewardCrystals: 40, rewardShards: 4, check: () => totalOreMined >= 1000 },
+            { id: "miner_10000", name: "Король шахты", desc: "Накопать 10000 руды", icon: "👑⛏️", category: "miner", rewardCrystals: 200, rewardShards: 20, check: () => totalOreMined >= 10000 },
+            { id: "fisher_10", name: "Рыбак", desc: "Поймать 10 рыб", icon: "🐟", category: "fisher", rewardCrystals: 15, rewardShards: 2, check: () => totalFishCaught >= 10 },
+            { id: "fisher_50", name: "Морской волк", desc: "Поймать 50 рыб", icon: "🐠", category: "fisher", rewardCrystals: 50, rewardShards: 5, check: () => totalFishCaught >= 50 },
+            { id: "fisher_100", name: "Повелитель морей", desc: "Поймать 100 рыб", icon: "🐙", category: "fisher", rewardCrystals: 100, rewardShards: 10, check: () => totalFishCaught >= 100 },
+            { id: "shard_10", name: "Осколочный маг", desc: "Накопить 10 осколков", icon: "⚡", category: "shard", rewardCrystals: 20, rewardShards: 3, check: () => shards >= 10 },
+            { id: "shard_50", name: "Повелитель осколков", desc: "Накопить 50 осколков", icon: "⚡⚡", category: "shard", rewardCrystals: 100, rewardShards: 10, check: () => shards >= 50 },
+            { id: "level_5", name: "Новичок", desc: "Достичь 5 уровня", icon: "⭐", category: "level", rewardCrystals: 30, rewardShards: 5, check: () => currentLevel >= 5 },
+            { id: "level_10", name: "Мастер", desc: "Достичь 10 уровня", icon: "⭐⭐", category: "level", rewardCrystals: 100, rewardShards: 15, check: () => currentLevel >= 10 }
+        ];
+        
+        let unlockedAchievements = new Set();
+        let packsOpened = 0;
+        let totalOreMined = 0;
+        let totalFishCaught = 0;
         
         function checkAchievements() {
             let anyUnlocked = false;
@@ -2264,6 +1975,18 @@
             if (achievement.id === "level_10") return Math.min(100, (currentLevel / 10) * 100);
             return achievement.check() ? 100 : 0;
         }
+        
+        // === 3. ЕЖЕДНЕВНЫЕ КВЕСТЫ ===
+        const DAILY_QUESTS = [
+            { id: "daily_mine", name: "Шахтёрский труд", desc: "Скопнуть 30 раз", icon: "⛏️", type: "mining", target: 30, progress: 0, rewardCrystals: 15, rewardShards: 2 },
+            { id: "daily_pack", name: "Коллекционер", desc: "Открыть 1 пак", icon: "🎴", type: "pack", target: 1, progress: 0, rewardCrystals: 20, rewardShards: 2 },
+            { id: "daily_fish", name: "Улов", desc: "Поймать 3 рыбы", icon: "🎣", type: "fishing", target: 3, progress: 0, rewardCrystals: 10, rewardShards: 1 },
+            { id: "daily_ore", name: "Богатство недр", desc: "Накопать 200 руды", icon: "💎", type: "ore", target: 200, progress: 0, rewardCrystals: 12, rewardShards: 2 },
+            { id: "daily_exchange", name: "Обмен", desc: "Обменять 300 руды на кристаллы", icon: "🔄", type: "exchange", target: 300, progress: 0, rewardCrystals: 15, rewardShards: 1 }
+        ];
+        
+        let dailyQuests = [];
+        let lastQuestReset = null;
         
         function resetDailyQuests() {
             const today = new Date().toDateString();
@@ -2385,7 +2108,7 @@
             timerSpan.innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
         }
         
-        // Ивентовые функции
+        // === ИВЕНТОВЫЕ ФУНКЦИИ ===
         function getCurrentSeason() {
             const now = new Date();
             const month = now.getMonth();
@@ -2445,6 +2168,7 @@
                 }
             }
             
+            // Показываем превью карт сезона
             if (previewContainer && currentSeason) {
                 const seasonCards = getCurrentSeasonEventCards();
                 if (seasonCards.length > 0) {
@@ -2592,7 +2316,9 @@
             };
         }
         
-        // Вспомогательные функции
+        // === МОДИФИЦИРОВАННЫЕ ФУНКЦИИ ДЛЯ ОТСЛЕЖИВАНИЯ ПРОГРЕССА ===
+        
+        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
         function getDefaultImageForRank(card) {
             const rankFolders = { 'X': 'X', 'S': 'S', 'A': 'A', 'A+': 'A', 'P': 'P', 'G': 'G', 'B': 'B', 'C': 'C', 'D': 'D', 'E': 'E', 'H': 'H', 'N': 'N', 'V': 'V', 'L': 'L' };
             const folder = rankFolders[card.rank] || 'E';
@@ -2615,7 +2341,324 @@
             };
             return map[rank] || 'rank-corner-E';
         }
+
+        const PACK_PRICE = GAME_CONFIG.PACK_PRICE;
+        const START_CRYSTALS = GAME_CONFIG.START_CRYSTALS;
+        const STORAGE_KEY = GAME_CONFIG.STORAGE_KEY;
+        const DUPLICATE_REWARD_CRYSTALS = GAME_CONFIG.DUPLICATE_REWARD_CRYSTALS;
+        const SUPABASE_URL = SUPABASE_CONFIG.URL;
+        const SUPABASE_ANON_KEY = SUPABASE_CONFIG.ANON_KEY;
+
+        const PROMO_LIST = [
+            { code: "NIGHT", reward: { crystals: 300, shards: 20, ore: 0 } }, 
+        ];
         
+        let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
+        let collectionMap = new Map();
+        let currentOfferedCards = [], selectedCardIndex = null, collectionFilter = "all", catalogFilter = "all";
+        let usedPromoCodes = new Set();
+        
+        let fishingData = { freeLastUsed: null, paidAttemptsUsed: 0, lastResetDate: null };
+        
+        const fishingRewards = [
+            { name: "🐟 Гнилая рыба", weight: 40, reward: { ore: 5, crystals: 0, shards: 0, card: null, pack: false } },
+            { name: "🐠 Кровавый лосось", weight: 30, reward: { ore: 0, crystals: 2, shards: 0, card: null, pack: false } },
+            { name: "🦑 Гигантский кальмар", weight: 15, reward: { ore: 10, crystals: 10, shards: 0, card: null, pack: false } },
+            { name: "👑 Золотая рыбка", weight: 10, reward: { ore: 0, crystals: 0, shards: 1, card: null, pack: false } },
+            { name: "📜 Карта сокровищ", weight: 4, reward: { ore: 0, crystals: 0, shards: 0, card: true, pack: false } },
+            { name: "🎁 Сундук", weight: 1, reward: { ore: 0, crystals: 0, shards: 0, card: null, pack: true } }
+        ];
+        
+        let crystalDisplay, oreDisplay, shardDisplay, totalCardsCountSpan, totalAllCardsCountSpan;
+        let openPackBtn, selectionArea, choiceCardsContainer, confirmChoiceBtn, collectionListDiv, allCardsListDiv;
+        let dailyBonusBtn, exchangeOreBtn, mineClickBtn, clicksLeftDisplay, oreInMine;
+        let promoInput, activatePromoBtn, promoStatusSpan, promoCodesListDiv;
+        let modal, modalImage, modalCaption, modalRank, modalCloseBtn;
+        
+        // SUPABASE ФУНКЦИИ
+        function initSupabase() {
+            if (typeof supabase === 'undefined') {
+                console.error('⚠️ Supabase библиотека не загружена!');
+                return false;
+            }
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                supabaseInitialized = true;
+                console.log('✅ Supabase готов');
+                return true;
+            } catch(e) {
+                console.error('Ошибка:', e);
+                return false;
+            }
+        }
+        
+        function getUserId() {
+            let userId = localStorage.getItem('bloody_user_id');
+            if (!userId) {
+                userId = 'user_' + Math.random().toString(36).substr(2, 16) + Date.now();
+                localStorage.setItem('bloody_user_id', userId);
+            }
+            return userId;
+        }
+        
+        async function syncToCloud() {
+            if (!supabaseInitialized) return;
+            const userId = getUserId();
+            try {
+                await supabaseClient.from('user_resources').upsert({
+                    user_id: userId,
+                    crystals: crystals,
+                    shards: shards,
+                    ore: ore,
+                    updated_at: new Date().toISOString()
+                });
+                
+                const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
+                    user_id: userId, card_id: cardId, animated: data.animated || false
+                }));
+                
+                if (collectionData.length > 0) {
+                    await supabaseClient.from('user_collections').upsert(collectionData);
+                }
+                
+                await supabaseClient.from('user_profiles').upsert({
+                    user_id: userId, nickname: currentNickname || null, last_active: new Date().toISOString()
+                });
+            } catch(e) { console.error('Sync error:', e); }
+        }
+        
+        async function loadUserNickname(userId) {
+            if (!supabaseInitialized) return null;
+            try {
+                const { data, error } = await supabaseClient.from('user_profiles').select('nickname').eq('user_id', userId).maybeSingle();
+                if (!error && data && data.nickname) return data.nickname;
+            } catch(e) { return null; }
+            return null;
+        }
+        
+        async function isNicknameUnique(nickname, excludeUserId = null) {
+            if (!supabaseInitialized) return true;
+            try {
+                let query = supabaseClient.from('user_profiles').select('user_id').eq('nickname', nickname);
+                if (excludeUserId) query = query.neq('user_id', excludeUserId);
+                const { data, error } = await query;
+                if (error) return true;
+                return !data || data.length === 0;
+            } catch(e) { return true; }
+        }
+        
+        async function saveNicknameToCloud(nickname) {
+            if (!supabaseInitialized) return false;
+            const userId = getUserId();
+            try {
+                const isUnique = await isNicknameUnique(nickname, userId);
+                if (!isUnique) return { success: false, error: "Этот ник уже занят!" };
+                const { error } = await supabaseClient.from('user_profiles').upsert({
+                    user_id: userId, nickname: nickname, last_active: new Date().toISOString()
+                });
+                if (error) return { success: false, error: "Ошибка сохранения" };
+                return { success: true };
+            } catch(e) { return { success: false, error: "Ошибка соединения" }; }
+        }
+        
+        async function searchPlayer(searchTerm) {
+            if (!supabaseInitialized) return null;
+            try {
+                let query = supabaseClient.from('user_profiles').select('user_id, nickname');
+                if (searchTerm.startsWith('user_')) {
+                    query = query.eq('user_id', searchTerm);
+                } else {
+                    query = query.ilike('nickname', `%${searchTerm}%`);
+                }
+                const { data, error } = await query.limit(10);
+                if (error) return null;
+                return data;
+            } catch(e) { return null; }
+        }
+        
+        async function loadFromCloud(userId = null) {
+            if (!supabaseInitialized) return null;
+            const targetId = userId || getUserId();
+            try {
+                let resources = null;
+                try {
+                    const { data, error } = await supabaseClient.from('user_resources').select('*').eq('user_id', targetId).maybeSingle();
+                    if (!error && data) resources = data;
+                } catch(e) {}
+                let collections = [];
+                try {
+                    const { data, error } = await supabaseClient.from('user_collections').select('*').eq('user_id', targetId);
+                    if (!error && data) collections = data;
+                } catch(e) {}
+                return { resources, collections };
+            } catch(e) { return null; }
+        }
+        
+        async function getTopPlayers(limit = 10) {
+            if (!supabaseInitialized) return [];
+            const now = Date.now();
+            if (topPlayersCache.data && (now - topPlayersCache.timestamp) < TOP_PLAYERS_CACHE_TTL) {
+                return topPlayersCache.data.slice(0, limit);
+            }
+            try {
+                const { data: collections, error: collError } = await supabaseClient.from('user_collections').select('user_id');
+                if (collError) return [];
+                if (!collections || collections.length === 0) return [];
+                
+                const counts = {};
+                collections.forEach(item => { counts[item.user_id] = (counts[item.user_id] || 0) + 1; });
+                const userIds = Object.keys(counts);
+                
+                let nicknames = {};
+                if (userIds.length > 0) {
+                    const { data: profiles } = await supabaseClient.from('user_profiles').select('user_id, nickname').in('user_id', userIds);
+                    if (profiles) profiles.forEach(p => { nicknames[p.user_id] = p.nickname; });
+                }
+                
+                const result = Object.entries(counts).map(([user_id, count]) => ({ 
+                    user_id, 
+                    count, 
+                    nickname: nicknames[user_id] ? escapeHtml(nicknames[user_id]) : user_id.slice(0, 16) + '...' 
+                })).sort((a, b) => b.count - a.count);
+                
+                topPlayersCache = { data: result, timestamp: now };
+                return result.slice(0, limit);
+            } catch(e) { return []; }
+        }
+        
+        async function viewPlayerCollection(playerId) {
+            if (!supabaseInitialized) return false;
+            try {
+                const data = await loadFromCloud(playerId);
+                if (!data) return false;
+                viewingPlayerId = playerId;
+                viewingCollectionMap.clear();
+                if (data.collections) {
+                    for (const item of data.collections) {
+                        const fullCard = getFullCardById(item.card_id);
+                        if (fullCard) viewingCollectionMap.set(item.card_id, { cardData: fullCard, animated: item.animated || false });
+                    }
+                }
+                if (data.resources) {
+                    const viewCrystals = document.getElementById('viewCrystals');
+                    const viewShards = document.getElementById('viewShards');
+                    const viewOre = document.getElementById('viewOre');
+                    const viewCardsCount = document.getElementById('viewCardsCount');
+                    if (viewCrystals) viewCrystals.innerText = data.resources.crystals || 0;
+                    if (viewShards) viewShards.innerText = data.resources.shards || 0;
+                    if (viewOre) viewOre.innerText = data.resources.ore || 0;
+                    if (viewCardsCount) viewCardsCount.innerText = viewingCollectionMap.size;
+                }
+                return true;
+            } catch(e) { return false; }
+        }
+        
+        // РЕФЕРАЛЬНЫЕ ФУНКЦИИ
+        async function createReferralLink(referredUserId, referrerUserId) {
+            if (!supabaseInitialized) return false;
+            try {
+                const { data: existing, error: checkError } = await supabaseClient.from('referrals').select('id').eq('referred_id', referredUserId).maybeSingle();
+                if (checkError) { console.error('Ошибка проверки:', checkError); return false; }
+                if (existing) { console.log(`Пользователь ${referredUserId} уже имеет реферера`); return false; }
+                const { error } = await supabaseClient.from('referrals').insert({ referrer_id: referrerUserId, referred_id: referredUserId, reward_claimed: false, ore_target: 1000 });
+                if (error) { console.error('Ошибка вставки:', error); return false; }
+                console.log(`✅ Реферальная связь создана: ${referrerUserId} -> ${referredUserId}`);
+                return true;
+            } catch(e) { console.error('Create referral error:', e); return false; }
+        }
+        
+        async function getReferralInfo(userId) {
+            if (!supabaseInitialized) return null;
+            try {
+                const { data, error } = await supabaseClient.from('referrals').select('*').eq('referrer_id', userId).maybeSingle();
+                if (error) throw error;
+                return data;
+            } catch(e) { return null; }
+        }
+        
+        async function checkAndRewardReferrer(referredUserId) {
+            if (!supabaseInitialized) return;
+            try {
+                const { data: referral, error } = await supabaseClient.from('referrals').select('*').eq('referred_id', referredUserId).maybeSingle();
+                if (error) throw error;
+                if (!referral || referral.reward_claimed) return;
+                const { data: resources, error: resError } = await supabaseClient.from('user_resources').select('ore').eq('user_id', referredUserId).maybeSingle();
+                if (resError) throw resError;
+                if (!resources) return;
+                if (resources.ore >= 1000) {
+                    const { error: updateError } = await supabaseClient.from('referrals').update({ reward_claimed: true }).eq('id', referral.id);
+                    if (updateError) throw updateError;
+                    const { data: referrerRes } = await supabaseClient.from('user_resources').select('crystals').eq('user_id', referral.referrer_id).maybeSingle();
+                    const currentCrystals = referrerRes?.crystals || 0;
+                    const newCrystals = currentCrystals + 50;
+                    const { error: upsertError } = await supabaseClient.from('user_resources').upsert({ user_id: referral.referrer_id, crystals: newCrystals, updated_at: new Date().toISOString() });
+                    if (upsertError) throw upsertError;
+                    console.log(`✅ Бонус 50💎 выдан рефереру ${referral.referrer_id}`);
+                    if (referral.referrer_id === getUserId()) {
+                        crystals += 50;
+                        updateUI();
+                        showPromoStatus(`🎉 Ваш друг достиг 1000 руды! Вы получили +50💎 за приглашение!`, "success");
+                    }
+                    await updateReferralUI();
+                }
+            } catch(e) { console.error('Check referral reward error:', e); }
+        }
+        
+        async function updateReferralUI() {
+            const userId = getUserId();
+            const referral = await getReferralInfo(userId);
+            const refNameSpan = document.getElementById('refUserName');
+            const refStatusSpan = document.getElementById('refBonusStatus');
+            if (referral) {
+                const { data: profile } = await supabaseClient.from('user_profiles').select('nickname').eq('user_id', referral.referred_id).maybeSingle();
+                const referredName = profile?.nickname ? escapeHtml(profile.nickname) : referral.referred_id.slice(0, 16) + '...';
+                if (refNameSpan) refNameSpan.innerText = referredName;
+                if (refStatusSpan) refStatusSpan.innerText = referral.reward_claimed ? "✅ Бонус получен!" : "⏳ Ожидание (1000 руды)";
+            } else {
+                if (refNameSpan) refNameSpan.innerText = "Нет";
+                if (refStatusSpan) refStatusSpan.innerText = "—";
+            }
+        }
+        
+        async function processReferralLink() {
+            if (!supabaseInitialized) return;
+            const urlParams = new URLSearchParams(window.location.search);
+            const referrerId = urlParams.get('ref');
+            const currentId = getUserId();
+            if (!referrerId || referrerId === currentId) return;
+            try {
+                const { data: existingReferral, error: checkError } = await supabaseClient.from('referrals').select('referrer_id').eq('referred_id', currentId).maybeSingle();
+                if (checkError) { console.error('Ошибка проверки:', checkError); return; }
+                if (existingReferral) {
+                    console.log(`Пользователь ${currentId} уже приглашён`);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    return;
+                }
+                const { data: referrerExists, error: refError } = await supabaseClient.from('user_profiles').select('user_id').eq('user_id', referrerId).maybeSingle();
+                if (refError || !referrerExists) { console.log(`Реферер ${referrerId} не найден`); return; }
+                const success = await createReferralLink(currentId, referrerId);
+                if (success) {
+                    crystals += 30;
+                    updateUI();
+                    saveData();
+                    showPromoStatus(`🎁 Вы пришли по приглашению! +30💎! Пригласивший получит +50💎, когда вы накопите 1000 руды.`, "success");
+                    await updateReferralUI();
+                } else {
+                    showPromoStatus(`❌ Не удалось активировать реферальную ссылку`, "error");
+                }
+                window.history.replaceState({}, document.title, window.location.pathname);
+            } catch(e) { console.error('Ошибка:', e); }
+        }
+        
+        async function forceCheckReferralBonus() {
+            if (!supabaseInitialized) { showPromoStatus("❌ Облачный сервис недоступен", "error"); return; }
+            showPromoStatus("🔍 Проверка реферального бонуса...", "info");
+            await checkAndRewardReferrer(getUserId());
+            await updateReferralUI();
+            showPromoStatus("✅ Проверка завершена", "success");
+        }
+        
+        // ОСНОВНЫЕ ИГРОВЫЕ ФУНКЦИИ
         function getFullCardById(id) { return ALL_CARDS.find(c => c.id === id); }
         
         function showModal(imageUrl, cardName, rank) {
@@ -2630,16 +2673,26 @@
         
         function saveData() {
             const collectionData = Array.from(collectionMap.entries()).map(([id, data]) => ({ id, animated: data.animated || false }));
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ 
-                crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, 
-                collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 5,
-                unlockedAchievements: Array.from(unlockedAchievements),
-                packsOpened, totalOreMined, totalFishCaught,
-                currentLevel, currentExp,
-                dailyQuests, lastQuestReset
-            }));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 5 }));
             syncToCloud();
             if (supabaseInitialized) checkAndRewardReferrer(getUserId());
+            saveExtendedData();
+        }
+        
+        function saveExtendedData() {
+            const baseData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            const extendedData = {
+                ...baseData,
+                unlockedAchievements: Array.from(unlockedAchievements),
+                packsOpened: packsOpened,
+                totalOreMined: totalOreMined,
+                totalFishCaught: totalFishCaught,
+                currentLevel: currentLevel,
+                currentExp: currentExp,
+                dailyQuests: dailyQuests,
+                lastQuestReset: lastQuestReset
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(extendedData));
         }
         
         function loadData() {
@@ -2777,6 +2830,15 @@
             });
         }
         
+        function animateNewCard(cardElement) {
+            if (cardElement) {
+                cardElement.classList.add('new-card');
+                setTimeout(() => {
+                    cardElement.classList.remove('new-card');
+                }, 300);
+            }
+        }
+        
         function confirmChoiceCard() {
             if (selectedCardIndex === null) return;
             const card = currentOfferedCards[selectedCardIndex];
@@ -2825,6 +2887,7 @@
             }
         }
         
+        // ПРОЧИЕ ФУНКЦИИ
         function upgradeCard(cardId) { 
             const entry = collectionMap.get(cardId); 
             if (!entry || !entry.cardData.canUpgrade || entry.animated) {
@@ -2953,7 +3016,7 @@
             document.querySelectorAll('.promo-chip').forEach(chip => { chip.addEventListener('click', () => fillPromoCode(chip.dataset.code)); });
         }
         
-        // Рыбалка
+        // РЫБАЛКА
         function loadFishingData() {
             const saved = localStorage.getItem('bloody_fishing_v1');
             if (saved) { try { fishingData = JSON.parse(saved); } catch(e) {} }
@@ -2970,6 +3033,8 @@
         }
         
         function saveFishingData() { localStorage.setItem('bloody_fishing_v1', JSON.stringify(fishingData)); }
+        
+        let lastFreeAttemptTime = null;
         
         function getFreeAttemptsLeft() {
             if (!fishingData.freeLastUsed) return 1;
@@ -2998,11 +3063,17 @@
             const freeBtn = document.getElementById('freeFishBtn');
             const paidBtn = document.getElementById('paidFishBtn');
             
+            const oldFreeLeft = freeEl ? parseInt(freeEl.innerText) : 0;
+            
             if (freeEl) freeEl.innerText = freeLeft;
             if (nextEl) nextEl.innerText = getNextFreeTimeString();
             if (paidEl) paidEl.innerText = getPaidAttemptsLeft();
             if (freeBtn) freeBtn.disabled = (freeLeft === 0);
             if (paidBtn) paidBtn.disabled = (getPaidAttemptsLeft() === 0 || shards < 2);
+            
+            if (oldFreeLeft === 0 && freeLeft === 1 && document.getElementById('tab-fishing').classList.contains('active')) {
+                showPromoStatus("🎣 Бесплатная рыбалка готова!", "success");
+            }
         }
         
         function animateFishing() {
@@ -3198,292 +3269,13 @@
             });
         }
         
-        // ==================== SUPABASE ФУНКЦИИ ====================
-        
-        function initSupabase() {
-            if (typeof supabase === 'undefined') {
-                console.error('⚠️ Supabase библиотека не загружена!');
-                return false;
-            }
-            try {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                supabaseInitialized = true;
-                console.log('✅ Supabase готов');
-                return true;
-            } catch(e) {
-                console.error('Ошибка:', e);
-                return false;
-            }
-        }
-        
-        async function syncToCloud() {
-            if (!supabaseInitialized) return;
-            const userId = getUserId();
-            try {
-                await supabaseClient.from('user_resources').upsert({
-                    user_id: userId,
-                    crystals: crystals,
-                    shards: shards,
-                    ore: ore,
-                    updated_at: new Date().toISOString()
-                });
-                
-                const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
-                    user_id: userId, card_id: cardId, animated: data.animated || false
-                }));
-                
-                if (collectionData.length > 0) {
-                    await supabaseClient.from('user_collections').upsert(collectionData);
-                }
-                
-                await supabaseClient.from('user_profiles').upsert({
-                    user_id: userId, 
-                    nickname: currentNickname || null, 
-                    telegram_id: telegramData?.id || null,
-                    telegram_username: telegramData?.username || null,
-                    last_active: new Date().toISOString()
-                });
-            } catch(e) { console.error('Sync error:', e); }
-        }
-        
-        async function loadUserNickname(userId) {
-            if (!supabaseInitialized) return null;
-            try {
-                const { data, error } = await supabaseClient.from('user_profiles').select('nickname').eq('user_id', userId).maybeSingle();
-                if (!error && data && data.nickname) return data.nickname;
-            } catch(e) { return null; }
-            return null;
-        }
-        
-        async function isNicknameUnique(nickname, excludeUserId = null) {
-            if (!supabaseInitialized) return true;
-            try {
-                let query = supabaseClient.from('user_profiles').select('user_id').eq('nickname', nickname);
-                if (excludeUserId) query = query.neq('user_id', excludeUserId);
-                const { data, error } = await query;
-                if (error) return true;
-                return !data || data.length === 0;
-            } catch(e) { return true; }
-        }
-        
-        async function saveNicknameToCloud(nickname) {
-            if (!supabaseInitialized) return false;
-            const userId = getUserId();
-            try {
-                const isUnique = await isNicknameUnique(nickname, userId);
-                if (!isUnique) return { success: false, error: "Этот ник уже занят!" };
-                const { error } = await supabaseClient.from('user_profiles').upsert({
-                    user_id: userId, nickname: nickname, last_active: new Date().toISOString()
-                });
-                if (error) return { success: false, error: "Ошибка сохранения" };
-                return { success: true };
-            } catch(e) { return { success: false, error: "Ошибка соединения" }; }
-        }
-        
-        async function searchPlayer(searchTerm) {
-            if (!supabaseInitialized) return null;
-            try {
-                let query = supabaseClient.from('user_profiles').select('user_id, nickname');
-                if (searchTerm.startsWith('user_') || searchTerm.startsWith('tg_')) {
-                    query = query.eq('user_id', searchTerm);
-                } else {
-                    query = query.ilike('nickname', `%${searchTerm}%`);
-                }
-                const { data, error } = await query.limit(10);
-                if (error) return null;
-                return data;
-            } catch(e) { return null; }
-        }
-        
-        async function loadFromCloud(userId = null) {
-            if (!supabaseInitialized) return null;
-            const targetId = userId || getUserId();
-            try {
-                let resources = null;
-                try {
-                    const { data, error } = await supabaseClient.from('user_resources').select('*').eq('user_id', targetId).maybeSingle();
-                    if (!error && data) resources = data;
-                } catch(e) {}
-                let collections = [];
-                try {
-                    const { data, error } = await supabaseClient.from('user_collections').select('*').eq('user_id', targetId);
-                    if (!error && data) collections = data;
-                } catch(e) {}
-                return { resources, collections };
-            } catch(e) { return null; }
-        }
-        
-        async function getTopPlayers(limit = 10) {
-            if (!supabaseInitialized) return [];
-            const now = Date.now();
-            if (topPlayersCache.data && (now - topPlayersCache.timestamp) < TOP_PLAYERS_CACHE_TTL) {
-                return topPlayersCache.data.slice(0, limit);
-            }
-            try {
-                const { data: collections, error: collError } = await supabaseClient.from('user_collections').select('user_id');
-                if (collError) return [];
-                if (!collections || collections.length === 0) return [];
-                
-                const counts = {};
-                collections.forEach(item => { counts[item.user_id] = (counts[item.user_id] || 0) + 1; });
-                const userIds = Object.keys(counts);
-                
-                let nicknames = {};
-                if (userIds.length > 0) {
-                    const { data: profiles } = await supabaseClient.from('user_profiles').select('user_id, nickname').in('user_id', userIds);
-                    if (profiles) profiles.forEach(p => { nicknames[p.user_id] = p.nickname; });
-                }
-                
-                const result = Object.entries(counts).map(([user_id, count]) => ({ 
-                    user_id, 
-                    count, 
-                    nickname: nicknames[user_id] ? escapeHtml(nicknames[user_id]) : user_id.slice(0, 16) + '...' 
-                })).sort((a, b) => b.count - a.count);
-                
-                topPlayersCache = { data: result, timestamp: now };
-                return result.slice(0, limit);
-            } catch(e) { return []; }
-        }
-        
-        async function viewPlayerCollection(playerId) {
-            if (!supabaseInitialized) return false;
-            try {
-                const data = await loadFromCloud(playerId);
-                if (!data) return false;
-                viewingPlayerId = playerId;
-                viewingCollectionMap.clear();
-                if (data.collections) {
-                    for (const item of data.collections) {
-                        const fullCard = getFullCardById(item.card_id);
-                        if (fullCard) viewingCollectionMap.set(item.card_id, { cardData: fullCard, animated: item.animated || false });
-                    }
-                }
-                if (data.resources) {
-                    const viewCrystals = document.getElementById('viewCrystals');
-                    const viewShards = document.getElementById('viewShards');
-                    const viewOre = document.getElementById('viewOre');
-                    const viewCardsCount = document.getElementById('viewCardsCount');
-                    if (viewCrystals) viewCrystals.innerText = data.resources.crystals || 0;
-                    if (viewShards) viewShards.innerText = data.resources.shards || 0;
-                    if (viewOre) viewOre.innerText = data.resources.ore || 0;
-                    if (viewCardsCount) viewCardsCount.innerText = viewingCollectionMap.size;
-                }
-                return true;
-            } catch(e) { return false; }
-        }
-        
-        // Реферальные функции
-        async function createReferralLink(referredUserId, referrerUserId) {
-            if (!supabaseInitialized) return false;
-            try {
-                const { data: existing, error: checkError } = await supabaseClient.from('referrals').select('id').eq('referred_id', referredUserId).maybeSingle();
-                if (checkError) { console.error('Ошибка проверки:', checkError); return false; }
-                if (existing) { console.log(`Пользователь ${referredUserId} уже имеет реферера`); return false; }
-                const { error } = await supabaseClient.from('referrals').insert({ referrer_id: referrerUserId, referred_id: referredUserId, reward_claimed: false, ore_target: 1000 });
-                if (error) { console.error('Ошибка вставки:', error); return false; }
-                console.log(`✅ Реферальная связь создана: ${referrerUserId} -> ${referredUserId}`);
-                return true;
-            } catch(e) { console.error('Create referral error:', e); return false; }
-        }
-        
-        async function getReferralInfo(userId) {
-            if (!supabaseInitialized) return null;
-            try {
-                const { data, error } = await supabaseClient.from('referrals').select('*').eq('referrer_id', userId).maybeSingle();
-                if (error) throw error;
-                return data;
-            } catch(e) { return null; }
-        }
-        
-        async function checkAndRewardReferrer(referredUserId) {
-            if (!supabaseInitialized) return;
-            try {
-                const { data: referral, error } = await supabaseClient.from('referrals').select('*').eq('referred_id', referredUserId).maybeSingle();
-                if (error) throw error;
-                if (!referral || referral.reward_claimed) return;
-                const { data: resources, error: resError } = await supabaseClient.from('user_resources').select('ore').eq('user_id', referredUserId).maybeSingle();
-                if (resError) throw resError;
-                if (!resources) return;
-                if (resources.ore >= 1000) {
-                    const { error: updateError } = await supabaseClient.from('referrals').update({ reward_claimed: true }).eq('id', referral.id);
-                    if (updateError) throw updateError;
-                    const { data: referrerRes } = await supabaseClient.from('user_resources').select('crystals').eq('user_id', referral.referrer_id).maybeSingle();
-                    const currentCrystals = referrerRes?.crystals || 0;
-                    const newCrystals = currentCrystals + 50;
-                    const { error: upsertError } = await supabaseClient.from('user_resources').upsert({ user_id: referral.referrer_id, crystals: newCrystals, updated_at: new Date().toISOString() });
-                    if (upsertError) throw upsertError;
-                    console.log(`✅ Бонус 50💎 выдан рефереру ${referral.referrer_id}`);
-                    if (referral.referrer_id === getUserId()) {
-                        crystals += 50;
-                        updateUI();
-                        showPromoStatus(`🎉 Ваш друг достиг 1000 руды! Вы получили +50💎 за приглашение!`, "success");
-                    }
-                    await updateReferralUI();
-                }
-            } catch(e) { console.error('Check referral reward error:', e); }
-        }
-        
-        async function updateReferralUI() {
-            const userId = getUserId();
-            const referral = await getReferralInfo(userId);
-            const refNameSpan = document.getElementById('refUserName');
-            const refStatusSpan = document.getElementById('refBonusStatus');
-            if (referral) {
-                const { data: profile } = await supabaseClient.from('user_profiles').select('nickname').eq('user_id', referral.referred_id).maybeSingle();
-                const referredName = profile?.nickname ? escapeHtml(profile.nickname) : referral.referred_id.slice(0, 16) + '...';
-                if (refNameSpan) refNameSpan.innerText = referredName;
-                if (refStatusSpan) refStatusSpan.innerText = referral.reward_claimed ? "✅ Бонус получен!" : "⏳ Ожидание (1000 руды)";
-            } else {
-                if (refNameSpan) refNameSpan.innerText = "Нет";
-                if (refStatusSpan) refStatusSpan.innerText = "—";
-            }
-        }
-        
-        async function processReferralLink() {
-            if (!supabaseInitialized) return;
-            const urlParams = new URLSearchParams(window.location.search);
-            const referrerId = urlParams.get('ref');
-            const currentId = getUserId();
-            if (!referrerId || referrerId === currentId) return;
-            try {
-                const { data: existingReferral, error: checkError } = await supabaseClient.from('referrals').select('referrer_id').eq('referred_id', currentId).maybeSingle();
-                if (checkError) { console.error('Ошибка проверки:', checkError); return; }
-                if (existingReferral) {
-                    console.log(`Пользователь ${currentId} уже приглашён`);
-                    window.history.replaceState({}, document.title, window.location.pathname);
-                    return;
-                }
-                const { data: referrerExists, error: refError } = await supabaseClient.from('user_profiles').select('user_id').eq('user_id', referrerId).maybeSingle();
-                if (refError || !referrerExists) { console.log(`Реферер ${referrerId} не найден`); return; }
-                const success = await createReferralLink(currentId, referrerId);
-                if (success) {
-                    crystals += 30;
-                    updateUI();
-                    saveData();
-                    showPromoStatus(`🎁 Вы пришли по приглашению! +30💎! Пригласивший получит +50💎, когда вы накопите 1000 руды.`, "success");
-                    await updateReferralUI();
-                } else {
-                    showPromoStatus(`❌ Не удалось активировать реферальную ссылку`, "error");
-                }
-                window.history.replaceState({}, document.title, window.location.pathname);
-            } catch(e) { console.error('Ошибка:', e); }
-        }
-        
-        async function forceCheckReferralBonus() {
-            if (!supabaseInitialized) { showPromoStatus("❌ Облачный сервис недоступен", "error"); return; }
-            showPromoStatus("🔍 Проверка реферального бонуса...", "info");
-            await checkAndRewardReferrer(getUserId());
-            await updateReferralUI();
-            showPromoStatus("✅ Проверка завершена", "success");
-        }
-        
         async function searchAndViewPlayer() {
             const searchTerm = document.getElementById('searchPlayerInput').value.trim();
             if (!searchTerm) { showPromoStatus("Введите ID игрока или ник для поиска", "error"); return; }
             
             const searchBtn = document.getElementById('searchPlayerBtn');
             const originalText = searchBtn.innerHTML;
-            searchBtn.innerHTML = '🔍 ...';
+            searchBtn.innerHTML = '<span class="loading-spinner"></span>';
             searchBtn.disabled = true;
             
             showPromoStatus("🔍 Поиск игрока...", "info");
@@ -3712,13 +3504,10 @@
             const nickname = await loadUserNickname(userId);
             if (nickname) { currentNickname = nickname; updateNicknameUI(); }
             const existingData = await loadFromCloud(userId);
-            if (!existingData || !existingData.resources) { 
-                await syncToCloud(); 
-            } else if (existingData.resources) {
+            if (!existingData || !existingData.resources) { await syncToCloud(); }
+            else if (existingData.resources) {
                 const cloudCrystals = existingData.resources.crystals || 0;
-                // Если локальные данные меньше облачных (или локальных нет), загружаем из облака
-                const localData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-                if (cloudCrystals > (localData.crystals || 0) + 10 || !localData.crystals) {
+                if (cloudCrystals > crystals + 10) {
                     crystals = cloudCrystals;
                     shards = existingData.resources.shards || 0;
                     ore = existingData.resources.ore || 0;
@@ -3736,12 +3525,12 @@
             }
         }
         
-        // Инициализация
+        window.showVisitorStats = function() { alert(`👥 Всего уникальных игроков: ${document.getElementById('visitorCount').textContent}`); };
+        window.viewTopPlayer = viewTopPlayer;
+        window.copyUserId = copyUserId;
+        
+        // ИНИЦИАЛИЗАЦИЯ
         async function init() {
-            // Инициализируем Telegram
-            const hasTelegram = initTelegram();
-            
-            // Получаем DOM элементы
             crystalDisplay = document.getElementById('crystalDisplay');
             oreDisplay = document.getElementById('oreDisplay');
             shardDisplay = document.getElementById('shardDisplay');
@@ -3768,19 +3557,10 @@
             modalRank = document.getElementById('modalRank');
             modalCloseBtn = document.getElementById('modalCloseBtn');
             
-            // Загружаем локальные данные
             loadData();
             
-            // Инициализируем Supabase
             const supabaseInited = initSupabase();
             if (supabaseInited) {
-                // Обрабатываем callback от Telegram бота
-                await processTelegramCallback();
-                
-                // Проверяем привязку Telegram
-                await checkTelegramBinding();
-                
-                // Синхронизируем данные
                 await syncInitialData();
                 await updateVisitorCounter();
                 setInterval(async () => { const total = await getTotalVisitors(); document.getElementById('visitorCount').textContent = total; }, 30000);
@@ -3793,18 +3573,8 @@
                 document.getElementById('myUserId').innerText = 'офлайн';
             }
             
-            // Обновляем UI Telegram
-            updateTelegramUI();
-            
-            // Настройка обработчика для кнопки Telegram
-            const tgBadge = document.getElementById('telegramBadge');
-            if (tgBadge && !(telegramData && telegramData.id)) {
-                tgBadge.addEventListener('click', showTelegramVerifyPopup);
-            }
-            
             loadFishingData();
             
-            // Навешиваем обработчики событий
             dailyBonusBtn.addEventListener('click', claimDaily);
             exchangeOreBtn.addEventListener('click', exchangeOreFunc);
             mineClickBtn.addEventListener('click', mine);
@@ -3860,21 +3630,7 @@
             
             document.getElementById('userIdDisplay').innerText = getUserId();
             updateEventBanner();
-            
-            // Если нет Telegram привязки, показываем попап через 2 секунды
-            if (!(telegramData && telegramData.id) && supabaseInited) {
-                setTimeout(() => {
-                    if (!localStorage.getItem('telegram_popup_shown')) {
-                        localStorage.setItem('telegram_popup_shown', 'true');
-                        showTelegramVerifyPopup();
-                    }
-                }, 2000);
-            }
         }
-        
-        // Глобальные функции для вызова из HTML
-        window.copyUserId = copyUserId;
-        window.viewTopPlayer = viewTopPlayer;
         
         document.addEventListener('DOMContentLoaded', init);
     </script>
