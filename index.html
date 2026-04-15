@@ -64,6 +64,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-wrap: wrap;
         }
 
         .logo-icon {
@@ -1416,6 +1417,126 @@
         .pack-opening {
             animation: packOpen 0.4s ease-out;
         }
+
+        /* Стили для топа игроков */
+        .top-players-table {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        
+        .top-player-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .top-player-row:last-child {
+            border-bottom: none;
+        }
+        
+        .top-player-row.current-user {
+            background: linear-gradient(90deg, rgba(255, 68, 68, 0.2), rgba(255, 68, 68, 0.05));
+            border-left: 3px solid #ff4444;
+            animation: highlightPulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes highlightPulse {
+            0%, 100% { background: linear-gradient(90deg, rgba(255, 68, 68, 0.2), rgba(255, 68, 68, 0.05)); }
+            50% { background: linear-gradient(90deg, rgba(255, 68, 68, 0.35), rgba(255, 68, 68, 0.1)); }
+        }
+        
+        .top-player-rank {
+            font-weight: bold;
+            min-width: 50px;
+            color: #ffaa66;
+        }
+        
+        .top-player-rank.top-1 { color: #ffd700; font-size: 1.2rem; }
+        .top-player-rank.top-2 { color: #c0c0c0; font-size: 1.1rem; }
+        .top-player-rank.top-3 { color: #cd7f32; font-size: 1.1rem; }
+        
+        .top-player-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .top-player-nick {
+            font-weight: 600;
+            color: #FFE7B6;
+            font-size: 0.85rem;
+        }
+        
+        .top-player-badge {
+            background: rgba(255, 68, 68, 0.3);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.6rem;
+            color: #ff8888;
+        }
+        
+        .top-player-stats {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .top-player-cards {
+            color: #88ff88;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .top-player-view-btn {
+            background: rgba(255, 68, 68, 0.6);
+            border: none;
+            padding: 4px 10px;
+            border-radius: 16px;
+            font-size: 0.65rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        
+        .top-player-view-btn:hover {
+            background: #ff4444;
+            transform: scale(1.02);
+        }
+        
+        .current-user-section {
+            margin-top: 20px;
+            border-top: 1px solid rgba(255, 100, 50, 0.3);
+            padding-top: 15px;
+        }
+        
+        .current-user-section .title {
+            font-size: 0.7rem;
+            color: #ffaa88;
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        
+        .my-position-card {
+            background: linear-gradient(135deg, rgba(255, 68, 68, 0.15), rgba(255, 68, 68, 0.05));
+            border: 1px solid rgba(255, 68, 68, 0.3);
+            border-radius: 16px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .loading-top {
+            text-align: center;
+            padding: 20px;
+            color: #aa8899;
+        }
     </style>
 </head>
 <body>
@@ -1553,14 +1674,6 @@
                     <span>🔄 Дубликат = 7💎</span>
                 </div>
             </div>
-            
-<!--             Превью доступных ивент-карт
-            <div style="margin: 12px 0;">
-                <div style="color: #ffccaa; font-size: 0.7rem; margin-bottom: 8px;">🎴 Доступные в этом сезоне:</div>
-                <div id="eventCardsPreview" class="event-cards-preview">
-                    <div style="color: #aa8899; text-align: center;">Загрузка...</div>
-                </div>
-            </div> -->
             
             <button class="open-btn" id="eventPackBtn" style="background: radial-gradient(circle at 30% 10%, #ff8833, #cc6622); animation: eventGlow 1.5s ease-in-out infinite;">🎪 ОТКРЫТЬ ИВЕНТ-ПАК (5⚡)</button>
         </div>
@@ -1779,10 +1892,6 @@
     <script src="config.js"></script>
     <script src="cards.js"></script>
     <script>
- 
- // Оставьте весь код без изменений, просто скопируйте этот блок поверх существующего скрипта
-// (начиная с let supabaseClient = null; и до конца)
-
         let supabaseClient = null;
         let supabaseInitialized = false;
         let currentNickname = null;
@@ -2518,36 +2627,184 @@
             } catch(e) { return null; }
         }
         
-        async function getTopPlayers(limit = 10) {
-            if (!supabaseInitialized) return [];
+        // НОВАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ТОПА С ПОЗИЦИЕЙ ПОЛЬЗОВАТЕЛЯ
+        async function getTopPlayersWithUserPosition(limit = 10) {
+            if (!supabaseInitialized) return { topPlayers: [], userPosition: null, userData: null };
+            
             const now = Date.now();
             if (topPlayersCache.data && (now - topPlayersCache.timestamp) < TOP_PLAYERS_CACHE_TTL) {
-                return topPlayersCache.data.slice(0, limit);
+                const userId = getUserId();
+                const userIndex = topPlayersCache.data.findIndex(p => p.user_id === userId);
+                const userData = userIndex !== -1 ? topPlayersCache.data[userIndex] : null;
+                return {
+                    topPlayers: topPlayersCache.data.slice(0, limit),
+                    userPosition: userIndex !== -1 ? userIndex + 1 : null,
+                    userData: userData
+                };
             }
+            
             try {
                 const { data: collections, error: collError } = await supabaseClient.from('user_collections').select('user_id');
-                if (collError) return [];
-                if (!collections || collections.length === 0) return [];
+                if (collError) throw collError;
+                if (!collections || collections.length === 0) {
+                    return { topPlayers: [], userPosition: null, userData: null };
+                }
                 
                 const counts = {};
-                collections.forEach(item => { counts[item.user_id] = (counts[item.user_id] || 0) + 1; });
-                const userIds = Object.keys(counts);
+                collections.forEach(item => {
+                    counts[item.user_id] = (counts[item.user_id] || 0) + 1;
+                });
                 
+                let playersArray = Object.entries(counts).map(([user_id, count]) => ({ user_id, count }));
+                playersArray.sort((a, b) => b.count - a.count);
+                
+                const userIds = playersArray.map(p => p.user_id);
                 let nicknames = {};
                 if (userIds.length > 0) {
                     const { data: profiles } = await supabaseClient.from('user_profiles').select('user_id, nickname').in('user_id', userIds);
-                    if (profiles) profiles.forEach(p => { nicknames[p.user_id] = p.nickname; });
+                    if (profiles) {
+                        profiles.forEach(p => {
+                            nicknames[p.user_id] = p.nickname ? escapeHtml(p.nickname) : null;
+                        });
+                    }
                 }
                 
-                const result = Object.entries(counts).map(([user_id, count]) => ({ 
-                    user_id, 
-                    count, 
-                    nickname: nicknames[user_id] ? escapeHtml(nicknames[user_id]) : user_id.slice(0, 16) + '...' 
-                })).sort((a, b) => b.count - a.count);
+                const result = playersArray.map((player, idx) => ({
+                    ...player,
+                    nickname: nicknames[player.user_id] || player.user_id.slice(0, 16) + '...',
+                    rank: idx + 1
+                }));
                 
                 topPlayersCache = { data: result, timestamp: now };
-                return result.slice(0, limit);
-            } catch(e) { return []; }
+                
+                const userId = getUserId();
+                const userIndex = result.findIndex(p => p.user_id === userId);
+                const userData = userIndex !== -1 ? result[userIndex] : null;
+                
+                let userPositionData = null;
+                if (userIndex === -1 && userData === null) {
+                    const userCollectionCount = collectionMap.size;
+                    if (userCollectionCount > 0) {
+                        const userNick = currentNickname || (await loadUserNickname(userId)) || userId.slice(0, 16) + '...';
+                        userPositionData = {
+                            user_id: userId,
+                            count: userCollectionCount,
+                            nickname: userNick,
+                            rank: null
+                        };
+                    }
+                }
+                
+                return {
+                    topPlayers: result.slice(0, limit),
+                    userPosition: userIndex !== -1 ? userIndex + 1 : null,
+                    userData: userData || userPositionData
+                };
+            } catch(e) {
+                console.error('Get top players error:', e);
+                return { topPlayers: [], userPosition: null, userData: null };
+            }
+        }
+        
+        // ОБНОВЛЕННАЯ ФУНКЦИЯ ОТОБРАЖЕНИЯ ТОПА
+        async function loadTopPlayers() {
+            const container = document.getElementById('topPlayersList');
+            if (!container) return;
+            
+            container.innerHTML = '<div class="loading-top">🏆 Загрузка топа игроков...</div>';
+            
+            try {
+                const { topPlayers, userPosition, userData } = await getTopPlayersWithUserPosition(10);
+                const currentUserId = getUserId();
+                
+                if (!topPlayers || topPlayers.length === 0) {
+                    container.innerHTML = '<div class="loading-top">🏆 Пока нет игроков с коллекциями</div>';
+                    return;
+                }
+                
+                let html = '<div class="top-players-table">';
+                
+                for (let i = 0; i < topPlayers.length; i++) {
+                    const player = topPlayers[i];
+                    const isCurrentUser = (player.user_id === currentUserId);
+                    const rankClass = player.rank === 1 ? 'top-1' : (player.rank === 2 ? 'top-2' : (player.rank === 3 ? 'top-3' : ''));
+                    
+                    html += `<div class="top-player-row ${isCurrentUser ? 'current-user' : ''}" data-user-id="${player.user_id}">
+                        <div class="top-player-rank ${rankClass}">
+                            ${player.rank === 1 ? '👑' : (player.rank === 2 ? '🥈' : (player.rank === 3 ? '🥉' : `#${player.rank}`))}
+                        </div>
+                        <div class="top-player-info">
+                            <span class="top-player-nick">${player.nickname}</span>
+                            ${isCurrentUser ? '<span class="top-player-badge">Вы</span>' : ''}
+                        </div>
+                        <div class="top-player-stats">
+                            <span class="top-player-cards">📚 ${player.count}</span>
+                            ${!isCurrentUser ? `<button class="top-player-view-btn" data-user-id="${player.user_id}">👁️</button>` : ''}
+                        </div>
+                    </div>`;
+                }
+                
+                html += '</div>';
+                
+                // Если пользователь не в топ-10, показываем его позицию отдельно
+                if (userData && (userPosition === null || userPosition > 10)) {
+                    let actualRank = userPosition;
+                    if (actualRank === null && userData) {
+                        const { data: allCollections } = await supabaseClient.from('user_collections').select('user_id');
+                        if (allCollections) {
+                            const counts = {};
+                            allCollections.forEach(item => {
+                                counts[item.user_id] = (counts[item.user_id] || 0) + 1;
+                            });
+                            const sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+                            const userRank = sortedCounts.findIndex(([id]) => id === currentUserId);
+                            actualRank = userRank !== -1 ? userRank + 1 : null;
+                        }
+                    }
+                    
+                    html += `<div class="current-user-section">
+                        <div class="title">⭐ ВАША ПОЗИЦИЯ В ОБЩЕМ ЗАЧЕТЕ</div>
+                        <div class="my-position-card">
+                            <div style="display: flex; gap: 12px; align-items: center;">
+                                <span style="font-size: 1.5rem;">${actualRank === 1 ? '👑' : (actualRank === 2 ? '🥈' : (actualRank === 3 ? '🥉' : '📍'))}</span>
+                                <div>
+                                    <div style="font-weight: bold; color: #FFE7B6;">${userData.nickname}</div>
+                                    <div style="font-size: 0.65rem; color: #aa8899;">ID: ${currentUserId.slice(0, 12)}...</div>
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #88ff88;">📚 ${userData.count}</div>
+                                <div style="font-size: 0.7rem; color: #ffaa66;">Место: #${actualRank || '?'}</div>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+                
+                container.innerHTML = html;
+                
+                document.querySelectorAll('.top-player-view-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const userId = btn.dataset.userId;
+                        if (userId) viewTopPlayer(userId);
+                    });
+                });
+                
+                document.querySelectorAll('.top-player-row.current-user').forEach(row => {
+                    row.addEventListener('click', () => {
+                        document.querySelector('.tab-btn[data-tab="collection"]').click();
+                    });
+                });
+                
+            } catch(e) {
+                console.error('Load top players error:', e);
+                container.innerHTML = '<div class="loading-top" style="color:#ff8888;">❌ Ошибка загрузки топа</div>';
+            }
+        }
+        
+        function refreshTopPlayers() {
+            topPlayersCache = { data: null, timestamp: 0 };
+            loadTopPlayers();
         }
         
         async function viewPlayerCollection(playerId) {
@@ -2576,6 +2833,29 @@
                 return true;
             } catch(e) { return false; }
         }
+        
+        window.viewTopPlayer = async function(playerId) {
+            if (!playerId) return;
+            showPromoStatus("📥 Загрузка коллекции...", "info");
+            const success = await viewPlayerCollection(playerId);
+            if (!success) {
+                showPromoStatus("❌ Не удалось загрузить коллекцию", "error");
+                return;
+            }
+            isViewingOtherPlayer = true;
+            document.getElementById('viewingCollectionArea').style.display = 'block';
+            try {
+                const { data: profile } = await supabaseClient.from('user_profiles').select('nickname').eq('user_id', playerId).maybeSingle();
+                const displayName = profile?.nickname ? escapeHtml(profile.nickname) : playerId.slice(0, 22) + '...';
+                document.getElementById('viewingPlayerName').innerText = displayName;
+            } catch(e) {
+                document.getElementById('viewingPlayerName').innerText = playerId.slice(0, 22) + '...';
+            }
+            viewingFilter = "all";
+            renderViewingCollection();
+            document.querySelector('.tab-btn[data-tab="players"]').click();
+            showPromoStatus("✅ Коллекция загружена", "success");
+        };
         
         // РЕФЕРАЛЬНЫЕ ФУНКЦИИ
         async function createReferralLink(referredUserId, referrerUserId) {
@@ -3213,58 +3493,6 @@
             document.getElementById('searchPlayerInput').value = '';
         }
         
-        function updateUI() {
-            crystalDisplay.innerText = crystals; 
-            oreDisplay.innerText = ore; 
-            shardDisplay.innerText = shards;
-            totalCardsCountSpan.innerText = collectionMap.size;
-            
-            if (openPackBtn) {
-                openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
-                if (crystals < PACK_PRICE) openPackBtn.title = `Нужно ${PACK_PRICE}💎`;
-                else openPackBtn.title = `Купить пак за ${PACK_PRICE}💎`;
-            }
-            
-            updateEventUI();
-            renderCollection(); 
-            renderAllCards(); 
-            saveData();
-            updateFishingUI();
-            updateEventBanner();
-            updateLevelUI();
-            renderAchievements();
-            renderQuests();
-        }
-        
-        function setupFilters() {
-            document.querySelectorAll('#collectionFilterBar .filter-btn').forEach(btn => { 
-                btn.addEventListener('click', () => { 
-                    document.querySelectorAll('#collectionFilterBar .filter-btn').forEach(b => b.classList.remove('active')); 
-                    btn.classList.add('active'); 
-                    collectionFilter = btn.dataset.filter; 
-                    renderCollection(); 
-                }); 
-            });
-            document.querySelectorAll('#catalogFilterBar .filter-btn').forEach(btn => { 
-                btn.addEventListener('click', () => { 
-                    document.querySelectorAll('#catalogFilterBar .filter-btn').forEach(b => b.classList.remove('active')); 
-                    btn.classList.add('active'); 
-                    catalogFilter = btn.dataset.filter; 
-                    renderAllCards(); 
-                }); 
-            });
-            if (document.getElementById('viewingFilterBar')) {
-                document.querySelectorAll('#viewingFilterBar .filter-btn').forEach(btn => { 
-                    btn.addEventListener('click', () => { 
-                        document.querySelectorAll('#viewingFilterBar .filter-btn').forEach(b => b.classList.remove('active')); 
-                        btn.classList.add('active'); 
-                        viewingFilter = btn.dataset.filter; 
-                        renderViewingCollection(); 
-                    }); 
-                });
-            }
-        }
-        
         function renderViewingCollection() {
             if (!isViewingOtherPlayer) return;
             let filtered = Array.from(viewingCollectionMap.values());
@@ -3330,53 +3558,6 @@
             viewingFilter = "all";
             renderViewingCollection();
             showPromoStatus(`✅ Загружена коллекция игрока ${displayName}`, "success");
-        }
-        
-        async function loadTopPlayers() {
-            const container = document.getElementById('topPlayersList');
-            if (!container) return;
-            try {
-                const tops = await getTopPlayers(10);
-                if (!tops || tops.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; color:#aa8899; padding:20px;">🏆 Пока нет игроков с коллекциями</div>';
-                    return;
-                }
-                let html = '';
-                for (let i = 0; i < tops.length; i++) {
-                    const player = tops[i];
-                    html += `<div style="background: rgba(0,0,0,0.3); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span style="font-weight: bold; color: #ffaa66;">#${i+1}</span>
-                            <span style="color: #FFE7B6; font-size: 0.75rem;">${player.nickname}</span>
-                        </div>
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <span style="color: #88ff88;">📚 ${player.count} карт</span>
-                            <button class="filter-btn" onclick="window.viewTopPlayer('${player.user_id}')" style="background: #ff4444; color: white; cursor: pointer;">👁️</button>
-                        </div>
-                    </div>`;
-                }
-                container.innerHTML = html;
-            } catch(e) { 
-                container.innerHTML = '<div style="text-align:center; color:#ff8888; padding:20px;">❌ Ошибка загрузки топа</div>';
-            }
-        }
-        
-        async function viewTopPlayer(playerId) {
-            if (!playerId) return;
-            showPromoStatus("📥 Загрузка коллекции...", "info");
-            const success = await viewPlayerCollection(playerId);
-            if (!success) { showPromoStatus("❌ Не удалось загрузить коллекцию", "error"); return; }
-            isViewingOtherPlayer = true;
-            document.getElementById('viewingCollectionArea').style.display = 'block';
-            try {
-                const { data: profile } = await supabaseClient.from('user_profiles').select('nickname').eq('user_id', playerId).maybeSingle();
-                const displayName = profile?.nickname ? escapeHtml(profile.nickname) : playerId.slice(0, 22) + '...';
-                document.getElementById('viewingPlayerName').innerText = displayName;
-            } catch(e) { document.getElementById('viewingPlayerName').innerText = playerId.slice(0, 22) + '...'; }
-            viewingFilter = "all";
-            renderViewingCollection();
-            document.querySelector('.tab-btn[data-tab="players"]').click();
-            showPromoStatus("✅ Коллекция загружена", "success");
         }
         
         function copyUserId() {
@@ -3451,6 +3632,7 @@
                 document.getElementById('nicknameEditForm').style.display = 'none';
                 input.value = '';
                 await syncToCloud();
+                refreshTopPlayers();
             } else { showNicknameStatus(`❌ ${result.error}`, true); }
         }
         
@@ -3549,8 +3731,63 @@
             }
         }
         
+        function updateUI() {
+            crystalDisplay.innerText = crystals; 
+            oreDisplay.innerText = ore; 
+            shardDisplay.innerText = shards;
+            totalCardsCountSpan.innerText = collectionMap.size;
+            
+            if (openPackBtn) {
+                openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
+                if (crystals < PACK_PRICE) openPackBtn.title = `Нужно ${PACK_PRICE}💎`;
+                else openPackBtn.title = `Купить пак за ${PACK_PRICE}💎`;
+            }
+            
+            updateEventUI();
+            renderCollection(); 
+            renderAllCards(); 
+            saveData();
+            updateFishingUI();
+            updateEventBanner();
+            updateLevelUI();
+            renderAchievements();
+            renderQuests();
+            
+            if (document.getElementById('tab-players').classList.contains('active')) {
+                refreshTopPlayers();
+            }
+        }
+        
+        function setupFilters() {
+            document.querySelectorAll('#collectionFilterBar .filter-btn').forEach(btn => { 
+                btn.addEventListener('click', () => { 
+                    document.querySelectorAll('#collectionFilterBar .filter-btn').forEach(b => b.classList.remove('active')); 
+                    btn.classList.add('active'); 
+                    collectionFilter = btn.dataset.filter; 
+                    renderCollection(); 
+                }); 
+            });
+            document.querySelectorAll('#catalogFilterBar .filter-btn').forEach(btn => { 
+                btn.addEventListener('click', () => { 
+                    document.querySelectorAll('#catalogFilterBar .filter-btn').forEach(b => b.classList.remove('active')); 
+                    btn.classList.add('active'); 
+                    catalogFilter = btn.dataset.filter; 
+                    renderAllCards(); 
+                }); 
+            });
+            if (document.getElementById('viewingFilterBar')) {
+                document.querySelectorAll('#viewingFilterBar .filter-btn').forEach(btn => { 
+                    btn.addEventListener('click', () => { 
+                        document.querySelectorAll('#viewingFilterBar .filter-btn').forEach(b => b.classList.remove('active')); 
+                        btn.classList.add('active'); 
+                        viewingFilter = btn.dataset.filter; 
+                        renderViewingCollection(); 
+                    }); 
+                });
+            }
+        }
+        
         window.showVisitorStats = function() { alert(`👥 Всего уникальных игроков: ${document.getElementById('visitorCount').textContent}`); };
-        window.viewTopPlayer = viewTopPlayer;
         window.copyUserId = copyUserId;
         
         // ИНИЦИАЛИЗАЦИЯ
@@ -3631,7 +3868,11 @@
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                     btn.classList.add('active');
-                    document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
+                    const tabId = `tab-${btn.dataset.tab}`;
+                    document.getElementById(tabId).classList.add('active');
+                    if (btn.dataset.tab === 'players') {
+                        refreshTopPlayers();
+                    }
                 });
             });
             
@@ -3657,7 +3898,6 @@
         }
         
         document.addEventListener('DOMContentLoaded', init);
-
     </script>
 </body>
 </html>
