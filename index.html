@@ -2379,6 +2379,7 @@
             if (collectionMap.has(card.id)) {
                 crystals += DUPLICATE_REWARD_CRYSTALS;
                 showPromoStatus(`🔄 Дубликат ивент-карты! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за "${card.name}"`, "success");
+                syncToCloud();
             } else {
                 const fullCard = getFullCardById(card.id);
                 if (fullCard) {
@@ -2386,6 +2387,7 @@
                     addExp(10);
                     checkAchievements();
                     showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
+                    syncToCloud();
                 } else {
                     const newCard = { ...card };
                     ALL_CARDS.push(newCard);
@@ -2394,6 +2396,7 @@
                     addExp(10);
                     checkAchievements();
                     showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
+                    syncToCloud();
                 }
             }
             currentEventOfferedCards = [];
@@ -2538,6 +2541,7 @@
             if (!supabaseInitialized) return;
             const userId = getUserId();
             try {
+                // Синхронизируем ресурсы
                 await supabaseClient.from('user_resources').upsert({
                     user_id: userId,
                     crystals: crystals,
@@ -2546,18 +2550,43 @@
                     updated_at: new Date().toISOString()
                 });
                 
+                // Сначала удаляем старые записи коллекции пользователя
+                const { error: deleteError } = await supabaseClient
+                    .from('user_collections')
+                    .delete()
+                    .eq('user_id', userId);
+                
+                if (deleteError) {
+                    console.error('Ошибка удаления старых коллекций:', deleteError);
+                }
+                
+                // Затем добавляем актуальные карты
                 const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
-                    user_id: userId, card_id: cardId, animated: data.animated || false
+                    user_id: userId, 
+                    card_id: cardId, 
+                    animated: data.animated || false
                 }));
                 
                 if (collectionData.length > 0) {
-                    await supabaseClient.from('user_collections').upsert(collectionData);
+                    const { error: insertError } = await supabaseClient
+                        .from('user_collections')
+                        .insert(collectionData);
+                    
+                    if (insertError) {
+                        console.error('Ошибка вставки коллекций:', insertError);
+                    } else {
+                        console.log(`✅ Синхронизировано ${collectionData.length} карт для пользователя ${userId}`);
+                    }
                 }
                 
                 await supabaseClient.from('user_profiles').upsert({
-                    user_id: userId, nickname: currentNickname || null, last_active: new Date().toISOString()
+                    user_id: userId, 
+                    nickname: currentNickname || null, 
+                    last_active: new Date().toISOString()
                 });
-            } catch(e) { console.error('Sync error:', e); }
+            } catch(e) { 
+                console.error('Sync error:', e); 
+            }
         }
         
         async function loadUserNickname(userId) {
@@ -2627,7 +2656,7 @@
             } catch(e) { return null; }
         }
         
-        // НОВАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ТОПА С ПОЗИЦИЕЙ ПОЛЬЗОВАТЕЛЯ
+        // НОВАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ТОПА С ПОЗИЦИЕЙ ПОЛЬЗОВАТЕЛЯ (С ДИАГНОСТИКОЙ)
         async function getTopPlayersWithUserPosition(limit = 10) {
             if (!supabaseInitialized) return { topPlayers: [], userPosition: null, userData: null };
             
@@ -2644,18 +2673,42 @@
             }
             
             try {
-                const { data: collections, error: collError } = await supabaseClient.from('user_collections').select('user_id');
+                // Получаем все коллекции
+                const { data: collections, error: collError } = await supabaseClient.from('user_collections').select('user_id, card_id');
                 if (collError) throw collError;
+                
+                console.log('📊 Всего записей в user_collections:', collections?.length || 0);
+                
                 if (!collections || collections.length === 0) {
                     return { topPlayers: [], userPosition: null, userData: null };
                 }
                 
-                const counts = {};
+                // ДИАГНОСТИКА: показываем записи текущего пользователя
+                const currentUserId = getUserId();
+                const myRecords = collections.filter(c => c.user_id === currentUserId);
+                console.log(`📊 Записей для текущего пользователя (${currentUserId}):`, myRecords.length);
+                console.log('📊 ID карт текущего пользователя:', myRecords.map(r => r.card_id));
+                
+                // Считаем УНИКАЛЬНЫЕ карты для каждого пользователя
+                const userCardsMap = new Map(); // user_id -> Set(card_ids)
+                
                 collections.forEach(item => {
-                    counts[item.user_id] = (counts[item.user_id] || 0) + 1;
+                    if (!userCardsMap.has(item.user_id)) {
+                        userCardsMap.set(item.user_id, new Set());
+                    }
+                    userCardsMap.get(item.user_id).add(item.card_id);
                 });
                 
-                let playersArray = Object.entries(counts).map(([user_id, count]) => ({ user_id, count }));
+                // Преобразуем в массив с количеством уникальных карт
+                let playersArray = Array.from(userCardsMap.entries()).map(([user_id, cardSet]) => ({ 
+                    user_id, 
+                    count: cardSet.size 
+                }));
+                
+                console.log('📊 Игроков в топе:', playersArray.length);
+                console.log('📊 Количество карт текущего игрока в топе:', playersArray.find(p => p.user_id === currentUserId)?.count);
+                console.log('📊 Реальное количество карт в collectionMap:', collectionMap.size);
+                
                 playersArray.sort((a, b) => b.count - a.count);
                 
                 const userIds = playersArray.map(p => p.user_id);
@@ -3153,6 +3206,7 @@
                 if (collectionMap.has(card.id)) {
                     crystals += DUPLICATE_REWARD_CRYSTALS;
                     showPromoStatus(`🔄 Дубликат! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.name}"`, "success");
+                    syncToCloud();
                 } else {
                     const fullCard = getFullCardById(card.id);
                     if (fullCard) {
@@ -3160,6 +3214,7 @@
                         addExp(10);
                         checkAchievements();
                         showPromoStatus(`✨ Новая карта! "${card.name}" добавлена в коллекцию ✨`, "success");
+                        syncToCloud();
                     }
                 }
             }
@@ -3736,6 +3791,7 @@
             oreDisplay.innerText = ore; 
             shardDisplay.innerText = shards;
             totalCardsCountSpan.innerText = collectionMap.size;
+            syncToCloud();
             
             if (openPackBtn) {
                 openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
