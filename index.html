@@ -1410,12 +1410,30 @@
         
         /* Анимация для открытия пака */
         @keyframes packOpen {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); opacity: 1; }
+            0% {opacity: 0; transform: translateY(20px) scale(0.95);}
+            50% {opacity: 0.5; transform: translateY(-5px) scale(1.02);}
+            100% {opacity: 1; transform: translateY(0) scale(1);}
         }
+
         .pack-opening {
             animation: packOpen 0.4s ease-out;
+        }
+
+        /* Стили для кнопки при загрузке */
+        #openPackBtn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: translateY(0) !important;
+            box-shadow: 0 2px 0 #550000 !important;
+        }
+
+        .new-card {
+            animation: cardGlow 0.3s ease-out;
+        }
+        @keyframes cardGlow {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,215,0,0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px 5px rgba(255,215,0,0.5); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,215,0,0); }
         }
 
         /* Стили для топа игроков */
@@ -1537,6 +1555,10 @@
             padding: 20px;
             color: #aa8899;
         }
+
+        img {
+            background: linear-gradient(135deg, #2a2a3a, #1a1a2a);
+        }
     </style>
 </head>
 <body>
@@ -1582,8 +1604,8 @@
             <div class="mine-header">
                 <div class="mine-title">⛏️ КРОВАВАЯ ШАХТА</div>
                 <div class="mine-stats">
-                    <div>📊 <span id="clicksLeftDisplay">0</span>/<span id="maxClicksDisplay">100</span></div>
-                    <div>⛏️ <span id="oreInMine">0</span></div>
+                    <div>📊 Использовано: <span id="clicksLeftDisplay">0</span>/<span id="maxClicksDisplay">100</span></div>
+                    <!-- <div>⛏️ <span id="oreInMine">0</span></div> -->
                 </div>
             </div>
             <button class="click-button" id="mineClickBtn">⛏️ КОПНУТЬ!</button>
@@ -1904,7 +1926,7 @@
         let topPlayersCache = { data: null, timestamp: 0 };
         const TOP_PLAYERS_CACHE_TTL = 5 * 60 * 1000;
 
-        const CATALOG_CARDS = ALL_CARDS.filter(card => card.rank !== "A+" && card.id !== "osk01");
+        let CATALOG_CARDS = ALL_CARDS.filter(card => card.rank !== "A+" && card.id !== "osk01");
         const RANK_WEIGHTS = { "X": 1, "S": 4, "A": 15, "P": 15, "G": 15, "B": 15, "C": 15, "D": 15, "E": 20 };
         
         // ==================== НОВЫЕ СИСТЕМЫ (Ачивки, Квесты, Уровни) ====================
@@ -2301,7 +2323,7 @@
         let currentEventOfferedCards = [];
         let selectedEventCardIndex = null;
         
-        function buyEventPack() {
+        async function buyEventPack() {
             const currentSeason = getCurrentSeason();
             if (!currentSeason) {
                 showPromoStatus("❌ Сейчас нет активного ивента! Дождитесь Хэллоуина, Нового года, Весны или Лета", "error");
@@ -2319,24 +2341,64 @@
             }
             
             if (confirm(`Открыть ивентовый пак за 5⚡? Вы получите уникальную ивент-карту сезона ${getSeasonName(currentSeason)}.`)) {
-                shards -= 5;
-                updateUI();
-                currentEventOfferedCards = [];
-                const card = getRandomEventPackCard();
-                if (card) currentEventOfferedCards.push(card);
-                if (currentEventOfferedCards.length === 0) {
+                const eventPackBtn = document.getElementById('eventPackBtn');
+                const originalText = eventPackBtn.innerHTML;
+                
+                try {
+                    // Блокируем кнопку
+                    eventPackBtn.disabled = true;
+                    eventPackBtn.innerHTML = '🎪 ОТКРЫТИЕ...';
+                    eventPackBtn.style.background = 'radial-gradient(circle at 30% 10%, #ffaa66, #cc7722)';
+                    eventPackBtn.style.transform = 'scale(0.98)';
+                    
+                    // Имитация загрузки
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                    // Основная логика
+                    shards -= 5;
+                    updateUI();
+                    currentEventOfferedCards = [];
+                    const card = getRandomEventPackCard();
+                    if (card) currentEventOfferedCards.push(card);
+                    if (currentEventOfferedCards.length === 0) {
+                        shards += 5;
+                        updateUI();
+                        showPromoStatus("❌ Ошибка: нет доступных ивент-карт. Осколки возвращены", "error");
+                        return;
+                    }
+                    selectedEventCardIndex = null;
+                    const eventSelectionArea = document.getElementById('eventSelectionArea');
+                    if (eventSelectionArea) {
+                        eventSelectionArea.style.display = 'block';
+                        renderEventChoice();
+                        const confirmBtn = document.getElementById('confirmEventChoiceBtn');
+                        if (confirmBtn) confirmBtn.disabled = true;
+                    }
+                    
+                    // Анимация появления карт
+                    eventSelectionArea.style.animation = 'none';
+                    eventSelectionArea.offsetHeight; // trigger reflow
+                    eventSelectionArea.style.animation = 'packOpen 0.4s ease-out';
+                    
+                    // Плавная прокрутка к выбору карт
+                    eventSelectionArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                    showPromoStatus(`🎪 Ивент-пак открыт! Выберите карту сезона ${getSeasonName(currentSeason)} 🎪`, "success");
+                    
+                } catch (error) {
+                    console.error('Ошибка при открытии ивент-пака:', error);
+                    showPromoStatus("❌ Ошибка при открытии ивент-пака. Попробуйте снова", "error");
+                    // Возвращаем осколки при ошибке
                     shards += 5;
                     updateUI();
-                    showPromoStatus("❌ Ошибка: нет доступных ивент-карт. Осколки возвращены", "error");
-                    return;
-                }
-                selectedEventCardIndex = null;
-                const eventSelectionArea = document.getElementById('eventSelectionArea');
-                if (eventSelectionArea) {
-                    eventSelectionArea.style.display = 'block';
-                    renderEventChoice();
-                    const confirmBtn = document.getElementById('confirmEventChoiceBtn');
-                    if (confirmBtn) confirmBtn.disabled = true;
+                } finally {
+                    // Восстанавливаем кнопку
+                    setTimeout(() => {
+                        eventPackBtn.disabled = false;
+                        eventPackBtn.innerHTML = originalText;
+                        eventPackBtn.style.background = '';
+                        eventPackBtn.style.transform = '';
+                    }, 500);
                 }
             }
         }
@@ -2486,7 +2548,7 @@
         const SUPABASE_ANON_KEY = SUPABASE_CONFIG.ANON_KEY;
 
         const PROMO_LIST = [
-            { code: "DAY16", reward: { crystals: 150, shards: 0, ore: 0 } }, 
+            { code: "BLAZE", reward: { crystals: 500, shards: 20, ore: 0 } }, 
         ];
         
         let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
@@ -2550,40 +2612,79 @@
                     updated_at: new Date().toISOString()
                 });
                 
-                // Сначала удаляем старые записи коллекции пользователя
-                const { error: deleteError } = await supabaseClient
+                // Получаем текущие карты пользователя из базы
+                const { data: existingCards, error: fetchError } = await supabaseClient
                     .from('user_collections')
-                    .delete()
+                    .select('card_id, animated')
                     .eq('user_id', userId);
                 
-                if (deleteError) {
-                    console.error('Ошибка удаления старых коллекций:', deleteError);
+                if (fetchError) {
+                    console.error('Ошибка получения существующих коллекций:', fetchError);
+                    return;
                 }
                 
-                // Затем добавляем актуальные карты
-                const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
-                    user_id: userId, 
-                    card_id: cardId, 
-                    animated: data.animated || false
-                }));
+                // Создаем Map существующих карт для быстрого поиска
+                const existingMap = new Map();
+                if (existingCards) {
+                    existingCards.forEach(card => {
+                        existingMap.set(card.card_id, { animated: card.animated });
+                    });
+                }
                 
-                if (collectionData.length > 0) {
-                    const { error: insertError } = await supabaseClient
-                        .from('user_collections')
-                        .insert(collectionData);
-                    
-                    if (insertError) {
-                        console.error('Ошибка вставки коллекций:', insertError);
+                // Подготавливаем данные для вставки и обновления
+                const cardsToInsert = [];
+                const cardsToUpdate = [];
+                
+                for (const { card_id, animated } of collectionData) {
+                    if (existingMap.has(card_id)) {
+                        // Карта существует, проверяем нужно ли обновить animated
+                        const existingCard = existingMap.get(card_id);
+                        if (existingCard.animated !== animated) {
+                            cardsToUpdate.push({ card_id, animated });
+                        }
                     } else {
-                        console.log(`✅ Синхронизировано ${collectionData.length} карт для пользователя ${userId}`);
+                        // Новая карта
+                        cardsToInsert.push({ user_id: userId, card_id, animated });
                     }
                 }
                 
+                // Вставляем новые карты
+                if (cardsToInsert.length > 0) {
+                    const { error: insertError } = await supabaseClient
+                        .from('user_collections')
+                        .insert(cardsToInsert);
+                    
+                    if (insertError) {
+                        console.error('Ошибка вставки новых карт:', insertError);
+                    } else {
+                        console.log(`✅ Добавлено ${cardsToInsert.length} новых карт`);
+                    }
+                }
+                
+                // Обновляем существующие карты (например, при улучшении до анимированных)
+                for (const card of cardsToUpdate) {
+                    const { error: updateError } = await supabaseClient
+                        .from('user_collections')
+                        .update({ animated: card.animated })
+                        .eq('user_id', userId)
+                        .eq('card_id', card.card_id);
+                    
+                    if (updateError) {
+                        console.error(`Ошибка обновления карты ${card.card_id}:`, updateError);
+                    }
+                }
+                
+                if (cardsToUpdate.length > 0) {
+                    console.log(`✅ Обновлено ${cardsToUpdate.length} карт`);
+                }
+                
+                // Обновляем профиль пользователя
                 await supabaseClient.from('user_profiles').upsert({
                     user_id: userId, 
                     nickname: currentNickname || null, 
                     last_active: new Date().toISOString()
                 });
+                
             } catch(e) { 
                 console.error('Sync error:', e); 
             }
@@ -3120,7 +3221,14 @@
             showPromoStatus("🎁 Ежедневный бонус получен! +30💎", "success");
         }
         
-        function updateMiningUI() { clicksLeftDisplay.innerText = `${miningClicksToday}`; oreInMine.innerText = ore; mineClickBtn.disabled = miningClicksToday >= getMaxMineClicks(); mineClickBtn.classList.toggle('disabled', miningClicksToday >= getMaxMineClicks()); }
+        function updateMiningUI() { 
+            const maxClicks = getMaxMineClicks();
+            const remainingClicks = maxClicks - miningClicksToday;
+            clicksLeftDisplay.innerText = `${miningClicksToday}`;
+            oreInMine.innerText = ore; 
+            mineClickBtn.disabled = miningClicksToday >= maxClicks; 
+            mineClickBtn.classList.toggle('disabled', miningClicksToday >= maxClicks);
+        }
         
         function mine() { 
             if (miningClicksToday >= getMaxMineClicks()) return; 
@@ -3145,14 +3253,20 @@
         
         function getRandomCardForPack() {
             let total = Object.values(RANK_WEIGHTS).reduce((a,b)=>a+b,0);
-            let rand = Math.random() * total, acc = 0;
-            for (let [rank, w] of Object.entries(RANK_WEIGHTS)) {
-                acc += w;
-                if (rand <= acc) {
-                    const pool = ALL_CARDS.filter(c => c.rank === rank && !c.season && c.id !== "osk01");
-                    if (pool.length === 0) return { ...ALL_CARDS.find(c => c.id === "Eakira01") || ALL_CARDS[0] };
-                    return { ...pool[Math.floor(Math.random() * pool.length)] };
+            let attempts = 0;
+            while (attempts < 50) { // Защита от бесконечного цикла
+                let rand = Math.random() * total, acc = 0;
+                for (let [rank, w] of Object.entries(RANK_WEIGHTS)) {
+                    acc += w;
+                    if (rand <= acc) {
+                        const pool = ALL_CARDS.filter(c => c.rank === rank && !c.season && c.id !== "osk01");
+                        if (pool.length > 0) {
+                            return { ...pool[Math.floor(Math.random() * pool.length)] };
+                        }
+                        break; // Если пул пуст, пробуем другой ранг
+                    }
                 }
+                attempts++;
             }
             return { ...ALL_CARDS.find(c => c.id === "Eakira01") || ALL_CARDS[0] };
         }
@@ -3222,7 +3336,7 @@
             updateUI();
         }
         
-        function buyPack() { 
+        async function buyPack() { 
             if (crystals < PACK_PRICE) {
                 showPromoStatus(`❌ Недостаточно кристаллов! Нужно ${PACK_PRICE}💎`, "error");
                 return;
@@ -3233,16 +3347,59 @@
             }
             
             if (confirm(`Купить пак за ${PACK_PRICE}💎? Вы получите 3 карты на выбор.`)) {
-                crystals -= PACK_PRICE; 
-                packsOpened++;
-                updateQuestProgress("daily_pack", 1);
-                checkAchievements();
-                updateUI(); 
-                currentOfferedCards = generateOffer(); 
-                selectedCardIndex = null; 
-                selectionArea.style.display = 'block'; 
-                renderChoice(); 
-                confirmChoiceBtn.disabled = true;
+                const openPackBtn = document.getElementById('openPackBtn');
+                const originalText = openPackBtn.innerHTML;
+                
+                try {
+                    // Блокируем кнопку
+                    openPackBtn.disabled = true;
+                    openPackBtn.innerHTML = '🎴 ОТКРЫТИЕ...';
+                    openPackBtn.style.background = 'radial-gradient(circle at 30% 10%, #ff6666, #aa2222)';
+                    
+                    // Показываем анимацию на кнопке
+                    openPackBtn.style.transform = 'scale(0.98)';
+                    
+                    // Имитация загрузки (можно убрать или настроить задержку)
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                    
+                    // Основная логика
+                    crystals -= PACK_PRICE; 
+                    packsOpened++;
+                    updateQuestProgress("daily_pack", 1);
+                    checkAchievements();
+                    updateUI(); 
+                    currentOfferedCards = generateOffer(); 
+                    selectedCardIndex = null; 
+                    selectionArea.style.display = 'block'; 
+                    renderChoice(); 
+                    confirmChoiceBtn.disabled = true;
+                    
+                    // Анимация появления карт
+                    selectionArea.style.animation = 'none';
+                    selectionArea.offsetHeight; // trigger reflow
+                    selectionArea.style.animation = 'packOpen 0.4s ease-out';
+                    
+                    // Плавная прокрутка к выбору карт
+                    selectionArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                    showPromoStatus("✨ Пак открыт! Выберите одну из трёх карт ✨", "success");
+                    
+                } catch (error) {
+                    console.error('Ошибка при открытии пака:', error);
+                    showPromoStatus("❌ Ошибка при открытии пака. Попробуйте снова", "error");
+                    // Возвращаем кристаллы при ошибке
+                    crystals += PACK_PRICE;
+                    updateUI();
+                } finally {
+                    // Восстанавливаем кнопку
+                    setTimeout(() => {
+                        openPackBtn.disabled = false;
+                        openPackBtn.innerHTML = originalText;
+                        openPackBtn.style.background = '';
+                        openPackBtn.style.transform = '';
+                        openPackBtn.style.opacity = '';
+                    }, 500);
+                }
             }
         }
         
@@ -3392,8 +3549,6 @@
         }
         
         function saveFishingData() { localStorage.setItem('bloody_fishing_v1', JSON.stringify(fishingData)); }
-        
-        let lastFreeAttemptTime = null;
         
         function getFreeAttemptsLeft() {
             if (!fishingData.freeLastUsed) return 1;
@@ -3577,7 +3732,7 @@
         }
         
         async function searchAndViewPlayer() {
-            const searchTerm = document.getElementById('searchPlayerInput').value.trim();
+            const searchTerm = document.getElementById('searchPlayerInput').value.trim().replace(/[<>]/g, '');
             if (!searchTerm) { showPromoStatus("Введите ID игрока или ник для поиска", "error"); return; }
             
             const searchBtn = document.getElementById('searchPlayerBtn');
