@@ -2849,9 +2849,11 @@
             const container = document.getElementById('topPlayersList');
             if (!container) return;
             
-            // Сбрасываем кэш если коллекция изменилась
             const currentUserId = getUserId();
-            if (topPlayersCache.data) {
+            const now = Date.now();
+            const isCacheValid = topPlayersCache.data && (now - topPlayersCache.timestamp) < TOP_PLAYERS_CACHE_TTL;
+            
+            if (isCacheValid && topPlayersCache.data) {
                 const cachedMe = topPlayersCache.data.find(p => p.user_id === currentUserId);
                 if (cachedMe && cachedMe.count !== collectionMap.size) {
                     console.log('🔄 Коллекция изменилась, сбрасываем кэш топа');
@@ -2874,11 +2876,28 @@
                 for (let i = 0; i < topPlayers.length; i++) {
                     const player = topPlayers[i];
                     const isCurrentUser = (player.user_id === currentUserId);
-                    const rankClass = player.rank === 1 ? 'top-1' : (player.rank === 2 ? 'top-2' : (player.rank === 3 ? 'top-3' : ''));
+                    
+                    // ✅ ИСПРАВЛЕНО: Только 1,2,3 места получают медали
+                    let rankIcon = '';
+                    let rankClass = '';
+                    
+                    if (player.rank === 1) {
+                        rankIcon = '👑';
+                        rankClass = 'top-1';
+                    } else if (player.rank === 2) {
+                        rankIcon = '🥈';
+                        rankClass = 'top-2';
+                    } else if (player.rank === 3) {
+                        rankIcon = '🥉';
+                        rankClass = 'top-3';
+                    } else {
+                        rankIcon = `#${player.rank}`;
+                        rankClass = '';
+                    }
                     
                     html += `<div class="top-player-row ${isCurrentUser ? 'current-user' : ''}" data-user-id="${player.user_id}">
                         <div class="top-player-rank ${rankClass}">
-                            ${player.rank === 1 ? '👑' : (player.rank === 2 ? '🥈' : (player.rank === 3 ? '🥉' : `#${player.rank}`))}
+                            ${rankIcon}
                         </div>
                         <div class="top-player-info">
                             <span class="top-player-nick">${player.nickname}</span>
@@ -2893,15 +2912,21 @@
                 
                 html += '</div>';
                 
-                // ✅ ИСПРАВЛЕНО: Показываем позицию пользователя, даже если он не в топ-10
                 if (userData && (userPosition === null || userPosition > 10)) {
                     const actualRank = userData.rank || userPosition || '?';
+                    
+                    // ✅ Для секции "Ваша позиция" тоже правильные иконки
+                    let rankIconForMe = '';
+                    if (actualRank === 1) rankIconForMe = '👑';
+                    else if (actualRank === 2) rankIconForMe = '🥈';
+                    else if (actualRank === 3) rankIconForMe = '🥉';
+                    else rankIconForMe = '📍';
                     
                     html += `<div class="current-user-section">
                         <div class="title">⭐ ВАША ПОЗИЦИЯ В ОБЩЕМ ЗАЧЕТЕ</div>
                         <div class="my-position-card">
                             <div style="display: flex; gap: 12px; align-items: center;">
-                                <span style="font-size: 1.5rem;">${actualRank === 1 ? '👑' : (actualRank === 2 ? '🥈' : (actualRank === 3 ? '🥉' : '📍'))}</span>
+                                <span style="font-size: 1.5rem;">${rankIconForMe}</span>
                                 <div>
                                     <div style="font-weight: bold; color: #FFE7B6;">${userData.nickname}</div>
                                     <div style="font-size: 0.65rem; color: #aa8899;">ID: ${currentUserId.slice(0, 12)}...</div>
@@ -2917,7 +2942,6 @@
                 
                 container.innerHTML = html;
                 
-                // Обработчики кнопок
                 document.querySelectorAll('.top-player-view-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
