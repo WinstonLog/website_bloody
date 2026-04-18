@@ -2742,34 +2742,42 @@
             } catch(e) { return null; }
         }
         
+        // НОВАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ТОПА С ПОЗИЦИЕЙ ПОЛЬЗОВАТЕЛЯ (С ДИАГНОСТИКОЙ)
         async function getTopPlayersWithUserPosition(limit = 10) {
             if (!supabaseInitialized) return { topPlayers: [], userPosition: null, userData: null };
             
             const now = Date.now();
             if (topPlayersCache.data && (now - topPlayersCache.timestamp) < TOP_PLAYERS_CACHE_TTL) {
                 const userId = getUserId();
-                const userData = topPlayersCache.data.find(p => p.user_id === userId);
-                const userPosition = userData ? userData.rank : null;
+                const userIndex = topPlayersCache.data.findIndex(p => p.user_id === userId);
+                const userData = userIndex !== -1 ? topPlayersCache.data[userIndex] : null;
                 return {
                     topPlayers: topPlayersCache.data.slice(0, limit),
-                    userPosition: userPosition,
+                    userPosition: userIndex !== -1 ? userIndex + 1 : null,
                     userData: userData
                 };
             }
             
             try {
                 // Получаем все коллекции
-                const { data: collections, error: collError } = await supabaseClient
-                    .from('user_collections')
-                    .select('user_id, card_id');
-                    
+                const { data: collections, error: collError } = await supabaseClient.from('user_collections').select('user_id, card_id');
                 if (collError) throw collError;
+                
+                console.log('📊 Всего записей в user_collections:', collections?.length || 0);
+                
                 if (!collections || collections.length === 0) {
                     return { topPlayers: [], userPosition: null, userData: null };
                 }
                 
-                // Считаем уникальные карты для каждого пользователя
-                const userCardsMap = new Map();
+                // ДИАГНОСТИКА: показываем записи текущего пользователя
+                const currentUserId = getUserId();
+                const myRecords = collections.filter(c => c.user_id === currentUserId);
+                console.log(`📊 Записей для текущего пользователя (${currentUserId}):`, myRecords.length);
+                console.log('📊 ID карт текущего пользователя:', myRecords.map(r => r.card_id));
+                
+                // Считаем УНИКАЛЬНЫЕ карты для каждого пользователя
+                const userCardsMap = new Map(); // user_id -> Set(card_ids)
+                
                 collections.forEach(item => {
                     if (!userCardsMap.has(item.user_id)) {
                         userCardsMap.set(item.user_id, new Set());
@@ -2777,44 +2785,22 @@
                     userCardsMap.get(item.user_id).add(item.card_id);
                 });
                 
-                // Преобразуем в массив
+                // Преобразуем в массив с количеством уникальных карт
                 let playersArray = Array.from(userCardsMap.entries()).map(([user_id, cardSet]) => ({ 
                     user_id, 
                     count: cardSet.size 
                 }));
                 
-                // Сортируем по количеству карт (по убыванию)
+                console.log('📊 Игроков в топе:', playersArray.length);
+                console.log('📊 Количество карт текущего игрока в топе:', playersArray.find(p => p.user_id === currentUserId)?.count);
+                console.log('📊 Реальное количество карт в collectionMap:', collectionMap.size);
+                
                 playersArray.sort((a, b) => b.count - a.count);
                 
-                // ✅ ИСПРАВЛЕНО: Вычисляем места с учетом одинаковых значений
-                let rankedPlayers = [];
-                let currentRank = 1;
-                let previousCount = null;
-                
-                for (let i = 0; i < playersArray.length; i++) {
-                    const player = playersArray[i];
-                    
-                    // Если количество карт изменилось - обновляем ранг
-                    if (previousCount !== null && player.count !== previousCount) {
-                        currentRank = i + 1;
-                    }
-                    
-                    rankedPlayers.push({
-                        ...player,
-                        rank: currentRank
-                    });
-                    
-                    previousCount = player.count;
-                }
-                
-                // Получаем ники пользователей
-                const userIds = rankedPlayers.map(p => p.user_id);
+                const userIds = playersArray.map(p => p.user_id);
                 let nicknames = {};
                 if (userIds.length > 0) {
-                    const { data: profiles } = await supabaseClient
-                        .from('user_profiles')
-                        .select('user_id, nickname')
-                        .in('user_id', userIds);
+                    const { data: profiles } = await supabaseClient.from('user_profiles').select('user_id, nickname').in('user_id', userIds);
                     if (profiles) {
                         profiles.forEach(p => {
                             nicknames[p.user_id] = p.nickname ? escapeHtml(p.nickname) : null;
@@ -2822,23 +2808,37 @@
                     }
                 }
                 
-                const result = rankedPlayers.map(player => ({
+                const result = playersArray.map((player, idx) => ({
                     ...player,
-                    nickname: nicknames[player.user_id] || player.user_id.slice(0, 16) + '...'
+                    nickname: nicknames[player.user_id] || player.user_id.slice(0, 16) + '...',
+                    rank: idx + 1
                 }));
                 
-                // Сохраняем в кэш
                 topPlayersCache = { data: result, timestamp: now };
                 
                 const userId = getUserId();
-                const userData = result.find(p => p.user_id === userId);
+                const userIndex = result.findIndex(p => p.user_id === userId);
+                const userData = userIndex !== -1 ? result[userIndex] : null;
+                
+                let userPositionData = null;
+                if (userIndex === -1 && userData === null) {
+                    const userCollectionCount = collectionMap.size;
+                    if (userCollectionCount > 0) {
+                        const userNick = currentNickname || (await loadUserNickname(userId)) || userId.slice(0, 16) + '...';
+                        userPositionData = {
+                            user_id: userId,
+                            count: userCollectionCount,
+                            nickname: userNick,
+                            rank: null
+                        };
+                    }
+                }
                 
                 return {
                     topPlayers: result.slice(0, limit),
-                    userPosition: userData ? userData.rank : null,
-                    userData: userData
+                    userPosition: userIndex !== -1 ? userIndex + 1 : null,
+                    userData: userData || userPositionData
                 };
-                
             } catch(e) {
                 console.error('Get top players error:', e);
                 return { topPlayers: [], userPosition: null, userData: null };
@@ -2849,11 +2849,9 @@
             const container = document.getElementById('topPlayersList');
             if (!container) return;
             
+            // ✅ Сбрасываем кэш если коллекция изменилась
             const currentUserId = getUserId();
-            const now = Date.now();
-            const isCacheValid = topPlayersCache.data && (now - topPlayersCache.timestamp) < TOP_PLAYERS_CACHE_TTL;
-            
-            if (isCacheValid && topPlayersCache.data) {
+            if (topPlayersCache.data) {
                 const cachedMe = topPlayersCache.data.find(p => p.user_id === currentUserId);
                 if (cachedMe && cachedMe.count !== collectionMap.size) {
                     console.log('🔄 Коллекция изменилась, сбрасываем кэш топа');
@@ -2876,28 +2874,11 @@
                 for (let i = 0; i < topPlayers.length; i++) {
                     const player = topPlayers[i];
                     const isCurrentUser = (player.user_id === currentUserId);
-                    
-                    // ✅ ИСПРАВЛЕНО: Только 1,2,3 места получают медали
-                    let rankIcon = '';
-                    let rankClass = '';
-                    
-                    if (player.rank === 1) {
-                        rankIcon = '👑';
-                        rankClass = 'top-1';
-                    } else if (player.rank === 2) {
-                        rankIcon = '🥈';
-                        rankClass = 'top-2';
-                    } else if (player.rank === 3) {
-                        rankIcon = '🥉';
-                        rankClass = 'top-3';
-                    } else {
-                        rankIcon = `#${player.rank}`;
-                        rankClass = '';
-                    }
+                    const rankClass = player.rank === 1 ? 'top-1' : (player.rank === 2 ? 'top-2' : (player.rank === 3 ? 'top-3' : ''));
                     
                     html += `<div class="top-player-row ${isCurrentUser ? 'current-user' : ''}" data-user-id="${player.user_id}">
                         <div class="top-player-rank ${rankClass}">
-                            ${rankIcon}
+                            ${player.rank === 1 ? '👑' : (player.rank === 2 ? '🥈' : (player.rank === 3 ? '🥉' : `#${player.rank}`))}
                         </div>
                         <div class="top-player-info">
                             <span class="top-player-nick">${player.nickname}</span>
@@ -2912,21 +2893,26 @@
                 
                 html += '</div>';
                 
+                // Если пользователь не в топ-10, показываем его позицию отдельно
                 if (userData && (userPosition === null || userPosition > 10)) {
-                    const actualRank = userData.rank || userPosition || '?';
+                    let actualRank = userPosition;
                     
-                    // ✅ Для секции "Ваша позиция" тоже правильные иконки
-                    let rankIconForMe = '';
-                    if (actualRank === 1) rankIconForMe = '👑';
-                    else if (actualRank === 2) rankIconForMe = '🥈';
-                    else if (actualRank === 3) rankIconForMe = '🥉';
-                    else rankIconForMe = '📍';
+                    // ✅ ИСПРАВЛЕНО: Используем кэш вместо нового запроса
+                    if (actualRank === null && topPlayersCache.data) {
+                        const fullUserIndex = topPlayersCache.data.findIndex(p => p.user_id === currentUserId);
+                        actualRank = fullUserIndex !== -1 ? fullUserIndex + 1 : null;
+                    }
+                    
+                    // Если всё ещё null - показываем знак вопроса
+                    if (actualRank === null) {
+                        actualRank = '?';
+                    }
                     
                     html += `<div class="current-user-section">
                         <div class="title">⭐ ВАША ПОЗИЦИЯ В ОБЩЕМ ЗАЧЕТЕ</div>
                         <div class="my-position-card">
                             <div style="display: flex; gap: 12px; align-items: center;">
-                                <span style="font-size: 1.5rem;">${rankIconForMe}</span>
+                                <span style="font-size: 1.5rem;">${actualRank === 1 ? '👑' : (actualRank === 2 ? '🥈' : (actualRank === 3 ? '🥉' : '📍'))}</span>
                                 <div>
                                     <div style="font-weight: bold; color: #FFE7B6;">${userData.nickname}</div>
                                     <div style="font-size: 0.65rem; color: #aa8899;">ID: ${currentUserId.slice(0, 12)}...</div>
