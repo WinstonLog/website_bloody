@@ -2600,85 +2600,70 @@
         }
         
         async function syncToCloud() {
-            if (!supabaseInitialized) return;
+            if (!supabaseInitialized) {
+                console.error('❌ Supabase не инициализирован');
+                return;
+            }
+            
             const userId = getUserId();
+            console.log('🔄 Синхронизация для пользователя:', userId);
+            console.log('📊 Карт для синхронизации:', collectionMap.size);
+            
             try {
-                // Синхронизируем ресурсы
-                await supabaseClient.from('user_resources').upsert({
-                    user_id: userId,
-                    crystals: crystals,
-                    shards: shards,
-                    ore: ore,
-                    updated_at: new Date().toISOString()
-                });
-                
-                // Получаем текущие карты пользователя из базы
-                const { data: existingCards, error: fetchError } = await supabaseClient
-                    .from('user_collections')
-                    .select('card_id, animated')
-                    .eq('user_id', userId);
-                
-                if (fetchError) {
-                    console.error('Ошибка получения существующих коллекций:', fetchError);
-                    return;
+                // 1. Синхронизируем ресурсы
+                const { error: resourceError } = await supabaseClient
+                    .from('user_resources')
+                    .upsert({
+                        user_id: userId,
+                        crystals: crystals,
+                        shards: shards,
+                        ore: ore,
+                        updated_at: new Date().toISOString()
+                    });
+                    
+                if (resourceError) {
+                    console.error('❌ Ошибка синхронизации ресурсов:', resourceError);
+                } else {
+                    console.log('✅ Ресурсы синхронизированы');
                 }
                 
-                // Создаем Map существующих карт для быстрого поиска
-                const existingMap = new Map();
-                if (existingCards) {
-                    existingCards.forEach(card => {
-                        existingMap.set(card.card_id, { animated: card.animated });
+                // 2. ✅ ИСПРАВЛЕНО: Правильно получаем данные из collectionMap
+                const cardsToSync = [];
+                for (const [cardId, data] of collectionMap.entries()) {
+                    cardsToSync.push({
+                        user_id: userId,
+                        card_id: cardId,
+                        animated: data.animated || false
                     });
                 }
                 
-                // Подготавливаем данные для вставки и обновления
-                const cardsToInsert = [];
-                const cardsToUpdate = [];
+                console.log(`📤 Отправка ${cardsToSync.length} карт в Supabase...`);
                 
-                for (const { card_id, animated } of collectionData) {
-                    if (existingMap.has(card_id)) {
-                        // Карта существует, проверяем нужно ли обновить animated
-                        const existingCard = existingMap.get(card_id);
-                        if (existingCard.animated !== animated) {
-                            cardsToUpdate.push({ card_id, animated });
-                        }
-                    } else {
-                        // Новая карта
-                        cardsToInsert.push({ user_id: userId, card_id, animated });
+                if (cardsToSync.length > 0) {
+                    // Удаляем старые записи пользователя
+                    const { error: deleteError } = await supabaseClient
+                        .from('user_collections')
+                        .delete()
+                        .eq('user_id', userId);
+                        
+                    if (deleteError) {
+                        console.error('❌ Ошибка удаления старых карт:', deleteError);
                     }
-                }
-                
-                // Вставляем новые карты
-                if (cardsToInsert.length > 0) {
+                    
+                    // Вставляем все карты заново
                     const { error: insertError } = await supabaseClient
                         .from('user_collections')
-                        .insert(cardsToInsert);
-                    
+                        .insert(cardsToSync);
+                        
                     if (insertError) {
-                        console.error('Ошибка вставки новых карт:', insertError);
+                        console.error('❌ Ошибка вставки карт:', insertError);
+                        console.error('Детали:', insertError.details, insertError.message);
                     } else {
-                        console.log(`✅ Добавлено ${cardsToInsert.length} новых карт`);
+                        console.log(`✅ ${cardsToSync.length} карт успешно синхронизированы`);
                     }
                 }
                 
-                // Обновляем существующие карты (например, при улучшении до анимированных)
-                for (const card of cardsToUpdate) {
-                    const { error: updateError } = await supabaseClient
-                        .from('user_collections')
-                        .update({ animated: card.animated })
-                        .eq('user_id', userId)
-                        .eq('card_id', card.card_id);
-                    
-                    if (updateError) {
-                        console.error(`Ошибка обновления карты ${card.card_id}:`, updateError);
-                    }
-                }
-                
-                if (cardsToUpdate.length > 0) {
-                    console.log(`✅ Обновлено ${cardsToUpdate.length} карт`);
-                }
-                
-                // Обновляем профиль пользователя
+                // 3. Обновляем профиль
                 await supabaseClient.from('user_profiles').upsert({
                     user_id: userId, 
                     nickname: currentNickname || null, 
@@ -2686,7 +2671,7 @@
                 });
                 
             } catch(e) { 
-                console.error('Sync error:', e); 
+                console.error('❌ Критическая ошибка синхронизации:', e); 
             }
         }
         
@@ -2860,16 +2845,24 @@
             }
         }
         
-        // ОБНОВЛЕННАЯ ФУНКЦИЯ ОТОБРАЖЕНИЯ ТОПА
         async function loadTopPlayers() {
             const container = document.getElementById('topPlayersList');
             if (!container) return;
+            
+            // ✅ Сбрасываем кэш если коллекция изменилась
+            const currentUserId = getUserId();
+            if (topPlayersCache.data) {
+                const cachedMe = topPlayersCache.data.find(p => p.user_id === currentUserId);
+                if (cachedMe && cachedMe.count !== collectionMap.size) {
+                    console.log('🔄 Коллекция изменилась, сбрасываем кэш топа');
+                    topPlayersCache = { data: null, timestamp: 0 };
+                }
+            }
             
             container.innerHTML = '<div class="loading-top">🏆 Загрузка топа игроков...</div>';
             
             try {
                 const { topPlayers, userPosition, userData } = await getTopPlayersWithUserPosition(10);
-                const currentUserId = getUserId();
                 
                 if (!topPlayers || topPlayers.length === 0) {
                     container.innerHTML = '<div class="loading-top">🏆 Пока нет игроков с коллекциями</div>';
@@ -2903,17 +2896,16 @@
                 // Если пользователь не в топ-10, показываем его позицию отдельно
                 if (userData && (userPosition === null || userPosition > 10)) {
                     let actualRank = userPosition;
-                    if (actualRank === null && userData) {
-                        const { data: allCollections } = await supabaseClient.from('user_collections').select('user_id');
-                        if (allCollections) {
-                            const counts = {};
-                            allCollections.forEach(item => {
-                                counts[item.user_id] = (counts[item.user_id] || 0) + 1;
-                            });
-                            const sortedCounts = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-                            const userRank = sortedCounts.findIndex(([id]) => id === currentUserId);
-                            actualRank = userRank !== -1 ? userRank + 1 : null;
-                        }
+                    
+                    // ✅ ИСПРАВЛЕНО: Используем кэш вместо нового запроса
+                    if (actualRank === null && topPlayersCache.data) {
+                        const fullUserIndex = topPlayersCache.data.findIndex(p => p.user_id === currentUserId);
+                        actualRank = fullUserIndex !== -1 ? fullUserIndex + 1 : null;
+                    }
+                    
+                    // Если всё ещё null - показываем знак вопроса
+                    if (actualRank === null) {
+                        actualRank = '?';
                     }
                     
                     html += `<div class="current-user-section">
@@ -2928,7 +2920,7 @@
                             </div>
                             <div style="text-align: right;">
                                 <div style="font-size: 1.2rem; font-weight: bold; color: #88ff88;">📚 ${userData.count}</div>
-                                <div style="font-size: 0.7rem; color: #ffaa66;">Место: #${actualRank || '?'}</div>
+                                <div style="font-size: 0.7rem; color: #ffaa66;">Место: #${actualRank}</div>
                             </div>
                         </div>
                     </div>`;
@@ -3913,31 +3905,79 @@
             if (counterElement) counterElement.textContent = total;
             if (container) container.classList.remove('loading');
         }
-        
+                
         async function syncInitialData() {
             if (!supabaseInitialized) return;
             const userId = getUserId();
             const nickname = await loadUserNickname(userId);
-            if (nickname) { currentNickname = nickname; updateNicknameUI(); }
+            if (nickname) { 
+                currentNickname = nickname; 
+                updateNicknameUI(); 
+            }
+            
             const existingData = await loadFromCloud(userId);
-            if (!existingData || !existingData.resources) { await syncToCloud(); }
-            else if (existingData.resources) {
+            
+            if (!existingData || !existingData.resources) { 
+                // Нет данных в облаке - сохраняем текущие
+                await syncToCloud(); 
+            } else {
+                // СРАВНИВАЕМ и объединяем данные
+                
+                // 1. Ресурсы - берем МАКСИМАЛЬНЫЕ значения
                 const cloudCrystals = existingData.resources.crystals || 0;
-                if (cloudCrystals > crystals + 10) {
-                    crystals = cloudCrystals;
-                    shards = existingData.resources.shards || 0;
-                    ore = existingData.resources.ore || 0;
-                    if (existingData.collections) {
-                        collectionMap.clear();
-                        for (const item of existingData.collections) {
+                const cloudShards = existingData.resources.shards || 0;
+                const cloudOre = existingData.resources.ore || 0;
+                
+                if (cloudCrystals > crystals) crystals = cloudCrystals;
+                if (cloudShards > shards) shards = cloudShards;
+                if (cloudOre > ore) ore = cloudOre;
+                
+                // 2. Коллекция карт - ОБЪЕДИНЯЕМ
+                let needUpdate = false;
+                
+                if (existingData.collections) {
+                    for (const item of existingData.collections) {
+                        if (!collectionMap.has(item.card_id)) {
                             const fullCard = getFullCardById(item.card_id);
-                            if (fullCard) collectionMap.set(item.card_id, { cardData: fullCard, animated: item.animated || false });
+                            if (fullCard) {
+                                collectionMap.set(item.card_id, { 
+                                    cardData: fullCard, 
+                                    animated: item.animated || false 
+                                });
+                                needUpdate = true;
+                                console.log(`📥 Добавлена карта из облака: ${fullCard.name}`);
+                            }
+                        } else {
+                            const localCard = collectionMap.get(item.card_id);
+                            if (localCard.animated !== item.animated && item.animated === true) {
+                                localCard.animated = true;
+                                needUpdate = true;
+                            }
                         }
                     }
-                    showPromoStatus("🔄 Данные синхронизированы с облаком!", "success");
-                    updateUI();
-                    saveData();
                 }
+                
+                // 3. Синхронизируем локальные карты в облако
+                const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
+                    user_id: userId,
+                    card_id: cardId,
+                    animated: data.animated || false
+                }));
+                
+                if (collectionData.length > 0) {
+                    await supabaseClient
+                        .from('user_collections')
+                        .upsert(collectionData, { onConflict: 'user_id,card_id' });
+                }
+                
+                console.log(`📥 Синхронизировано: ${crystals}💎, ${shards}⚡, ${ore}⛏️, ${collectionMap.size} карт`);
+                
+                if (needUpdate) {
+                    showPromoStatus("🔄 Данные синхронизированы с облаком!", "success");
+                }
+                
+                updateUI();
+                saveData();
             }
         }
         
