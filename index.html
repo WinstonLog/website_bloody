@@ -1770,6 +1770,18 @@
             color: #88ff88;
         }
 
+        .level-bar {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 12px;
+            border-bottom: 1px solid rgba(255, 80, 80, 0.2);
+        }
+
+        .level-bar .level-card {
+            background: linear-gradient(135deg, #ffaa33, #cc8833);
+            border: none;
+            justify-content: center;
+        }
+
     </style>
 </head>
 <body>
@@ -1779,18 +1791,20 @@
             <div class="logo-icon">🩸</div>
             <div class="site-title">Bloody</div>
             <div class="channel-badge">@b_loody</div>
-            <div class="level-card">
-                <div class="level-header">
-                    <span class="level-number">⭐ Ур. <span id="levelValue">1</span></span>
-                    <span class="level-exp" id="expText">0/100</span>
-                </div>
-            </div>
         </div>
         <div class="stats-row">
             <div class="stat-box">💎 <span class="stat-value" id="crystalDisplay">0</span></div>
             <div class="stat-box">⛏️ <span class="stat-value ore-value" id="oreDisplay">0</span></div>
             <div class="stat-box">⚡ <span class="stat-value shard-value" id="shardDisplay">0</span></div>
             <div class="stat-box">📚 <span class="stat-value" id="totalCardsCount">0</span></div>
+        </div>
+    </div>
+    <div class="level-bar">
+        <div class="level-card">
+            <div class="level-header">
+                <span class="level-number">⭐ Уровень <span id="levelValue">1</span></span>
+                <span class="level-exp" id="expText">0/100</span>
+            </div>
         </div>
     </div>
 
