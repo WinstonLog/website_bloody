@@ -1549,12 +1549,255 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        /* Стили для колод */
+        .deck-card {
+            background: linear-gradient(135deg, #1a1f2e, #0f121f);
+            border-radius: 20px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 200, 100, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
         
-        .loading-top {
-            text-align: center;
-            padding: 20px;
+        .deck-card:hover {
+            transform: translateX(5px);
+            border-color: #ffaa66;
+        }
+        
+        .deck-card.completed {
+            background: linear-gradient(135deg, #2a2a1a, #1a1a0f);
+            border-color: #ffaa66;
+        }
+        
+        .deck-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .deck-icon {
+            font-size: 2rem;
+        }
+        
+        .deck-title {
+            flex: 1;
+        }
+        
+        .deck-title h4 {
+            margin: 0;
+            color: #ffccaa;
+            font-size: 1rem;
+        }
+        
+        .deck-title .deck-count {
+            font-size: 0.65rem;
             color: #aa8899;
         }
+        
+        .deck-reward {
+            text-align: right;
+            font-size: 0.7rem;
+            color: #ffaa66;
+        }
+        
+        .deck-progress-bar {
+            background: #2a2a3a;
+            border-radius: 10px;
+            height: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .deck-progress-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            background: linear-gradient(90deg, #ffaa33, #ff4444);
+        }
+        
+        .deck-cards-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0;
+        }
+        
+        .deck-preview-card {
+            width: 45px;
+            text-align: center;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        
+        .deck-preview-card.owned {
+            opacity: 1;
+        }
+        
+        .deck-preview-card img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #2a2a3a;
+        }
+        
+        .deck-preview-card span {
+            font-size: 0.5rem;
+            color: #aa8899;
+            display: block;
+        }
+        
+        .claim-deck-btn {
+            background: linear-gradient(135deg, #ffaa33, #cc8833);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            color: #1a0f1a;
+            cursor: pointer;
+            margin-top: 8px;
+            width: 100%;
+            transition: 0.1s;
+        }
+        
+        .claim-deck-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .deck-status {
+            font-size: 0.65rem;
+            color: #88ff88;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        /* Дополнительные стили для колод */
+        .deck-cards-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px 0;
+            max-height: 120px;
+            overflow-y: auto;
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+        }
+
+        .deck-card-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(30, 20, 40, 0.6);
+            border-radius: 10px;
+            padding: 4px 8px;
+            width: calc(50% - 3px);
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .deck-card-item:hover {
+            background: rgba(255, 100, 50, 0.3);
+            transform: scale(1.02);
+        }
+
+        .deck-card-item.owned {
+            background: rgba(74, 103, 65, 0.4);
+            border-left: 3px solid #88ff88;
+        }
+
+        .deck-card-item.missing {
+            background: rgba(255, 68, 68, 0.15);
+            border-left: 3px solid #ff4444;
+        }
+
+        .deck-card-img {
+            width: 28px;
+            height: 28px;
+            object-fit: cover;
+            border-radius: 6px;
+        }
+
+        .deck-card-name {
+            flex: 1;
+            color: #FFE7B6;
+            font-size: 0.65rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .deck-card-rank {
+            font-size: 0.55rem;
+            padding: 2px 4px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .deck-status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.6rem;
+            font-weight: bold;
+        }
+
+        .deck-status-badge.complete {
+            background: #4a6741;
+            color: #ccffaa;
+        }
+
+        .deck-status-badge.incomplete {
+            background: rgba(255, 68, 68, 0.5);
+            color: #ffaaaa;
+        }
+
+        .deck-expand-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 0.6rem;
+            color: #ffaa66;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        .deck-expand-btn:hover {
+            background: rgba(255, 170, 102, 0.3);
+        }
+
+        .deck-details {
+            display: none;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 200, 100, 0.2);
+        }
+
+        .deck-details.open {
+            display: block;
+        }
+
+        .deck-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.7rem;
+            color: #ccaa99;
+        }
+
+        .deck-missing-count {
+            color: #ff8888;
+        }
+
+        .deck-owned-count {
+            color: #88ff88;
+        }
+
     </style>
 </head>
 <body>
@@ -1582,6 +1825,7 @@
     <div class="nav-tabs">
         <button class="tab-btn" data-tab="profile">👤 Профиль</button>
         <button class="tab-btn" data-tab="collection">📚 Мои карты</button>
+        <button class="tab-btn" data-tab="decks">🃏 Колоды</button>
         <button class="tab-btn" data-tab="allcards">📖 Каталог</button>
         <button class="tab-btn active" data-tab="pack">🎴 Паки карт</button>
         <button class="tab-btn" data-tab="event">🎪 Ивент</button>
@@ -1879,6 +2123,23 @@
         </div>
     </div>
 
+    <!-- Колоды (Новая вкладка) -->
+    <div class="tab-content" id="tab-decks">
+        <div class="promo-header">
+            <span class="promo-icon">🃏</span>
+            <h4>Коллекционные колоды</h4>
+        </div>
+        <div class="pack-description" style="margin-bottom: 12px;">
+            <p>Собирайте <strong>полные колоды карт</strong> и получайте щедрые награды! Каждая колода — это набор карт из одного сета.</p>
+            <div class="pack-rules">
+                <span>📚 Колода = все карты сета</span>
+                <span>🏆 Награда за полную колоду</span>
+                <span>✨ Прогресс сохраняется автоматически</span>
+            </div>
+        </div>
+        <div id="decksList" style="display: flex; flex-direction: column; gap: 12px;"></div>
+    </div>
+
     <div class="footer">
         <p>⚠️ Изображения используются в ознакомительных целях в рамках фан-проекта. 
 Права на изображения принадлежат их законным владельцам. 
@@ -1925,6 +2186,245 @@
         // ==================== КЭШ ДЛЯ ТОПА ИГРОКОВ ====================
         let topPlayersCache = { data: null, timestamp: 0 };
         const TOP_PLAYERS_CACHE_TTL = 5 * 60 * 1000;
+
+        // ==================== СИСТЕМА КОЛОД (DECKS) ====================
+        // Определение колод (набор карт из одного сета)
+        const DECKS = {
+/*            'genshin': { 
+                name: 'Геншинский удар', 
+                icon: '⚡', 
+                setKey: 'Геншинский удар',
+                rewardCrystals: 100, 
+                rewardShards: 10, 
+                rewardExp: 150 
+            },*/
+            'ehokalypsis': { 
+                name: 'Эхокалипсис', 
+                icon: '🔮', 
+                setKey: 'Эхокалипсис',
+                rewardCrystals: 100, 
+                rewardShards: 10, 
+                rewardExp: 150 
+            },
+            'lazurniy_put': { 
+                name: 'Лазурный Путь', 
+                icon: '🌊', 
+                setKey: 'Лазурный Путь',
+                rewardCrystals: 100, 
+                rewardShards: 10, 
+                rewardExp: 150 
+            }
+/*            'events': { 
+                name: 'Ивентовые карты', 
+                icon: '🎪', 
+                setKey: 'events',
+                rewardCrystals: 80, 
+                rewardShards: 8, 
+                rewardExp: 120 
+            }*/
+        };
+        
+        let claimedDecks = new Set(); // Хранит ID колод, за которые уже получена награда
+
+        // Получить все карты из определенного сета
+        function getCardsInDeck(setKey) {
+            return CATALOG_CARDS.filter(card => card.set === setKey);
+        }
+
+        // Получить все карты из определенного сета
+        function getCardsInDeck(setKey) {
+            // Используем CATALOG_CARDS, который уже отфильтрован
+            return CATALOG_CARDS.filter(card => card.set === setKey);
+        }
+
+        // Получить прогресс по колоде
+        function getDeckProgress(deckId) {
+            const deck = DECKS[deckId];
+            if (!deck) return { total: 0, owned: 0, percent: 0, isComplete: false, cards: [] };
+            
+            const deckCards = getCardsInDeck(deck.setKey);
+            
+            console.log(`📊 Колода ${deck.name}: найдено карт в каталоге: ${deckCards.length}`);
+            
+            let ownedCount = 0;
+            const cardsProgress = [];
+            
+            for (const card of deckCards) {
+                const isOwned = collectionMap.has(card.id);
+                if (isOwned) {
+                    ownedCount++;
+                    console.log(`  ✅ Есть: ${card.name} (${card.id})`);
+                } else {
+                    console.log(`  ❌ Нет: ${card.name} (${card.id})`);
+                }
+                cardsProgress.push({
+                    card: card,
+                    isOwned: isOwned
+                });
+            }
+            
+            const isComplete = ownedCount === deckCards.length && deckCards.length > 0;
+            const percent = deckCards.length > 0 ? (ownedCount / deckCards.length) * 100 : 0;
+            
+            console.log(`📊 Итог: ${ownedCount}/${deckCards.length} (${percent}%)`);
+            
+            return {
+                total: deckCards.length,
+                owned: ownedCount,
+                percent: percent,
+                isComplete: isComplete,
+                cards: cardsProgress,
+                deckInfo: deck
+            };
+        }
+
+        // Проверить и выдать награду за завершение колоды
+        function checkAndRewardDeck(deckId) {
+            if (claimedDecks.has(deckId)) return false;
+            
+            const progress = getDeckProgress(deckId);
+            if (!progress.isComplete) return false;
+            
+            const deck = DECKS[deckId];
+            if (!deck) return false;
+            
+            // Выдаем награду
+            crystals += deck.rewardCrystals;
+            shards += deck.rewardShards;
+            addExp(deck.rewardExp);
+            claimedDecks.add(deckId);
+            
+            // Показываем уведомление
+            showPromoStatus(`🃏 КОЛОДА СОБРАНА: ${deck.name}! +${deck.rewardCrystals}💎 +${deck.rewardShards}⚡ +${deck.rewardExp}⭐`, "success");
+            
+            saveData();
+            return true;
+        }
+
+        // Проверить все колоды
+        function checkAllDecks() {
+            let anyRewarded = false;
+            for (const deckId of Object.keys(DECKS)) {
+                if (checkAndRewardDeck(deckId)) anyRewarded = true;
+            }
+            if (anyRewarded) {
+                updateUI();
+                renderDecks();
+            }
+        }
+
+        // Получить превью карт колоды
+        function getDeckPreviewCards(deckId, limit = 8) {
+            const progress = getDeckProgress(deckId);
+            const previewCards = progress.cards.slice(0, limit);
+            
+            let html = '';
+            for (const item of previewCards) {
+                const card = item.card;
+                const isOwned = item.isOwned;
+                const imgPath = getCardImage(card, false);
+                html += `
+                    <div class="deck-preview-card ${isOwned ? 'owned' : ''}" title="${card.name}">
+                        <img src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';" alt="${card.name}">
+                        <span>${isOwned ? '✓' : '?'}</span>
+                    </div>
+                `;
+            }
+            
+            if (progress.cards.length > limit) {
+                html += `<div class="deck-preview-card" style="justify-content:center; display:flex; align-items:center;">
+                            <span style="font-size:0.7rem;">+${progress.cards.length - limit}</span>
+                        </div>`;
+            }
+            
+            return html;
+        }
+
+        function renderDecks() {
+            const container = document.getElementById('decksList');
+            if (!container) return;
+            
+            if (Object.keys(DECKS).length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:20px; color:#aa8899;">📭 Колоды временно недоступны</div>';
+                return;
+            }
+            
+            let html = '';
+            for (const [deckId, deck] of Object.entries(DECKS)) {
+                const progress = getDeckProgress(deckId);
+                const isClaimed = claimedDecks.has(deckId);
+                const isComplete = progress.isComplete;
+                const missingCount = progress.total - progress.owned;
+                
+                // Список всех карт
+                let cardsHtml = '';
+                for (const item of progress.cards) {
+                    const card = item.card;
+                    const isOwned = item.isOwned;
+                    const imgPath = getCardImage(card, false);
+                    
+                    cardsHtml += `
+                        <div class="deck-card-item ${isOwned ? 'owned' : 'missing'}" data-card-id="${card.id}" data-card-img="${imgPath}" data-card-name="${card.name}" data-card-rank="${card.rankLabel}">
+                            <img class="deck-card-img" src="${imgPath}" onerror="this.src='${getDefaultImageForRank(card)}';">
+                            <span class="deck-card-name">${card.name}</span>
+                            <span class="deck-card-rank">${card.rankLabel}</span>
+                            ${!isOwned ? '<span style="color:#ff8888; margin-left:auto;">❌</span>' : '<span style="color:#88ff88; margin-left:auto;">✅</span>'}
+                        </div>
+                    `;
+                }
+                
+                html += `
+                    <div class="deck-card">
+                        <div class="deck-header">
+                            <div class="deck-icon">${deck.icon}</div>
+                            <div class="deck-title">
+                                <h4>${deck.name}</h4>
+                                <div class="deck-count">📚 ${progress.owned}/${progress.total} карт</div>
+                            </div>
+                            <div class="deck-reward">
+                                <span>+${deck.rewardCrystals}💎 +${deck.rewardShards}⚡ +${deck.rewardExp}⭐</span>
+                            </div>
+                        </div>
+                        
+                        <div class="deck-progress-bar">
+                            <div class="deck-progress-fill" style="width: ${progress.percent}%;"></div>
+                        </div>
+                        
+                        <div class="deck-cards-list">
+                            ${cardsHtml}
+                        </div>
+                        
+                        ${isComplete && !isClaimed ? `
+                            <button class="claim-deck-btn" data-deck-id="${deckId}">🎁 ЗАБРАТЬ НАГРАДУ</button>
+                        ` : ''}
+                        
+                        ${isClaimed ? '<div style="text-align:center; margin-top:10px; color:#88ff88;">✅ Награда получена</div>' : ''}
+                    </div>
+                `;
+            }
+            
+            container.innerHTML = html;
+            
+            // Кнопки получения награды
+            document.querySelectorAll('.claim-deck-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const deckId = btn.dataset.deckId;
+                    if (checkAndRewardDeck(deckId)) {
+                        renderDecks();
+                        updateUI();
+                    }
+                });
+            });
+            
+            // Клик по карте - показать в модальном окне
+            document.querySelectorAll('.deck-card-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showModal(item.dataset.cardImg, item.dataset.cardName, item.dataset.cardRank);
+                });
+            });
+        }
 
         const CATALOG_CARDS = ALL_CARDS.filter(card => card.rank !== "A+" && card.id !== "osk01");
         const RANK_WEIGHTS = { "X": 1, "S": 4, "A": 15, "P": 15, "G": 15, "B": 15, "C": 15, "D": 15, "E": 20 };
@@ -2020,7 +2520,11 @@
             { id: "shard_10", name: "Осколочный маг", desc: "Накопить 10 осколков", icon: "⚡", category: "shard", rewardCrystals: 20, rewardShards: 3, check: () => shards >= 10 },
             { id: "shard_50", name: "Повелитель осколков", desc: "Накопить 50 осколков", icon: "⚡⚡", category: "shard", rewardCrystals: 100, rewardShards: 10, check: () => shards >= 50 },
             { id: "level_5", name: "Новичок", desc: "Достичь 5 уровня", icon: "⭐", category: "level", rewardCrystals: 30, rewardShards: 5, check: () => currentLevel >= 5 },
-            { id: "level_10", name: "Мастер", desc: "Достичь 10 уровня", icon: "⭐⭐", category: "level", rewardCrystals: 100, rewardShards: 15, check: () => currentLevel >= 10 }
+            { id: "level_10", name: "Мастер", desc: "Достичь 10 уровня", icon: "⭐⭐", category: "level", rewardCrystals: 100, rewardShards: 15, check: () => currentLevel >= 10 },
+            { id: "deck_genshin", name: "Собиратель Геншина", desc: "Собрать полную колоду Геншинский удар", icon: "⚡", category: "collector", rewardCrystals: 50, rewardShards: 5, check: () => claimedDecks.has('genshin') },
+            { id: "deck_ehokalypsis", name: "Повелитель Эха", desc: "Собрать полную колоду Эхокалипсис", icon: "🔮", category: "collector", rewardCrystals: 50, rewardShards: 5, check: () => claimedDecks.has('ehokalypsis') },
+            { id: "deck_lazurniy", name: "Хранитель Лазурного", desc: "Собрать полную колоду Лазурный Путь", icon: "🌊", category: "collector", rewardCrystals: 50, rewardShards: 5, check: () => claimedDecks.has('lazurniy_put') },
+            { id: "deck_events", name: "Ивентовый магнат", desc: "Собрать все ивентовые карты", icon: "🎪", category: "collector", rewardCrystals: 100, rewardShards: 10, check: () => claimedDecks.has('events') }
         ];
         
         let unlockedAchievements = new Set();
@@ -2106,6 +2610,10 @@
             if (achievement.id === "shard_50") return Math.min(100, (shards / 50) * 100);
             if (achievement.id === "level_5") return Math.min(100, (currentLevel / 5) * 100);
             if (achievement.id === "level_10") return Math.min(100, (currentLevel / 10) * 100);
+            if (achievement.id === "deck_genshin") return claimedDecks.has('genshin') ? 100 : 0;
+            if (achievement.id === "deck_ehokalypsis") return claimedDecks.has('ehokalypsis') ? 100 : 0;
+            if (achievement.id === "deck_lazurniy") return claimedDecks.has('lazurniy_put') ? 100 : 0;
+            if (achievement.id === "deck_events") return claimedDecks.has('events') ? 100 : 0;
             return achievement.check() ? 100 : 0;
         }
         
@@ -2354,16 +2862,13 @@
                 const originalText = eventPackBtn.innerHTML;
                 
                 try {
-                    // Блокируем кнопку
                     eventPackBtn.disabled = true;
                     eventPackBtn.innerHTML = '🎪 ОТКРЫТИЕ...';
                     eventPackBtn.style.background = 'radial-gradient(circle at 30% 10%, #ffaa66, #cc7722)';
                     eventPackBtn.style.transform = 'scale(0.98)';
                     
-                    // Имитация загрузки
                     await new Promise(resolve => setTimeout(resolve, 200));
                     
-                    // Основная логика
                     shards -= 5;
                     updateUI();
                     currentEventOfferedCards = [];
@@ -2384,12 +2889,10 @@
                         if (confirmBtn) confirmBtn.disabled = true;
                     }
                     
-                    // Анимация появления карт
                     eventSelectionArea.style.animation = 'none';
                     eventSelectionArea.offsetHeight;
                     eventSelectionArea.style.animation = 'packOpen 0.4s ease-out';
                     
-                    // Плавная прокрутка к выбору карт
                     eventSelectionArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     
                     showPromoStatus(`🎪 Ивент-пак открыт! Выберите карту сезона ${getSeasonName(currentSeason)} 🎪`, "success");
@@ -2455,6 +2958,7 @@
                     collectionMap.set(card.id, { cardData: fullCard, animated: false });
                     addExp(10);
                     checkAchievements();
+                    checkAllDecks();
                     showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
                     syncToCloud();
                 } else {
@@ -2464,6 +2968,7 @@
                     collectionMap.set(card.id, { cardData: newCard, animated: false });
                     addExp(10);
                     checkAchievements();
+                    checkAllDecks();
                     showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
                     syncToCloud();
                 }
@@ -2612,7 +3117,6 @@
                 return;
             }
             
-            // Защита от множественных вызовов
             const now = Date.now();
             if (!force && isSyncing) {
                 console.log('⏳ Синхронизация уже выполняется, пропускаем');
@@ -2631,7 +3135,6 @@
             console.log('📊 Карт для синхронизации:', collectionMap.size);
             
             try {
-                // 1. Синхронизируем ресурсы
                 const { error: resourceError } = await supabaseClient
                     .from('user_resources')
                     .upsert({
@@ -2648,7 +3151,6 @@
                     console.log('✅ Ресурсы синхронизированы');
                 }
                 
-                // 2. Получаем текущие карты из облака
                 const { data: existingCards, error: fetchError } = await supabaseClient
                     .from('user_collections')
                     .select('card_id, animated')
@@ -2658,7 +3160,6 @@
                     console.error('❌ Ошибка получения существующих карт:', fetchError);
                 }
                 
-                // 3. Создаём Map существующих карт
                 const existingMap = new Map();
                 if (existingCards) {
                     existingCards.forEach(card => {
@@ -2666,11 +3167,9 @@
                     });
                 }
                 
-                // 4. Определяем, какие карты нужно добавить/обновить
                 const cardsToUpsert = [];
                 for (const [cardId, data] of collectionMap.entries()) {
                     const existingAnimated = existingMap.get(cardId);
-                    // Если карты нет в облаке ИЛИ статус анимации отличается
                     if (existingAnimated === undefined || existingAnimated !== data.animated) {
                         cardsToUpsert.push({
                             user_id: userId,
@@ -2680,7 +3179,6 @@
                     }
                 }
                 
-                // 5. Определяем, какие карты нужно удалить (есть в облаке, но нет в коллекции)
                 const cardsToDelete = [];
                 if (existingCards) {
                     for (const card of existingCards) {
@@ -2692,7 +3190,6 @@
                 
                 console.log(`📊 Изменения: +${cardsToUpsert.length} карт, -${cardsToDelete.length} карт`);
                 
-                // 6. Удаляем лишние карты
                 if (cardsToDelete.length > 0) {
                     const { error: deleteError } = await supabaseClient
                         .from('user_collections')
@@ -2707,7 +3204,6 @@
                     }
                 }
                 
-                // 7. Добавляем/обновляем нужные карты
                 if (cardsToUpsert.length > 0 || cardsToDelete.length > 0) {
                     console.log('🔄 Коллекция изменилась, обновляем топ...');
                     refreshTopPlayers();
@@ -2724,14 +3220,12 @@
                     }
                 }
                 
-                // 8. Обновляем профиль
                 await supabaseClient.from('user_profiles').upsert({
                     user_id: userId, 
                     nickname: currentNickname || null, 
                     last_active: new Date().toISOString()
                 });
                 
-                // 9. Проверяем результат
                 const { data: finalCards } = await supabaseClient
                     .from('user_collections')
                     .select('card_id')
@@ -2817,7 +3311,6 @@
             } catch(e) { return null; }
         }
         
-        // НОВАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ТОПА С ПОЗИЦИЕЙ ПОЛЬЗОВАТЕЛЯ (С ДИАГНОСТИКОЙ)
         async function getTopPlayersWithUserPosition(limit = 10) {
             if (!supabaseInitialized) return { topPlayers: [], userPosition: null, userData: null };
             
@@ -2834,7 +3327,6 @@
             }
             
             try {
-                // Получаем все коллекции
                 const { data: collections, error: collError } = await supabaseClient.from('user_collections').select('user_id, card_id');
                 if (collError) throw collError;
                 
@@ -2844,14 +3336,12 @@
                     return { topPlayers: [], userPosition: null, userData: null };
                 }
                 
-                // ДИАГНОСТИКА: показываем записи текущего пользователя
                 const currentUserId = getUserId();
                 const myRecords = collections.filter(c => c.user_id === currentUserId);
                 console.log(`📊 Записей для текущего пользователя (${currentUserId}):`, myRecords.length);
                 console.log('📊 ID карт текущего пользователя:', myRecords.map(r => r.card_id));
                 
-                // Считаем УНИКАЛЬНЫЕ карты для каждого пользователя
-                const userCardsMap = new Map(); // user_id -> Set(card_ids)
+                const userCardsMap = new Map();
                 
                 collections.forEach(item => {
                     if (!userCardsMap.has(item.user_id)) {
@@ -2860,7 +3350,6 @@
                     userCardsMap.get(item.user_id).add(item.card_id);
                 });
                 
-                // Преобразуем в массив с количеством уникальных карт
                 let playersArray = Array.from(userCardsMap.entries()).map(([user_id, cardSet]) => ({ 
                     user_id, 
                     count: cardSet.size 
@@ -2889,17 +3378,14 @@
                     rank: idx + 1
                 }));
 
-                // ✅ ФОРСИРУЕМ правильное количество для текущего пользователя
                 const userId = getUserId();
                 const myLocalCount = collectionMap.size;
 
                 const myPlayerIndex = result.findIndex(p => p.user_id === userId);
                 if (myPlayerIndex !== -1) {
-                    // Заменяем количество карт на локальное
                     result[myPlayerIndex].count = myLocalCount;
                     console.log(`✅ Принудительно установлено количество для ${userId}: ${myLocalCount}`);
                 } else if (myLocalCount > 0) {
-                    // Если пользователя нет в топе, добавляем его
                     result.push({
                         user_id: userId,
                         count: myLocalCount,
@@ -2909,7 +3395,6 @@
                     console.log(`✅ Добавлен текущий пользователь в топ с ${myLocalCount} картами`);
                 }
 
-                // Пересортируем после добавления/изменения
                 result.sort((a, b) => b.count - a.count);
                 result.forEach((player, idx) => { player.rank = idx + 1; });
 
@@ -2947,7 +3432,6 @@
             const container = document.getElementById('topPlayersList');
             if (!container) return;
             
-            // ✅ Принудительно сбрасываем кэш
             topPlayersCache = { data: null, timestamp: 0 };
             
             container.innerHTML = '<div class="loading-top">🏆 Загрузка топа игроков...</div>';
@@ -2964,12 +3448,10 @@
                     return;
                 }
                 
-                // ✅ Находим и корректируем текущего пользователя в топе
                 let myCurrentData = null;
                 for (let player of topPlayers) {
                     if (player.user_id === currentUserId) {
                         myCurrentData = player;
-                        // Корректируем количество карт, если не совпадает
                         if (player.count !== collectionMap.size) {
                             console.log(`🔄 Корректируем данные: ${player.count} -> ${collectionMap.size}`);
                             player.count = collectionMap.size;
@@ -3002,7 +3484,6 @@
                 
                 html += '</div>';
                 
-                // Если пользователь не в топ-10, показываем его позицию отдельно
                 if (!myCurrentData && collectionMap.size > 0) {
                     html += `<div class="current-user-section">
                         <div class="title">⭐ ВАША КОЛЛЕКЦИЯ</div>
@@ -3220,16 +3701,10 @@
         
         function saveData() {
             const collectionData = Array.from(collectionMap.entries()).map(([id, data]) => ({ id, animated: data.animated || false }));
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, collectionData, usedPromoCodes: Array.from(usedPromoCodes), version: 5 }));
-            syncToCloud();
-            if (supabaseInitialized) checkAndRewardReferrer(getUserId());
-            saveExtendedData();
-        }
-        
-        function saveExtendedData() {
-            const baseData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-            const extendedData = {
-                ...baseData,
+            const saveObject = { 
+                crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, 
+                collectionData, usedPromoCodes: Array.from(usedPromoCodes), 
+                version: 6,
                 unlockedAchievements: Array.from(unlockedAchievements),
                 packsOpened: packsOpened,
                 totalOreMined: totalOreMined,
@@ -3237,9 +3712,12 @@
                 currentLevel: currentLevel,
                 currentExp: currentExp,
                 dailyQuests: dailyQuests,
-                lastQuestReset: lastQuestReset
+                lastQuestReset: lastQuestReset,
+                claimedDecks: Array.from(claimedDecks)
             };
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(extendedData));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(saveObject));
+            syncToCloud();
+            if (supabaseInitialized) checkAndRewardReferrer(getUserId());
         }
         
         function loadData() {
@@ -3269,6 +3747,7 @@
                     currentExp = data.currentExp || 0;
                     dailyQuests = data.dailyQuests || DAILY_QUESTS.map(q => ({...q, progress: 0, completed: false, claimed: false}));
                     lastQuestReset = data.lastQuestReset || null;
+                    claimedDecks = new Set(data.claimedDecks || []);
                 } catch(e) { resetToDefaults(); }
             } else { resetToDefaults(); }
             const today = new Date().toDateString();
@@ -3281,14 +3760,12 @@
             updateLevelUI();
         }
         
-        // Автоматическое исправление синхронизации для всех пользователей
         async function autoFixUserSync() {
             if (!supabaseInitialized) return false;
             
             const userId = getUserId();
             const localCount = collectionMap.size;
             
-            // Получаем количество карт в облаке
             const { data: cloudCards, error } = await supabaseClient
                 .from('user_collections')
                 .select('card_id', { count: 'exact', head: true })
@@ -3298,11 +3775,9 @@
             
             console.log(`🔍 Проверка синхронизации: облако=${cloudCount}, локально=${localCount}`);
             
-            // Если количество не совпадает И есть локальные карты
             if (cloudCount !== localCount && localCount > 0) {
                 console.log(`🔄 Обнаружено несоответствие! Исправляем...`);
                 
-                // Получаем все карты из локальной коллекции
                 const allCards = [];
                 for (const [cardId, data] of collectionMap.entries()) {
                     allCards.push({
@@ -3312,7 +3787,6 @@
                     });
                 }
                 
-                // Перезаписываем данные в облаке
                 const { error: deleteError } = await supabaseClient
                     .from('user_collections')
                     .delete()
@@ -3323,7 +3797,6 @@
                     return false;
                 }
                 
-                // Вставляем пачками по 50 карт
                 const chunkSize = 50;
                 let success = true;
                 
@@ -3342,7 +3815,6 @@
                 
                 if (success) {
                     console.log(`✅ Синхронизация исправлена! Загружено ${localCount} карт`);
-                    // Показываем уведомление пользователю
                     showPromoStatus(`🔧 Синхронизация исправлена! Теперь ваши ${localCount} карт отображаются в топе.`, "success");
                     return true;
                 }
@@ -3364,6 +3836,7 @@
             currentExp = 0;
             dailyQuests = DAILY_QUESTS.map(q => ({...q, progress: 0, completed: false, claimed: false}));
             lastQuestReset = null;
+            claimedDecks = new Set();
         }
         
         function updateDailyUI() {
@@ -3474,6 +3947,7 @@
                         collectionMap.set(card.id, { cardData: fullCard, animated: false });
                         addExp(10);
                         checkAchievements();
+                        checkAllDecks();
                         showPromoStatus(`✨ Новая карта! "${card.name}" добавлена в коллекцию ✨`, "success");
                         syncToCloud();
                     }
@@ -3498,18 +3972,14 @@
                 const originalText = openPackBtn.innerHTML;
                 
                 try {
-                    // Блокируем кнопку
                     openPackBtn.disabled = true;
                     openPackBtn.innerHTML = '🎴 ОТКРЫТИЕ...';
                     openPackBtn.style.background = 'radial-gradient(circle at 30% 10%, #ff6666, #aa2222)';
                     
-                    // Показываем анимацию на кнопке
                     openPackBtn.style.transform = 'scale(0.98)';
                     
-                    // Имитация загрузки
                     await new Promise(resolve => setTimeout(resolve, 200));
                     
-                    // Основная логика
                     crystals -= PACK_PRICE; 
                     packsOpened++;
                     updateQuestProgress("daily_pack", 1);
@@ -3521,12 +3991,10 @@
                     renderChoice(); 
                     confirmChoiceBtn.disabled = true;
                     
-                    // Анимация появления карт
                     selectionArea.style.animation = 'none';
-                    selectionArea.offsetHeight; // trigger reflow
+                    selectionArea.offsetHeight;
                     selectionArea.style.animation = 'packOpen 0.4s ease-out';
                     
-                    // Плавная прокрутка к выбору карт
                     selectionArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     
                     showPromoStatus("✨ Пак открыт! Выберите одну из трёх карт ✨", "success");
@@ -3534,11 +4002,9 @@
                 } catch (error) {
                     console.error('Ошибка при открытии пака:', error);
                     showPromoStatus("❌ Ошибка при открытии пака. Попробуйте снова", "error");
-                    // Возвращаем кристаллы при ошибке
                     crystals += PACK_PRICE;
                     updateUI();
                 } finally {
-                    // Восстанавливаем кнопку
                     setTimeout(() => {
                         openPackBtn.disabled = false;
                         openPackBtn.innerHTML = originalText;
@@ -3550,7 +4016,6 @@
             }
         }
         
-        // ПРОЧИЕ ФУНКЦИИ
         function upgradeCard(cardId) { 
             const entry = collectionMap.get(cardId); 
             if (!entry || !entry.cardData.canUpgrade || entry.animated) {
@@ -3791,6 +4256,7 @@
                 collectionMap.set(randomCard.id, { cardData: randomCard, animated: false });
                 addExp(10);
                 checkAchievements();
+                checkAllDecks();
                 showModal(imgPath, randomCard.name, randomCard.rank);
                 showPromoStatus(`✨ Новая карта добавлена в коллекцию!`, "success");
             }
@@ -4077,9 +4543,6 @@
             if (!existingData || !existingData.resources) { 
                 await syncToCloud(); 
             } else {
-                // СРАВНИВАЕМ и объединяем данные
-                
-                // 1. Ресурсы - берем МАКСИМАЛЬНЫЕ значения
                 const cloudCrystals = existingData.resources.crystals || 0;
                 const cloudShards = existingData.resources.shards || 0;
                 const cloudOre = existingData.resources.ore || 0;
@@ -4088,7 +4551,6 @@
                 if (cloudShards > shards) shards = cloudShards;
                 if (cloudOre > ore) ore = cloudOre;
                 
-                // 2. Коллекция карт - ОБЪЕДИНЯЕМ
                 let needUpdate = false;
                 
                 if (existingData.collections) {
@@ -4113,7 +4575,6 @@
                     }
                 }
                 
-                // 3. Синхронизируем локальные карты в облако
                 const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
                     user_id: userId,
                     card_id: cardId,
@@ -4143,9 +4604,6 @@
             shardDisplay.innerText = shards;
             totalCardsCountSpan.innerText = collectionMap.size;
             
-            // Убираем syncToCloud() отсюда - слишком часто
-            // syncToCloud();
-            
             if (openPackBtn) {
                 openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
                 if (crystals < PACK_PRICE) openPackBtn.title = `Нужно ${PACK_PRICE}💎`;
@@ -4155,12 +4613,13 @@
             updateEventUI();
             renderCollection(); 
             renderAllCards(); 
-            saveData();  // saveData уже вызывает syncToCloud()
+            saveData();
             updateFishingUI();
             updateEventBanner();
             updateLevelUI();
             renderAchievements();
             renderQuests();
+            renderDecks();
             
             if (document.getElementById('tab-players').classList.contains('active')) {
                 refreshTopPlayers();
@@ -4199,7 +4658,6 @@
         window.showVisitorStats = function() { alert(`👥 Всего уникальных игроков: ${document.getElementById('visitorCount').textContent}`); };
         window.copyUserId = copyUserId;
         
-        // ИНИЦИАЛИЗАЦИЯ
         async function init() {
             crystalDisplay = document.getElementById('crystalDisplay');
             oreDisplay = document.getElementById('oreDisplay');
@@ -4283,6 +4741,9 @@
                     if (btn.dataset.tab === 'players') {
                         refreshTopPlayers();
                     }
+                    if (btn.dataset.tab === 'decks') {
+                        renderDecks();
+                    }
                 });
             });
             
@@ -4291,6 +4752,7 @@
             updateMiningUI();
             updateUI();
             updateEventUI();
+            renderDecks();
             
             setInterval(() => {
                 updateFishingUI();
