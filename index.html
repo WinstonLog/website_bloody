@@ -1555,10 +1555,6 @@
             padding: 20px;
             color: #aa8899;
         }
-
-        img {
-            background: linear-gradient(135deg, #2a2a3a, #1a1a2a);
-        }
     </style>
 </head>
 <body>
@@ -1604,8 +1600,8 @@
             <div class="mine-header">
                 <div class="mine-title">⛏️ КРОВАВАЯ ШАХТА</div>
                 <div class="mine-stats">
-                    <div>📊 Использовано: <span id="clicksLeftDisplay">0</span>/<span id="maxClicksDisplay">100</span></div>
-                    <!-- <div>⛏️ <span id="oreInMine">0</span></div> -->
+                    <div>📊 <span id="clicksLeftDisplay">0</span>/<span id="maxClicksDisplay">100</span></div>
+                    <div>⛏️ <span id="oreInMine">0</span></div>
                 </div>
             </div>
             <button class="click-button" id="mineClickBtn">⛏️ КОПНУТЬ!</button>
@@ -1922,11 +1918,15 @@
         let viewingFilter = "all";
         let viewingCollectionMap = new Map();
 
+        let isSyncing = false;
+        let lastSyncTime = 0;
+        const SYNC_DEBOUNCE_MS = 2000;
+
         // ==================== КЭШ ДЛЯ ТОПА ИГРОКОВ ====================
         let topPlayersCache = { data: null, timestamp: 0 };
         const TOP_PLAYERS_CACHE_TTL = 5 * 60 * 1000;
 
-        let CATALOG_CARDS = ALL_CARDS.filter(card => card.rank !== "A+" && card.id !== "osk01");
+        const CATALOG_CARDS = ALL_CARDS.filter(card => card.rank !== "A+" && card.id !== "osk01");
         const RANK_WEIGHTS = { "X": 1, "S": 4, "A": 15, "P": 15, "G": 15, "B": 15, "C": 15, "D": 15, "E": 20 };
         
         // ==================== НОВЫЕ СИСТЕМЫ (Ачивки, Квесты, Уровни) ====================
@@ -2136,7 +2136,16 @@
             renderQuests();
             showPromoStatus("📋 Ежедневные квесты обновлены!", "success");
         }
-        
+
+        function checkDailyReset() {
+            const today = new Date().toDateString();
+            if (miningLastDate !== today) {
+                miningClicksToday = 0;
+                miningLastDate = today;
+                updateMiningUI();
+            }
+        }
+
         function updateQuestProgress(questId, amount = 1) {
             const quest = dailyQuests.find(q => q.id === questId);
             if (!quest || quest.completed || quest.claimed) return;
@@ -2377,7 +2386,7 @@
                     
                     // Анимация появления карт
                     eventSelectionArea.style.animation = 'none';
-                    eventSelectionArea.offsetHeight; // trigger reflow
+                    eventSelectionArea.offsetHeight;
                     eventSelectionArea.style.animation = 'packOpen 0.4s ease-out';
                     
                     // Плавная прокрутка к выбору карт
@@ -2388,11 +2397,9 @@
                 } catch (error) {
                     console.error('Ошибка при открытии ивент-пака:', error);
                     showPromoStatus("❌ Ошибка при открытии ивент-пака. Попробуйте снова", "error");
-                    // Возвращаем осколки при ошибке
                     shards += 5;
                     updateUI();
                 } finally {
-                    // Восстанавливаем кнопку
                     setTimeout(() => {
                         eventPackBtn.disabled = false;
                         eventPackBtn.innerHTML = originalText;
@@ -2548,7 +2555,7 @@
         const SUPABASE_ANON_KEY = SUPABASE_CONFIG.ANON_KEY;
 
         const PROMO_LIST = [
-            { code: "BLAZE", reward: { crystals: 500, shards: 20, ore: 0 } }, 
+            { code: "DAY16", reward: { crystals: 150, shards: 0, ore: 0 } }, 
         ];
         
         let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
@@ -2599,11 +2606,25 @@
             return userId;
         }
         
-        async function syncToCloud() {
+        async function syncToCloud(force = false) {
             if (!supabaseInitialized) {
                 console.error('❌ Supabase не инициализирован');
                 return;
             }
+            
+            // Защита от множественных вызовов
+            const now = Date.now();
+            if (!force && isSyncing) {
+                console.log('⏳ Синхронизация уже выполняется, пропускаем');
+                return;
+            }
+            if (!force && (now - lastSyncTime) < SYNC_DEBOUNCE_MS) {
+                console.log('⏳ Слишком частые вызовы синхронизации, пропускаем');
+                return;
+            }
+            
+            isSyncing = true;
+            lastSyncTime = now;
             
             const userId = getUserId();
             console.log('🔄 Синхронизация для пользователя:', userId);
@@ -2627,51 +2648,105 @@
                     console.log('✅ Ресурсы синхронизированы');
                 }
                 
-                // 2. ✅ ИСПРАВЛЕНО: Правильно получаем данные из collectionMap
-                const cardsToSync = [];
-                for (const [cardId, data] of collectionMap.entries()) {
-                    cardsToSync.push({
-                        user_id: userId,
-                        card_id: cardId,
-                        animated: data.animated || false
+                // 2. Получаем текущие карты из облака
+                const { data: existingCards, error: fetchError } = await supabaseClient
+                    .from('user_collections')
+                    .select('card_id, animated')
+                    .eq('user_id', userId);
+                    
+                if (fetchError) {
+                    console.error('❌ Ошибка получения существующих карт:', fetchError);
+                }
+                
+                // 3. Создаём Map существующих карт
+                const existingMap = new Map();
+                if (existingCards) {
+                    existingCards.forEach(card => {
+                        existingMap.set(card.card_id, card.animated);
                     });
                 }
                 
-                console.log(`📤 Отправка ${cardsToSync.length} карт в Supabase...`);
-                
-                if (cardsToSync.length > 0) {
-                    // Удаляем старые записи пользователя
-                    const { error: deleteError } = await supabaseClient
-                        .from('user_collections')
-                        .delete()
-                        .eq('user_id', userId);
-                        
-                    if (deleteError) {
-                        console.error('❌ Ошибка удаления старых карт:', deleteError);
-                    }
-                    
-                    // Вставляем все карты заново
-                    const { error: insertError } = await supabaseClient
-                        .from('user_collections')
-                        .insert(cardsToSync);
-                        
-                    if (insertError) {
-                        console.error('❌ Ошибка вставки карт:', insertError);
-                        console.error('Детали:', insertError.details, insertError.message);
-                    } else {
-                        console.log(`✅ ${cardsToSync.length} карт успешно синхронизированы`);
+                // 4. Определяем, какие карты нужно добавить/обновить
+                const cardsToUpsert = [];
+                for (const [cardId, data] of collectionMap.entries()) {
+                    const existingAnimated = existingMap.get(cardId);
+                    // Если карты нет в облаке ИЛИ статус анимации отличается
+                    if (existingAnimated === undefined || existingAnimated !== data.animated) {
+                        cardsToUpsert.push({
+                            user_id: userId,
+                            card_id: cardId,
+                            animated: data.animated || false
+                        });
                     }
                 }
                 
-                // 3. Обновляем профиль
+                // 5. Определяем, какие карты нужно удалить (есть в облаке, но нет в коллекции)
+                const cardsToDelete = [];
+                if (existingCards) {
+                    for (const card of existingCards) {
+                        if (!collectionMap.has(card.card_id)) {
+                            cardsToDelete.push(card.card_id);
+                        }
+                    }
+                }
+                
+                console.log(`📊 Изменения: +${cardsToUpsert.length} карт, -${cardsToDelete.length} карт`);
+                
+                // 6. Удаляем лишние карты
+                if (cardsToDelete.length > 0) {
+                    const { error: deleteError } = await supabaseClient
+                        .from('user_collections')
+                        .delete()
+                        .eq('user_id', userId)
+                        .in('card_id', cardsToDelete);
+                        
+                    if (deleteError) {
+                        console.error('❌ Ошибка удаления карт:', deleteError);
+                    } else {
+                        console.log(`✅ Удалено ${cardsToDelete.length} карт из облака`);
+                    }
+                }
+                
+                // 7. Добавляем/обновляем нужные карты
+                if (cardsToUpsert.length > 0 || cardsToDelete.length > 0) {
+                    console.log('🔄 Коллекция изменилась, обновляем топ...');
+                    refreshTopPlayers();
+                    const { error: upsertError } = await supabaseClient
+                        .from('user_collections')
+                        .upsert(cardsToUpsert, { 
+                            onConflict: 'user_id,card_id'
+                        });
+                        
+                    if (upsertError) {
+                        console.error('❌ Ошибка upsert карт:', upsertError);
+                    } else {
+                        console.log(`✅ ${cardsToUpsert.length} карт синхронизированы`);
+                    }
+                }
+                
+                // 8. Обновляем профиль
                 await supabaseClient.from('user_profiles').upsert({
                     user_id: userId, 
                     nickname: currentNickname || null, 
                     last_active: new Date().toISOString()
                 });
                 
+                // 9. Проверяем результат
+                const { data: finalCards } = await supabaseClient
+                    .from('user_collections')
+                    .select('card_id')
+                    .eq('user_id', userId);
+                    
+                console.log(`✅ Итог в облаке: ${finalCards?.length || 0} карт (локально: ${collectionMap.size})`);
+                
+                if (finalCards && finalCards.length !== collectionMap.size) {
+                    console.warn(`⚠️ Несоответствие: облако=${finalCards.length}, локально=${collectionMap.size}`);
+                }
+                
             } catch(e) { 
                 console.error('❌ Критическая ошибка синхронизации:', e); 
+            } finally {
+                isSyncing = false;
             }
         }
         
@@ -2808,15 +2883,38 @@
                     }
                 }
                 
-                const result = playersArray.map((player, idx) => ({
+                let result = playersArray.map((player, idx) => ({
                     ...player,
                     nickname: nicknames[player.user_id] || player.user_id.slice(0, 16) + '...',
                     rank: idx + 1
                 }));
-                
+
+                // ✅ ФОРСИРУЕМ правильное количество для текущего пользователя
+                const userId = getUserId();
+                const myLocalCount = collectionMap.size;
+
+                const myPlayerIndex = result.findIndex(p => p.user_id === userId);
+                if (myPlayerIndex !== -1) {
+                    // Заменяем количество карт на локальное
+                    result[myPlayerIndex].count = myLocalCount;
+                    console.log(`✅ Принудительно установлено количество для ${userId}: ${myLocalCount}`);
+                } else if (myLocalCount > 0) {
+                    // Если пользователя нет в топе, добавляем его
+                    result.push({
+                        user_id: userId,
+                        count: myLocalCount,
+                        nickname: currentNickname || userId.slice(0, 16) + '...',
+                        rank: result.length + 1
+                    });
+                    console.log(`✅ Добавлен текущий пользователь в топ с ${myLocalCount} картами`);
+                }
+
+                // Пересортируем после добавления/изменения
+                result.sort((a, b) => b.count - a.count);
+                result.forEach((player, idx) => { player.rank = idx + 1; });
+
                 topPlayersCache = { data: result, timestamp: now };
                 
-                const userId = getUserId();
                 const userIndex = result.findIndex(p => p.user_id === userId);
                 const userData = userIndex !== -1 ? result[userIndex] : null;
                 
@@ -2849,24 +2947,35 @@
             const container = document.getElementById('topPlayersList');
             if (!container) return;
             
-            // ✅ Сбрасываем кэш если коллекция изменилась
-            const currentUserId = getUserId();
-            if (topPlayersCache.data) {
-                const cachedMe = topPlayersCache.data.find(p => p.user_id === currentUserId);
-                if (cachedMe && cachedMe.count !== collectionMap.size) {
-                    console.log('🔄 Коллекция изменилась, сбрасываем кэш топа');
-                    topPlayersCache = { data: null, timestamp: 0 };
-                }
-            }
+            // ✅ Принудительно сбрасываем кэш
+            topPlayersCache = { data: null, timestamp: 0 };
             
             container.innerHTML = '<div class="loading-top">🏆 Загрузка топа игроков...</div>';
             
             try {
                 const { topPlayers, userPosition, userData } = await getTopPlayersWithUserPosition(10);
+                const currentUserId = getUserId();
+                
+                console.log(`📊 Топ загружен, текущий пользователь: ${currentUserId}`);
+                console.log(`📊 Коллекция локально: ${collectionMap.size} карт`);
                 
                 if (!topPlayers || topPlayers.length === 0) {
                     container.innerHTML = '<div class="loading-top">🏆 Пока нет игроков с коллекциями</div>';
                     return;
+                }
+                
+                // ✅ Находим и корректируем текущего пользователя в топе
+                let myCurrentData = null;
+                for (let player of topPlayers) {
+                    if (player.user_id === currentUserId) {
+                        myCurrentData = player;
+                        // Корректируем количество карт, если не совпадает
+                        if (player.count !== collectionMap.size) {
+                            console.log(`🔄 Корректируем данные: ${player.count} -> ${collectionMap.size}`);
+                            player.count = collectionMap.size;
+                        }
+                        break;
+                    }
                 }
                 
                 let html = '<div class="top-players-table">';
@@ -2894,33 +3003,20 @@
                 html += '</div>';
                 
                 // Если пользователь не в топ-10, показываем его позицию отдельно
-                if (userData && (userPosition === null || userPosition > 10)) {
-                    let actualRank = userPosition;
-                    
-                    // ✅ ИСПРАВЛЕНО: Используем кэш вместо нового запроса
-                    if (actualRank === null && topPlayersCache.data) {
-                        const fullUserIndex = topPlayersCache.data.findIndex(p => p.user_id === currentUserId);
-                        actualRank = fullUserIndex !== -1 ? fullUserIndex + 1 : null;
-                    }
-                    
-                    // Если всё ещё null - показываем знак вопроса
-                    if (actualRank === null) {
-                        actualRank = '?';
-                    }
-                    
+                if (!myCurrentData && collectionMap.size > 0) {
                     html += `<div class="current-user-section">
-                        <div class="title">⭐ ВАША ПОЗИЦИЯ В ОБЩЕМ ЗАЧЕТЕ</div>
+                        <div class="title">⭐ ВАША КОЛЛЕКЦИЯ</div>
                         <div class="my-position-card">
                             <div style="display: flex; gap: 12px; align-items: center;">
-                                <span style="font-size: 1.5rem;">${actualRank === 1 ? '👑' : (actualRank === 2 ? '🥈' : (actualRank === 3 ? '🥉' : '📍'))}</span>
+                                <span style="font-size: 1.5rem;">📚</span>
                                 <div>
-                                    <div style="font-weight: bold; color: #FFE7B6;">${userData.nickname}</div>
+                                    <div style="font-weight: bold; color: #FFE7B6;">${currentNickname || 'Вы'}</div>
                                     <div style="font-size: 0.65rem; color: #aa8899;">ID: ${currentUserId.slice(0, 12)}...</div>
                                 </div>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 1.2rem; font-weight: bold; color: #88ff88;">📚 ${userData.count}</div>
-                                <div style="font-size: 0.7rem; color: #ffaa66;">Место: #${actualRank}</div>
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #88ff88;">📚 ${collectionMap.size}</div>
+                                <div style="font-size: 0.7rem; color: #ffaa66;">Вне топ-10</div>
                             </div>
                         </div>
                     </div>`;
@@ -3105,6 +3201,7 @@
             showPromoStatus("🔍 Проверка реферального бонуса...", "info");
             await checkAndRewardReferrer(getUserId());
             await updateReferralUI();
+            await loadTopPlayers();
             showPromoStatus("✅ Проверка завершена", "success");
         }
         
@@ -3184,6 +3281,76 @@
             updateLevelUI();
         }
         
+        // Автоматическое исправление синхронизации для всех пользователей
+        async function autoFixUserSync() {
+            if (!supabaseInitialized) return false;
+            
+            const userId = getUserId();
+            const localCount = collectionMap.size;
+            
+            // Получаем количество карт в облаке
+            const { data: cloudCards, error } = await supabaseClient
+                .from('user_collections')
+                .select('card_id', { count: 'exact', head: true })
+                .eq('user_id', userId);
+            
+            const cloudCount = cloudCards?.length || 0;
+            
+            console.log(`🔍 Проверка синхронизации: облако=${cloudCount}, локально=${localCount}`);
+            
+            // Если количество не совпадает И есть локальные карты
+            if (cloudCount !== localCount && localCount > 0) {
+                console.log(`🔄 Обнаружено несоответствие! Исправляем...`);
+                
+                // Получаем все карты из локальной коллекции
+                const allCards = [];
+                for (const [cardId, data] of collectionMap.entries()) {
+                    allCards.push({
+                        user_id: userId,
+                        card_id: cardId,
+                        animated: data.animated || false
+                    });
+                }
+                
+                // Перезаписываем данные в облаке
+                const { error: deleteError } = await supabaseClient
+                    .from('user_collections')
+                    .delete()
+                    .eq('user_id', userId);
+                
+                if (deleteError) {
+                    console.error('❌ Ошибка удаления:', deleteError);
+                    return false;
+                }
+                
+                // Вставляем пачками по 50 карт
+                const chunkSize = 50;
+                let success = true;
+                
+                for (let i = 0; i < allCards.length; i += chunkSize) {
+                    const chunk = allCards.slice(i, i + chunkSize);
+                    const { error: insertError } = await supabaseClient
+                        .from('user_collections')
+                        .insert(chunk);
+                    
+                    if (insertError) {
+                        console.error('❌ Ошибка вставки:', insertError);
+                        success = false;
+                        break;
+                    }
+                }
+                
+                if (success) {
+                    console.log(`✅ Синхронизация исправлена! Загружено ${localCount} карт`);
+                    // Показываем уведомление пользователю
+                    showPromoStatus(`🔧 Синхронизация исправлена! Теперь ваши ${localCount} карт отображаются в топе.`, "success");
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
         function resetToDefaults() {
             crystals = START_CRYSTALS; shards = 0; ore = 0; dailyLastClaim = null;
             miningClicksToday = 0; miningLastDate = new Date().toDateString();
@@ -3213,16 +3380,10 @@
             showPromoStatus("🎁 Ежедневный бонус получен! +30💎", "success");
         }
         
-        function updateMiningUI() { 
-            const maxClicks = getMaxMineClicks();
-            const remainingClicks = maxClicks - miningClicksToday;
-            clicksLeftDisplay.innerText = `${miningClicksToday}`;
-            oreInMine.innerText = ore; 
-            mineClickBtn.disabled = miningClicksToday >= maxClicks; 
-            mineClickBtn.classList.toggle('disabled', miningClicksToday >= maxClicks);
-        }
+        function updateMiningUI() { clicksLeftDisplay.innerText = `${miningClicksToday}`; oreInMine.innerText = ore; mineClickBtn.disabled = miningClicksToday >= getMaxMineClicks(); mineClickBtn.classList.toggle('disabled', miningClicksToday >= getMaxMineClicks()); }
         
         function mine() { 
+            checkDailyReset();
             if (miningClicksToday >= getMaxMineClicks()) return; 
             let gain = Math.floor(Math.random() * 6) + 10; 
             if (isDoubleOreEventActive()) {
@@ -3245,20 +3406,14 @@
         
         function getRandomCardForPack() {
             let total = Object.values(RANK_WEIGHTS).reduce((a,b)=>a+b,0);
-            let attempts = 0;
-            while (attempts < 50) { // Защита от бесконечного цикла
-                let rand = Math.random() * total, acc = 0;
-                for (let [rank, w] of Object.entries(RANK_WEIGHTS)) {
-                    acc += w;
-                    if (rand <= acc) {
-                        const pool = ALL_CARDS.filter(c => c.rank === rank && !c.season && c.id !== "osk01");
-                        if (pool.length > 0) {
-                            return { ...pool[Math.floor(Math.random() * pool.length)] };
-                        }
-                        break; // Если пул пуст, пробуем другой ранг
-                    }
+            let rand = Math.random() * total, acc = 0;
+            for (let [rank, w] of Object.entries(RANK_WEIGHTS)) {
+                acc += w;
+                if (rand <= acc) {
+                    const pool = ALL_CARDS.filter(c => c.rank === rank && !c.season && c.id !== "osk01");
+                    if (pool.length === 0) return { ...ALL_CARDS.find(c => c.id === "Eakira01") || ALL_CARDS[0] };
+                    return { ...pool[Math.floor(Math.random() * pool.length)] };
                 }
-                attempts++;
             }
             return { ...ALL_CARDS.find(c => c.id === "Eakira01") || ALL_CARDS[0] };
         }
@@ -3351,7 +3506,7 @@
                     // Показываем анимацию на кнопке
                     openPackBtn.style.transform = 'scale(0.98)';
                     
-                    // Имитация загрузки (можно убрать или настроить задержку)
+                    // Имитация загрузки
                     await new Promise(resolve => setTimeout(resolve, 200));
                     
                     // Основная логика
@@ -3542,6 +3697,8 @@
         
         function saveFishingData() { localStorage.setItem('bloody_fishing_v1', JSON.stringify(fishingData)); }
         
+        let lastFreeAttemptTime = null;
+        
         function getFreeAttemptsLeft() {
             if (!fishingData.freeLastUsed) return 1;
             const lastUsed = new Date(fishingData.freeLastUsed);
@@ -3724,7 +3881,7 @@
         }
         
         async function searchAndViewPlayer() {
-            const searchTerm = document.getElementById('searchPlayerInput').value.trim().replace(/[<>]/g, '');
+            const searchTerm = document.getElementById('searchPlayerInput').value.trim();
             if (!searchTerm) { showPromoStatus("Введите ID игрока или ник для поиска", "error"); return; }
             
             const searchBtn = document.getElementById('searchPlayerBtn');
@@ -3905,7 +4062,7 @@
             if (counterElement) counterElement.textContent = total;
             if (container) container.classList.remove('loading');
         }
-                
+        
         async function syncInitialData() {
             if (!supabaseInitialized) return;
             const userId = getUserId();
@@ -3918,7 +4075,6 @@
             const existingData = await loadFromCloud(userId);
             
             if (!existingData || !existingData.resources) { 
-                // Нет данных в облаке - сохраняем текущие
                 await syncToCloud(); 
             } else {
                 // СРАВНИВАЕМ и объединяем данные
@@ -3986,7 +4142,9 @@
             oreDisplay.innerText = ore; 
             shardDisplay.innerText = shards;
             totalCardsCountSpan.innerText = collectionMap.size;
-            syncToCloud();
+            
+            // Убираем syncToCloud() отсюда - слишком часто
+            // syncToCloud();
             
             if (openPackBtn) {
                 openPackBtn.classList.toggle('disabled', crystals < PACK_PRICE);
@@ -3997,7 +4155,7 @@
             updateEventUI();
             renderCollection(); 
             renderAllCards(); 
-            saveData();
+            saveData();  // saveData уже вызывает syncToCloud()
             updateFishingUI();
             updateEventBanner();
             updateLevelUI();
@@ -4074,6 +4232,7 @@
             const supabaseInited = initSupabase();
             if (supabaseInited) {
                 await syncInitialData();
+                await autoFixUserSync();
                 await updateVisitorCounter();
                 setInterval(async () => { const total = await getTotalVisitors(); document.getElementById('visitorCount').textContent = total; }, 30000);
                 await loadTopPlayers();
