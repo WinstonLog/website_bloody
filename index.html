@@ -1781,7 +1781,7 @@
             <div class="channel-badge">@b_loody</div>
             <div class="level-card">
                 <div class="level-header">
-                    <span class="level-number">⭐ Уровень <span id="levelValue">1</span></span>
+                    <span class="level-number">⭐ Ур. <span id="levelValue">1</span></span>
                     <span class="level-exp" id="expText">0/100</span>
                 </div>
             </div>
@@ -2361,17 +2361,34 @@
         // ==================== НОВЫЕ СИСТЕМЫ (Ачивки, Квесты, Уровни) ====================
         
         // === 1. СИСТЕМА УРОВНЕЙ ===
-        const LEVEL_CONFIG = {
-            1: { expNeeded: 0, bonusCrystals: 0, bonusShards: 0, bonusMineLimit: 0 },
-            2: { expNeeded: 100, bonusCrystals: 10, bonusShards: 1, bonusMineLimit: 5 },
-            3: { expNeeded: 250, bonusCrystals: 20, bonusShards: 2, bonusMineLimit: 10 },
-            4: { expNeeded: 450, bonusCrystals: 35, bonusShards: 3, bonusMineLimit: 15 },
-            5: { expNeeded: 700, bonusCrystals: 50, bonusShards: 5, bonusMineLimit: 20 },
-            6: { expNeeded: 1000, bonusCrystals: 70, bonusShards: 7, bonusMineLimit: 25 },
-            7: { expNeeded: 1350, bonusCrystals: 95, bonusShards: 10, bonusMineLimit: 30 },
-            8: { expNeeded: 1750, bonusCrystals: 125, bonusShards: 13, bonusMineLimit: 35 },
-            9: { expNeeded: 2200, bonusCrystals: 160, bonusShards: 16, bonusMineLimit: 40 },
-            10: { expNeeded: 2700, bonusCrystals: 200, bonusShards: 20, bonusMineLimit: 50 }
+        const LEVEL_CONFIG = {};
+        for (let i = 1; i <= 100; i++) {
+            if (i === 1) {
+                LEVEL_CONFIG[i] = { expNeeded: 0, bonusCrystals: 0, bonusShards: 0, bonusMineLimit: 0 };
+            } else {
+                // expNeeded = 100 * (i-1) + Math.pow(i-2, 2) * 5
+                const expNeeded = Math.floor(100 * (i-1) + Math.pow(i-2, 2) * 5);
+                // Бонусы растут с каждым уровнем
+                const bonusCrystals = Math.floor(5 + (i-1) * 2.5);  // 5, 7, 10, 12, 15... до ~250
+                const bonusShards = Math.floor(1 + (i-1) * 0.3);    // 1, 1, 2, 2, 3... до ~30
+                const bonusMineLimit = Math.floor(2 + (i-1) * 0.8); // 2, 3, 4, 5... до ~80
+                
+                LEVEL_CONFIG[i] = {
+                    expNeeded: expNeeded,
+                    bonusCrystals: bonusCrystals,
+                    bonusShards: bonusShards,
+                    bonusMineLimit: bonusMineLimit
+                };
+            }
+        }
+
+        // Особые награды на круглых уровнях
+        const MILESTONE_REWARDS = {
+            10: { crystals: 50, shards: 5, title: "🌟 Новичок" },
+            25: { crystals: 100, shards: 10, title: "⚡ Опытный" },
+            50: { crystals: 250, shards: 25, title: "💎 Мастер" },
+            75: { crystals: 500, shards: 50, title: "👑 Элитный" },
+            100: { crystals: 1000, shards: 100, title: "🏆 ЛЕГЕНДА" }
         };
         
         let currentLevel = 1;
@@ -2387,8 +2404,9 @@
             if (amount <= 0) return;
             currentExp += amount;
             let leveledUp = false;
+            let oldLevel = currentLevel;
             
-            while (currentLevel < 10 && currentExp >= (LEVEL_CONFIG[currentLevel + 1]?.expNeeded || Infinity)) {
+            while (currentLevel < 100 && currentExp >= (LEVEL_CONFIG[currentLevel + 1]?.expNeeded || Infinity)) {
                 currentLevel++;
                 leveledUp = true;
                 const levelBonus = LEVEL_CONFIG[currentLevel];
@@ -2397,6 +2415,19 @@
                     shards += levelBonus.bonusShards;
                     showPromoStatus(`🎉 ПОВЫШЕНИЕ УРОВНЯ ДО ${currentLevel}! Получено: +${levelBonus.bonusCrystals}💎, +${levelBonus.bonusShards}⚡!`, "success");
                 }
+                
+                // Проверка на особые награды за круглые уровни
+                if (MILESTONE_REWARDS[currentLevel]) {
+                    const milestone = MILESTONE_REWARDS[currentLevel];
+                    crystals += milestone.crystals;
+                    shards += milestone.shards;
+                    showPromoStatus(`🏆 ДОСТИЖЕНИЕ: ${milestone.title}! Доп. награда: +${milestone.crystals}💎, +${milestone.shards}⚡!`, "success");
+                }
+            }
+            
+            // Дополнительное сообщение при достижении 100 уровня
+            if (oldLevel < 100 && currentLevel === 100) {
+                showPromoStatus(`👑 ПОЗДРАВЛЯЕМ! ВЫ ДОСТИГЛИ МАКСИМАЛЬНОГО 100 УРОВНЯ! 👑`, "success");
             }
             
             updateLevelUI();
@@ -2408,16 +2439,20 @@
         
         function updateLevelUI() {
             const currentLevelExp = LEVEL_CONFIG[currentLevel]?.expNeeded || 0;
-            const nextLevelExp = LEVEL_CONFIG[currentLevel + 1]?.expNeeded || currentLevelExp + 500;
+            const nextLevelExp = currentLevel < 100 ? (LEVEL_CONFIG[currentLevel + 1]?.expNeeded || currentLevelExp + 500) : currentLevelExp;
             const expForCurrent = currentExp - currentLevelExp;
             const expNeededForNext = nextLevelExp - currentLevelExp;
-            const percent = Math.min(100, Math.max(0, (expForCurrent / expNeededForNext) * 100));
+            const percent = currentLevel === 100 ? 100 : Math.min(100, Math.max(0, (expForCurrent / expNeededForNext) * 100));
             
             const levelElements = document.querySelectorAll('#levelValue, #levelValueProfile');
             levelElements.forEach(el => { if (el) el.innerText = currentLevel; });
             
             const expElements = document.querySelectorAll('#expText, #expTextProfile');
-            expElements.forEach(el => { if (el) el.innerHTML = `Опыт: ${currentExp} / ${nextLevelExp}`; });
+            if (currentLevel === 100) {
+                expElements.forEach(el => { if (el) el.innerHTML = `⭐ МАКСИМАЛЬНЫЙ УРОВЕНЬ!`; });
+            } else {
+                expElements.forEach(el => { if (el) el.innerHTML = `Опыт: ${currentExp} / ${nextLevelExp}`; });
+            }
             
             const fillElements = document.querySelectorAll('#levelProgressFill');
             fillElements.forEach(el => { if (el) el.style.width = `${percent}%`; });
@@ -2426,8 +2461,11 @@
             if (maxClicksSpan) maxClicksSpan.innerText = getMaxMineClicks();
             
             const nextBonusSpan = document.getElementById('nextLevelBonus');
-            if (nextBonusSpan && LEVEL_CONFIG[currentLevel + 1]) {
-                nextBonusSpan.innerHTML = ` | ➡️ Ур.${currentLevel + 1}: +${LEVEL_CONFIG[currentLevel + 1].bonusCrystals}💎 +${LEVEL_CONFIG[currentLevel + 1].bonusShards}⚡ +${LEVEL_CONFIG[currentLevel + 1].bonusMineLimit}⛏️ лимит`;
+            if (nextBonusSpan && currentLevel < 100 && LEVEL_CONFIG[currentLevel + 1]) {
+                const next = LEVEL_CONFIG[currentLevel + 1];
+                nextBonusSpan.innerHTML = ` | ➡️ Ур.${currentLevel + 1}: +${next.bonusCrystals}💎 +${next.bonusShards}⚡ +${next.bonusMineLimit}⛏️ лимит`;
+            } else if (nextBonusSpan && currentLevel === 100) {
+                nextBonusSpan.innerHTML = ` | 🏆 МАКСИМАЛЬНЫЙ УРОВЕНЬ ДОСТИГНУТ!`;
             }
         }
         
@@ -2448,8 +2486,13 @@
             { id: "fisher_100", name: "Повелитель морей", desc: "Поймать 100 рыб", icon: "🐙", category: "fisher", rewardCrystals: 100, rewardShards: 10, check: () => totalFishCaught >= 100 },
             { id: "shard_10", name: "Осколочный маг", desc: "Накопить 10 осколков", icon: "⚡", category: "shard", rewardCrystals: 20, rewardShards: 3, check: () => shards >= 10 },
             { id: "shard_50", name: "Повелитель осколков", desc: "Накопить 50 осколков", icon: "⚡⚡", category: "shard", rewardCrystals: 100, rewardShards: 10, check: () => shards >= 50 },
+            { id: "shard_100", name: "Электрический бог", desc: "Накопить 100 осколков", icon: "⚡⚡⚡", category: "shard", rewardCrystals: 200, rewardShards: 20, check: () => shards >= 100 },  // НОВОЕ
             { id: "level_5", name: "Новичок", desc: "Достичь 5 уровня", icon: "⭐", category: "level", rewardCrystals: 30, rewardShards: 5, check: () => currentLevel >= 5 },
-            { id: "level_10", name: "Мастер", desc: "Достичь 10 уровня", icon: "⭐⭐", category: "level", rewardCrystals: 100, rewardShards: 15, check: () => currentLevel >= 10 }
+            { id: "level_10", name: "Опытный", desc: "Достичь 10 уровня", icon: "⭐⭐", category: "level", rewardCrystals: 50, rewardShards: 10, check: () => currentLevel >= 10 },
+            { id: "level_25", name: "Мастер", desc: "Достичь 25 уровня", icon: "⭐⭐⭐", category: "level", rewardCrystals: 100, rewardShards: 15, check: () => currentLevel >= 25 },  // НОВОЕ
+            { id: "level_50", name: "Элитный", desc: "Достичь 50 уровня", icon: "🏅", category: "level", rewardCrystals: 200, rewardShards: 25, check: () => currentLevel >= 50 },  // НОВОЕ
+            { id: "level_75", name: "Мастер-класс", desc: "Достичь 75 уровня", icon: "🏅🏅", category: "level", rewardCrystals: 400, rewardShards: 50, check: () => currentLevel >= 75 },  // НОВОЕ
+            { id: "level_100", name: "Абсолютная Легенда", desc: "Достичь МАКСИМАЛЬНОГО 100 уровня", icon: "👑🏆", category: "level", rewardCrystals: 1000, rewardShards: 100, check: () => currentLevel >= 100 }
         ];
         
         let unlockedAchievements = new Set();
@@ -2533,8 +2576,13 @@
             if (achievement.id === "fisher_100") return Math.min(100, (totalFishCaught / 100) * 100);
             if (achievement.id === "shard_10") return Math.min(100, (shards / 10) * 100);
             if (achievement.id === "shard_50") return Math.min(100, (shards / 50) * 100);
+            if (achievement.id === "shard_100") return Math.min(100, (shards / 100) * 100);  // НОВОЕ
             if (achievement.id === "level_5") return Math.min(100, (currentLevel / 5) * 100);
             if (achievement.id === "level_10") return Math.min(100, (currentLevel / 10) * 100);
+            if (achievement.id === "level_25") return Math.min(100, (currentLevel / 25) * 100);  // НОВОЕ
+            if (achievement.id === "level_50") return Math.min(100, (currentLevel / 50) * 100);  // НОВОЕ
+            if (achievement.id === "level_75") return Math.min(100, (currentLevel / 75) * 100);  // НОВОЕ
+            if (achievement.id === "level_100") return currentLevel >= 100 ? 100 : Math.min(100, (currentLevel / 100) * 100);  // НОВОЕ
             return achievement.check() ? 100 : 0;
         }
         
