@@ -2520,7 +2520,10 @@
             { id: "shard_10", name: "Осколочный маг", desc: "Накопить 10 осколков", icon: "⚡", category: "shard", rewardCrystals: 20, rewardShards: 3, check: () => shards >= 10 },
             { id: "shard_50", name: "Повелитель осколков", desc: "Накопить 50 осколков", icon: "⚡⚡", category: "shard", rewardCrystals: 100, rewardShards: 10, check: () => shards >= 50 },
             { id: "level_5", name: "Новичок", desc: "Достичь 5 уровня", icon: "⭐", category: "level", rewardCrystals: 30, rewardShards: 5, check: () => currentLevel >= 5 },
-            { id: "level_10", name: "Мастер", desc: "Достичь 10 уровня", icon: "⭐⭐", category: "level", rewardCrystals: 100, rewardShards: 15, check: () => currentLevel >= 10 }
+            { id: "level_10", name: "Мастер", desc: "Достичь 10 уровня", icon: "⭐⭐", category: "level", rewardCrystals: 100, rewardShards: 15, check: () => currentLevel >= 10 },
+/*            { id: "deck_genshin", name: "Собиратель Геншина", desc: "Собрать полную колоду Геншинский удар", icon: "⚡", category: "collector", rewardCrystals: 50, rewardShards: 5, check: () => claimedDecks.has('Геншинский удар') },*/
+            { id: "deck_ehokalypsis", name: "Повелитель Эха", desc: "Собрать полную колоду Эхокалипсис", icon: "🔮", category: "collector", rewardCrystals: 50, rewardShards: 5, check: () => claimedDecks.has('Эхокалипсис') },
+            { id: "deck_lazurniy", name: "Хранитель Лазурного", desc: "Собрать полную колоду Лазурный Путь", icon: "🌊", category: "collector", rewardCrystals: 50, rewardShards: 5, check: () => claimedDecks.has('Лазурный Путь') }
         ];
         
         let unlockedAchievements = new Set();
