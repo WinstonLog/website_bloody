@@ -399,11 +399,7 @@ const ALL_CARDS = [
     { id: "Enil01", name: "Нил", emoji: "🍊", rank: "E", set: "Эхокалипсис", rankLabel: "E", color: "#985e4b", rankOrder: 10, image: "images/Эхокалипсис/E/nil01.png", canUpgrade: false, animImage: null },  
 
     // Ивентовые
-
-    // H
-
-    { id: "Halbedo01", name: "Альбедо", rank: "H", rankLabel: "H", color: "#ff6600", rankOrder: 1.5, image: "images/events/halloween/albedo01.png", set: "Хэллоуин", canUpgrade: false, animImage: null, season: "halloween" },
-
+    
     // N 2025-2026
 
     { id: "Nzani01", name: "Зани", rank: "N", rankLabel: "N", color: "#00ccff", rankOrder: 1.6, image: "images/events/newyear/zani01.png", set: "Новый год", canUpgrade: false, animImage: null, season: "newyear" },
@@ -411,9 +407,25 @@ const ALL_CARDS = [
     // N 2024-2025
 
     { id: "Nasuna01", name: "Асуна", rank: "N", rankLabel: "N", color: "#00ccff", rankOrder: 1.6, image: "images/events/newyear/asuna01.png", set: "Новый год", canUpgrade: true, animImage: "images/events/newyear/anim/asuna01.gif", season: "newyear" },
+   
+    // H
 
+    { id: "Halbedo01", name: "Альбедо", rank: "H", rankLabel: "H", color: "#ff6600", rankOrder: 1.5, image: "images/events/halloween/albedo01.png", set: "Хэллоуин", canUpgrade: false, animImage: null, season: "halloween" },
+    
     // V
 
+    { id: "Vkarin01", name: "Карин", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/karin01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Vioruichi01", name: "Йоруичи", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/ioruichi01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/ioruichi01.gif", season: "spring" },
+    { id: "Vrizli01", name: "Ризли", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/rizli01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Vrizli02", name: "Ризли", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/rizli02.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/rizli02.gif", season: "spring" },
+    { id: "Vrizli02", name: "Ризли", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/rizli02.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/rizli02.gif", season: "spring" },
+    { id: "Vtodzi01", name: "Тондзи Фусигуро", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/todzi01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Vpek01", name: "Пэк Си Юн", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/pek01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Vpek02", name: "Пэк До Хва", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/pek02.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Vboa01", name: "Боа Хэнкок", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/boa01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Vboa02", name: "Боа Хэнкок", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/boa02.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Valbedo01", name: "Альбедо", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/albedo01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
+    { id: "Valbedo02", name: "Альбедо", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/albedo02.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
     { id: "Vmakima01", name: "Макима", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/makima01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/makima01.gif", season: "spring" },
     { id: "Vmiku01", name: "Мику", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/miku01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/miku01.gif", season: "spring" },
     { id: "Vmei01", name: "Жуань Мэй", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/mei01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/mei01.gif", season: "spring" },
