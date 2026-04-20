@@ -3241,7 +3241,7 @@
         const SUPABASE_ANON_KEY = SUPABASE_CONFIG.ANON_KEY;
 
         const PROMO_LIST = [
-            { code: "DAY16", reward: { crystals: 150, shards: 0, ore: 0 } }, 
+             { code: "EVENT100", reward: { crystals: 0, shards: 0, ore: 0, eventCurrency: 100 } }, 
         ];
         
         let crystals = START_CRYSTALS, shards = 0, ore = 0, dailyLastClaim = null, miningClicksToday = 0, miningLastDate = null;
@@ -4207,14 +4207,34 @@
             const promo = PROMO_LIST.find(p => p.code === code);
             if (!promo) { showPromoStatus("Неверный промокод", "error"); return; }
             if (usedPromoCodes.has(code)) { showPromoStatus("Этот промокод уже активирован", "error"); return; }
+            
             const reward = promo.reward;
-            crystals += reward.crystals || 0;
-            shards += reward.shards || 0;
-            ore += reward.ore || 0;
+            
+            // Обычные награды
+            if (reward.crystals) crystals += reward.crystals;
+            if (reward.shards) shards += reward.shards;
+            if (reward.ore) ore += reward.ore;
+            
+            let eventRewardText = "";
+            if (reward.eventCurrency && reward.eventCurrency > 0) {
+                addEventCurrency(reward.eventCurrency);
+                const currency = getCurrentEventCurrency();
+                if (currency) {
+                    eventRewardText = ` +${reward.eventCurrency}${currency.emoji}`;
+                } else {
+                    eventRewardText = ` +${reward.eventCurrency} ивент-валюты`;
+                }
+            }
+            
             usedPromoCodes.add(code);
             saveData();
             updateUI();
-            showPromoStatus(`Промокод активирован! +${reward.crystals}💎 +${reward.shards}⚡ +${reward.ore}⛏️`, "success");
+            
+            showPromoStatus(
+                `Промокод активирован! +${reward.crystals || 0}💎 +${reward.shards || 0}⚡ +${reward.ore || 0}⛏️${eventRewardText}`, 
+                "success"
+            );
+            
             promoInput.value = "";
             renderPromoChips();
         }
