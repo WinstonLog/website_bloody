@@ -1046,9 +1046,14 @@
             animation: eventGlow 2s ease-in-out infinite;
         }
         
+        #headerEventCurrency {
+            transition: all 0.3s ease;
+            animation: eventGlow 2s ease-in-out infinite;
+        }
+
         @keyframes eventGlow {
-            0%, 100% { box-shadow: 0 0 5px rgba(255, 200, 100, 0.3); border-color: rgba(255, 200, 100, 0.6); }
-            50% { box-shadow: 0 0 15px rgba(255, 200, 100, 0.5); border-color: rgba(255, 200, 100, 0.9); }
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 200, 100, 0.3); }
+            50% { box-shadow: 0 0 12px rgba(255, 200, 100, 0.6); }
         }
         
         .event-header {
@@ -1797,6 +1802,7 @@
             <div class="stat-box">⛏️ <span class="stat-value ore-value" id="oreDisplay">0</span></div>
             <div class="stat-box">⚡ <span class="stat-value shard-value" id="shardDisplay">0</span></div>
             <div class="stat-box">📚 <span class="stat-value" id="totalCardsCount">0</span></div>
+            <div class="stat-box" id="headerEventCurrency" style="display: none; background: linear-gradient(135deg, #4a1a6a, #2a0a4a);">🌸 0</div>
         </div>
     </div>
     <div class="level-bar">
@@ -1912,18 +1918,28 @@
                     <div class="event-season-badge" id="eventSeasonBadge">Сезон: Загрузка...</div>
                 </div>
             </div>
+            
+            <!-- Блок с ивент-валютой -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 10px 15px; border-radius: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.2rem;">🎪</span>
+                    <span id="eventCurrencyDisplay" style="font-size: 1.2rem; font-weight: bold; color: #ffaa66;">🌸 0</span>
+                </div>
+                <button id="buyEventCurrencyBtn" class="daily-btn" style="background: linear-gradient(135deg, #ffaa33, #cc8833);">Купить 400🌸 за 2000💎</button>
+            </div>
+            
             <div class="pack-description">
                 <p><strong>🎪 Уникальные ивент-карты!</strong> В каждом сезоне доступны эксклюзивные карты, которые <strong>нельзя получить в обычных паках</strong>.</p>
                 <p>✨ Открывайте ивент-паки и собирайте коллекцию сезонных карт!</p>
                 <div class="pack-rules">
                     <span>🎴 1 карта в паке</span>
-                    <span>⚡ Цена: 20 осколков</span>
+                    <span>🌸 Цена: 20 ивент-валюты</span>
                     <span>🎪 Ранги: H (Хэллоуин) / N (Новый год) / V (Весна) / L (Лето)</span>
                     <span>🔄 Дубликат = 7💎</span>
                 </div>
             </div>
             
-            <button class="open-btn" id="eventPackBtn" style="background: radial-gradient(circle at 30% 10%, #ff8833, #cc6622); animation: eventGlow 1.5s ease-in-out infinite;">🎪 ОТКРЫТЬ ЗА 20⚡</button>
+            <button class="open-btn" id="eventPackBtn" style="background: radial-gradient(circle at 30% 10%, #ff8833, #cc6622); animation: eventGlow 1.5s ease-in-out infinite;">🎪 ОТКРЫТЬ ЗА 20🌸</button>
         </div>
         
         <div id="eventSelectionArea" class="selection-area" style="display: none;">
@@ -2107,11 +2123,14 @@
 
     <div class="footer">
         <p>⚠️ Изображения используются в ознакомительных целях в рамках фан-проекта. 
-Права на изображения принадлежат их законным владельцам. 
-При возникновении претензий — изображения будут заменены.</p>
+    Права на изображения принадлежат их законным владельцам. 
+    При возникновении претензий — изображения будут заменены.</p>
         ⭐ Все изображения принадлежат mangabuff.ru<br>Фан-проект, не связан с официальными правообладателями<br>© 2026 @b_loody
         
         <div class="support-wrapper">
+            <div class="visitor-counter" id="visitorCounter" style="background: linear-gradient(135deg, #4a1a6a, #2a0a4a); padding: 8px 16px; border-radius: 25px; display: inline-flex; align-items: center; gap: 6px;">
+                👥 <span id="visitorCount" style="color: #ffaa66; font-weight: bold;">0</span> игроков
+            </div>
             <a href="https://yoomoney.ru/to/4100119003253255" target="_blank" rel="noopener noreferrer" class="support-btn">💖 Поддержать проект</a>
             <a href="https://t.me/b_loody" target="_blank" rel="noopener noreferrer" class="support-btn telegram-btn">📢 Telegram канал</a>
         </div>
@@ -2123,12 +2142,6 @@
             <img id="modalImage" class="modal-image" src="" alt="">
             <div id="modalCaption" class="modal-caption"></div>
             <div id="modalRank" class="modal-rank"></div>
-        </div>
-    </div>
-
-    <div style="position: fixed; top: 10px; right: 10px; z-index: 100;">
-        <div class="visitor-counter" id="visitorCounter">
-            👥<span id="visitorCount">0</span>
         </div>
     </div>
 
@@ -2174,6 +2187,59 @@
         };
         
         let claimedDecks = new Set(); // Хранит ID колод, за которые уже получена награда
+
+        let eventCurrency = {
+            spring: 0,   // Цветы (весна)
+            summer: 0,   // Ракушки (лето) 
+            halloween: 0, // Тыквы (хэллоуин)
+            winter: 0     // Снежинки (зима)
+        };
+        let lastDailyPurchase = {
+            spring: null,
+            summer: null,
+            halloween: null,
+            winter: null
+        };
+
+        function getCurrentEventCurrency() {
+            const season = getCurrentSeason();
+            switch(season) {
+                case 'spring': return { name: '🌸 Цветы', key: 'spring', emoji: '🌸' };
+                case 'summer': return { name: '🐚 Ракушки', key: 'summer', emoji: '🐚' };
+                case 'halloween': return { name: '🎃 Тыквы', key: 'halloween', emoji: '🎃' };
+                case 'newyear': return { name: '❄️ Снежинки', key: 'winter', emoji: '❄️' };
+                default: return null;
+            }
+        }
+
+        function addEventCurrency(amount) {
+            const currency = getCurrentEventCurrency();
+            if (!currency) return false;
+            eventCurrency[currency.key] += amount;
+            updateEventCurrencyUI();
+            saveData();
+            return true;
+        }
+
+        function spendEventCurrency(amount) {
+            const currency = getCurrentEventCurrency();
+            if (!currency) return false;
+            if (eventCurrency[currency.key] >= amount) {
+                eventCurrency[currency.key] -= amount;
+                updateEventCurrencyUI();
+                saveData();
+                return true;
+            }
+            return false;
+        }
+
+        function updateEventCurrencyUI() {
+            const currency = getCurrentEventCurrency();
+            const span = document.getElementById('eventCurrencyDisplay');
+            if (span && currency) {
+                span.innerHTML = `${currency.emoji} ${eventCurrency[currency.key]}`;
+            }
+        }
 
         // Получить все карты из определенного сета
         function getCardsInDeck(setKey) {
@@ -2775,6 +2841,7 @@
             const badge = document.getElementById('eventSeasonBadge');
             const packBtn = document.getElementById('eventPackBtn');
             const previewContainer = document.getElementById('eventCardsPreview');
+            const currency = getCurrentEventCurrency();
             
             if (badge) {
                 if (currentSeason) {
@@ -2785,19 +2852,39 @@
                 }
             }
             
+            // Обновляем отображение ивент-валюты в шапке и в блоке ивента
+            updateEventCurrencyInHeader();
+            updateEventCurrencyUI();       
+            
             if (packBtn) {
                 if (!currentSeason) {
                     packBtn.disabled = true;
                     packBtn.classList.add('disabled');
                     packBtn.textContent = "⏸️ ИВЕНТ НЕ АКТИВЕН";
-                } else if (shards < 20) {
+                } else if (!currency) {
                     packBtn.disabled = true;
                     packBtn.classList.add('disabled');
-                    packBtn.textContent = `🎪 НЕТ 20⚡ ДЛЯ ИВЕНТ-ПАКА`;
+                    packBtn.textContent = "❌ ОШИБКА ВАЛЮТЫ";
+                } else if (eventCurrency[currency.key] < 20) {
+                    packBtn.disabled = true;
+                    packBtn.classList.add('disabled');
+                    packBtn.textContent = `🎪 НЕТ 20${currency.emoji} ДЛЯ ИВЕНТ-ПАКА (есть: ${eventCurrency[currency.key]})`;
                 } else {
                     packBtn.disabled = false;
                     packBtn.classList.remove('disabled');
-                    packBtn.textContent = `🎪 ОТКРЫТЬ ЗА 20⚡ - ${getSeasonName(currentSeason)}`;
+                    packBtn.textContent = `🎪 ОТКРЫТЬ ЗА 20${currency.emoji} - ${getSeasonName(currentSeason)}`;
+                }
+                
+                // Меняем цвет кнопки под сезон
+                const seasonColors = {
+                    spring: 'radial-gradient(circle at 30% 10%, #ff88cc, #cc6699)',
+                    summer: 'radial-gradient(circle at 30% 10%, #44aaff, #2288cc)',
+                    halloween: 'radial-gradient(circle at 30% 10%, #ff8833, #cc6622)',
+                    newyear: 'radial-gradient(circle at 30% 10%, #44ff88, #22cc66)'
+                };
+                
+                if (currentSeason && seasonColors[currentSeason]) {
+                    packBtn.style.background = seasonColors[currentSeason];
                 }
             }
             
@@ -2819,18 +2906,120 @@
                 previewContainer.innerHTML = '<div style="color: #aa8899; text-align: center;">✨ Ожидайте начала ивента!</div>';
             }
         }
-        
+
+        function updateBuyCurrencyButton() {
+            const buyBtn = document.getElementById('buyEventCurrencyBtn');
+            if (!buyBtn) return;
+            
+            const currency = getCurrentEventCurrency();
+            if (!currency) {
+                buyBtn.style.display = 'none';
+                return;
+            }
+            
+            buyBtn.style.display = 'inline-block';
+            const today = new Date().toDateString();
+            const isPurchased = lastDailyPurchase[currency.key] === today;
+            
+            if (isPurchased) {
+                buyBtn.disabled = true;
+                buyBtn.classList.add('disabled');
+                buyBtn.textContent = `✅ Уже куплено сегодня (${eventCurrency[currency.key]} ${currency.emoji})`;
+                buyBtn.style.opacity = '0.6';
+            } else {
+                buyBtn.disabled = false;
+                buyBtn.classList.remove('disabled');
+                buyBtn.textContent = `Купить 400${currency.emoji} за 2000💎`;
+                buyBtn.style.opacity = '1';
+            }
+        }
+
+        function updateEventCurrencyInHeader() {
+            const headerSpan = document.getElementById('headerEventCurrency');
+            if (!headerSpan) return;
+            
+            const currency = getCurrentEventCurrency();
+            
+            if (currency && eventCurrency[currency.key] > 0) {
+                headerSpan.style.display = 'flex';
+                headerSpan.style.alignItems = 'center';
+                headerSpan.style.gap = '4px';
+                
+                // Меняем цвет под сезон
+                const seasonColors = {
+                    spring: 'linear-gradient(135deg, #ff88cc, #cc6699)',
+                    summer: 'linear-gradient(135deg, #44aaff, #2288cc)',
+                    halloween: 'linear-gradient(135deg, #ff8833, #cc6622)',
+                    newyear: 'linear-gradient(135deg, #44ff88, #22cc66)'
+                };
+                
+                const currentSeason = getCurrentSeason();
+                if (currentSeason && seasonColors[currentSeason]) {
+                    headerSpan.style.background = seasonColors[currentSeason];
+                }
+                
+                headerSpan.innerHTML = `${currency.emoji} <span class="stat-value" style="color: white;">${eventCurrency[currency.key]}</span>`;
+            } else if (currency && eventCurrency[currency.key] === 0) {
+                headerSpan.style.display = 'flex';
+                headerSpan.style.opacity = '0.6';
+                headerSpan.innerHTML = `${currency.emoji} <span class="stat-value" style="color: white;">0</span>`;
+            } else {
+                headerSpan.style.display = 'none';
+            }
+        }
+
         let currentEventOfferedCards = [];
         let selectedEventCardIndex = null;
         
+        async function buyDailyEventCurrency() {
+            const currency = getCurrentEventCurrency();
+            if (!currency) {
+                showPromoStatus("❌ Нет активного ивента!", "error");
+                return;
+            }
+            
+            const today = new Date().toDateString();
+            if (lastDailyPurchase[currency.key] === today) {
+                showPromoStatus("⏰ Можно покупать только 1 раз в день!", "error");
+                return;
+            }
+            
+            const price = 2000; // 2000 алмазов
+            const amount = 400; // 400 единиц валюты
+            
+            if (crystals < price) {
+                showPromoStatus(`❌ Нужно ${price}💎 для покупки!`, "error");
+                return;
+            }
+            
+            crystals -= price;
+            eventCurrency[currency.key] += amount;
+            lastDailyPurchase[currency.key] = today;
+            
+            updateUI();
+            updateEventCurrencyUI();
+            saveData();
+            
+            showPromoStatus(`✅ Куплено ${amount} ${currency.name} за ${price}💎!`, "success");
+        }
+
         async function buyEventPack() {
             const currentSeason = getCurrentSeason();
             if (!currentSeason) {
                 showPromoStatus("❌ Сейчас нет активного ивента! Дождитесь Хэллоуина, Нового года, Весны или Лета", "error");
                 return;
             }
-            if (shards < 20) {
-                showPromoStatus(`❌ Недостаточно осколков! Нужно 20⚡`, "error");
+            
+            const currency = getCurrentEventCurrency();
+            if (!currency) {
+                showPromoStatus("❌ Ошибка: не удалось определить валюту ивента", "error");
+                return;
+            }
+            
+            const PRICE = 20; // 20 единиц ивент-валюты
+            
+            if (eventCurrency[currency.key] < PRICE) {
+                showPromoStatus(`❌ Недостаточно ${currency.name}! Нужно ${PRICE} ${currency.emoji}`, "error");
                 return;
             }
             
@@ -2840,7 +3029,7 @@
                 return;
             }
             
-            if (confirm(`Открыть за 20⚡? Вы получите уникальную ивент-карту сезона ${getSeasonName(currentSeason)}.`)) {
+            if (confirm(`Открыть ивент-пак за ${PRICE} ${currency.name} ${currency.emoji}? Вы получите уникальную ивент-карту сезона ${getSeasonName(currentSeason)}.`)) {
                 const eventPackBtn = document.getElementById('eventPackBtn');
                 const originalText = eventPackBtn.innerHTML;
                 
@@ -2852,17 +3041,24 @@
                     
                     await new Promise(resolve => setTimeout(resolve, 200));
                     
-                    shards -= 20;
+                    // Тратим ивент-валюту
+                    spendEventCurrency(PRICE);
                     updateUI();
+                    updateEventCurrencyUI();
+                    
                     currentEventOfferedCards = [];
                     const card = getRandomEventPackCard();
                     if (card) currentEventOfferedCards.push(card);
+                    
                     if (currentEventOfferedCards.length === 0) {
-                        shards += 20;
+                        // Возвращаем валюту при ошибке
+                        eventCurrency[currency.key] += PRICE;
                         updateUI();
-                        showPromoStatus("❌ Ошибка: нет доступных ивент-карт. Осколки возвращены", "error");
+                        updateEventCurrencyUI();
+                        showPromoStatus("❌ Ошибка: нет доступных ивент-карт. Валюта возвращена", "error");
                         return;
                     }
+                    
                     selectedEventCardIndex = null;
                     const eventSelectionArea = document.getElementById('eventSelectionArea');
                     if (eventSelectionArea) {
@@ -2878,13 +3074,15 @@
                     
                     eventSelectionArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                     
-                    showPromoStatus(`🎪 Ивент-пак открыт! Выберите карту сезона ${getSeasonName(currentSeason)} 🎪`, "success");
+                    showPromoStatus(`🎪 Ивент-пак открыт за ${PRICE} ${currency.name}! Выберите карту сезона ${getSeasonName(currentSeason)} 🎪`, "success");
                     
                 } catch (error) {
                     console.error('Ошибка при открытии ивент-пака:', error);
                     showPromoStatus("❌ Ошибка при открытии ивент-пака. Попробуйте снова", "error");
-                    shards += 5;
+                    // Возвращаем валюту при ошибке
+                    eventCurrency[currency.key] += PRICE;
                     updateUI();
+                    updateEventCurrencyUI();
                 } finally {
                     setTimeout(() => {
                         eventPackBtn.disabled = false;
@@ -3590,6 +3788,8 @@
                 currentExp: currentExp,
                 dailyQuests: dailyQuests,
                 lastQuestReset: lastQuestReset,
+                eventCurrency: eventCurrency,
+                lastDailyPurchase: lastDailyPurchase,
                 claimedDecks: Array.from(claimedDecks)
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(saveObject));
@@ -3624,6 +3824,8 @@
                     dailyQuests = data.dailyQuests || DAILY_QUESTS.map(q => ({...q, progress: 0, completed: false, claimed: false}));
                     lastQuestReset = data.lastQuestReset || null;
                     claimedDecks = new Set(data.claimedDecks || []);
+                    eventCurrency = data.eventCurrency || { spring: 0, summer: 0, halloween: 0, winter: 0 };
+                    lastDailyPurchase = data.lastDailyPurchase || { spring: null, summer: null, halloween: null, winter: null };
                 } catch(e) { resetToDefaults(); }
             } else { resetToDefaults(); }
             const today = new Date().toDateString();
@@ -3742,6 +3944,11 @@
             miningClicksToday++; 
             ore += gain; 
             totalOreMined += gain;
+            if (Math.random() < 0.1) { // 10% шанс
+                const gained = Math.floor(Math.random() * 5) + 1;
+                addEventCurrency(gained);
+                showPromoStatus(`✨ +${gained} ивент-валюты из шахты! ✨`, "success");
+            }
             addExp(Math.floor(gain / 10));
             updateQuestProgress("daily_mine", 1);
             updateQuestProgress("daily_ore", gain);
@@ -4174,6 +4381,11 @@
             if (caught.reward.card) giveRandomCard();
             if (caught.reward.pack) giveFreePack();
             totalFishCaught++;
+            if (Math.random() < 0.15) { // 15% шанс
+                const gained = Math.floor(Math.random() * 3) + 1;
+                addEventCurrency(gained);
+                showCatchResult({ name: `✨ +${gained} ивент-валюты! ✨`, reward: {} });
+            }
             addExp(5);
             updateQuestProgress("daily_fish", 1);
             checkAchievements();
@@ -4600,6 +4812,7 @@
             document.getElementById('cancelNicknameBtn')?.addEventListener('click', cancelNicknameEdit);
             document.getElementById('copyInviteLinkBtn')?.addEventListener('click', copyInviteLink);
             document.getElementById('copyNicknameBtn')?.addEventListener('click', copyNickname);
+            document.getElementById('buyEventCurrencyBtn')?.addEventListener('click', buyDailyEventCurrency);
             
             renderPromoChips();
             
