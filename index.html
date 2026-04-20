@@ -2914,6 +2914,7 @@
             updateEventCurrencyInHeader();
             updateEventCurrencyUI();       
             updateEventTimer();
+            updateBuyCurrencyButton(); 
 
             if (packBtn) {
                 if (!currentSeason) {
@@ -2983,7 +2984,7 @@
             if (isPurchased) {
                 buyBtn.disabled = true;
                 buyBtn.classList.add('disabled');
-                buyBtn.textContent = `✅ Уже куплено сегодня (${eventCurrency[currency.key]} ${currency.emoji})`;
+                buyBtn.textContent = `✅ Уже куплено сегодня`;
                 buyBtn.style.opacity = '0.6';
             } else {
                 buyBtn.disabled = false;
@@ -3057,6 +3058,8 @@
             
             updateUI();
             updateEventCurrencyUI();
+            updateEventCurrencyInHeader();  // Добавлено: обновляем шапку
+            updateBuyCurrencyButton();      // Добавлено: обновляем состояние кнопки покупки
             saveData();
             
             showPromoStatus(`✅ Куплено ${amount} ${currency.name} за ${price}💎!`, "success");
