@@ -3765,6 +3765,7 @@
         function getFullCardById(id) { return ALL_CARDS.find(c => c.id === id); }
         
         function showModal(imageUrl, cardName, rank) {
+            console.log('📸 Открываем модалку:', { imageUrl, cardName, rank });
             modalImage.src = imageUrl;
             modalCaption.textContent = cardName;
             modalRank.textContent = rank;
@@ -4344,24 +4345,30 @@
                 }
             }, 3000);
         }
-        
+                
         function giveRandomCard() {
             const nonAPlusCards = CATALOG_CARDS.filter(c => !c.season);
             if (nonAPlusCards.length === 0) return false;
+            
             const randomCard = nonAPlusCards[Math.floor(Math.random() * nonAPlusCards.length)];
             const imgPath = getCardImage(randomCard, false);
+            
+            // Принудительно показываем модальное окно ДО обработки коллекции
+            // чтобы пользователь видел, что выпало
+            showModal(imgPath, randomCard.name, randomCard.rank);
+            
             if (collectionMap.has(randomCard.id)) {
                 crystals += DUPLICATE_REWARD_CRYSTALS;
-                showModal(imgPath, randomCard.name, randomCard.rank);
-                showPromoStatus(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎`, "success");
+                showPromoStatus(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${randomCard.name}"`, "success");
             } else {
                 collectionMap.set(randomCard.id, { cardData: randomCard, animated: false });
                 addExp(10);
                 checkAchievements();
                 checkAllDecks();
-                showModal(imgPath, randomCard.name, randomCard.rank);
-                showPromoStatus(`✨ Новая карта добавлена в коллекцию!`, "success");
+                showPromoStatus(`✨ НОВАЯ КАРТА: "${randomCard.name}" добавлена в коллекцию! ✨`, "success");
             }
+            
+            updateUI();
             return true;
         }
         
