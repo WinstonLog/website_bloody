@@ -2625,6 +2625,9 @@
             winter: null
         };
 
+        let pendingAuctionCards = [];
+        let lastAuctionEndTime = null;  // Для отслеживания времени
+
         // ==================== АУКЦИОННАЯ СИСТЕМА ====================
         const AUCTION_RANKS = ['Q'];
 
@@ -2709,11 +2712,20 @@
             }, 8000);
         }
 
-        // Запустить новый аукцион (вызывается из cloud или локально)
         async function startNewAuction() {
+            // Проверяем, есть ли уже активный аукцион (в памяти)
+            if (currentAuction && currentAuction.status === 'active') {
+                const now = new Date();
+                if (new Date(currentAuction.end_time) > now) {
+                    console.log('⚠️ Аукцион уже активен, пропускаем создание нового');
+                    renderAuctionUI();
+                    startAuctionTimer();
+                    return;
+                }
+            }
+            
             // Проверяем, нет ли уже активного в облаке
             if (!supabaseInitialized) {
-                // Офлайн режим: локальный аукцион
                 startLocalAuction();
                 return;
             }
@@ -2728,7 +2740,7 @@
                 
                 if (checkError) throw checkError;
                 if (activeAuction) {
-                    // Уже есть активный аукцион, загружаем его
+                    // Уже есть активный аукцион в БД, загружаем его
                     loadAuctionFromCloud(activeAuction);
                     return;
                 }
@@ -2764,15 +2776,14 @@
                 
                 if (insertError) throw insertError;
                 
-                // Показываем уведомление
                 showAuctionNotification(card.name, card.rank, startPrice);
-                
-                // Загружаем аукцион в интерфейс
                 loadAuctionFromCloud(newAuction);
+                
+                // Сохраняем в localStorage
+                saveData();
                 
             } catch (error) {
                 console.error('Ошибка создания аукциона:', error);
-                // Фолбэк: локальный аукцион
                 startLocalAuction();
             }
         }
@@ -2818,17 +2829,11 @@
             startAuctionTimer();
         }
 
-        // Отрисовать интерфейс аукциона
         function renderAuctionUI() {
             const currentBlock = document.getElementById('auctionCurrentBlock');
             const noActiveBlock = document.getElementById('auctionNoActiveBlock');
-            const cardImage = document.getElementById('auctionCardImage');
-            const cardName = document.getElementById('auctionCardName');
-            const cardRank = document.getElementById('auctionCardRank');
-            const cardSet = document.getElementById('auctionCardSet');
-            const currentBidSpan = document.getElementById('auctionCurrentBid');
-            const leaderSpan = document.getElementById('auctionLeader');
-            const startPriceSpan = document.getElementById('auctionStartPrice');
+            
+            console.log('🎨 renderAuctionUI, currentAuction:', currentAuction ? 'есть' : 'нет');
             
             if (!currentAuction || currentAuction.status !== 'active') {
                 if (currentBlock) currentBlock.style.display = 'none';
@@ -2839,7 +2844,15 @@
             if (currentBlock) currentBlock.style.display = 'block';
             if (noActiveBlock) noActiveBlock.style.display = 'none';
             
-            // Заполняем данные
+            // Заполняем данные карты
+            const cardImage = document.getElementById('auctionCardImage');
+            const cardName = document.getElementById('auctionCardName');
+            const cardRank = document.getElementById('auctionCardRank');
+            const cardSet = document.getElementById('auctionCardSet');
+            const currentBidSpan = document.getElementById('auctionCurrentBid');
+            const leaderSpan = document.getElementById('auctionLeader');
+            const startPriceSpan = document.getElementById('auctionStartPrice');
+            
             if (cardImage) {
                 cardImage.src = currentAuction.card_image || getDefaultImageForRank({ rank: currentAuction.card_rank });
                 cardImage.onerror = () => { cardImage.src = getDefaultImageForRank({ rank: currentAuction.card_rank }); };
@@ -2854,11 +2867,12 @@
             if (leaderSpan) leaderSpan.innerText = currentAuction.current_winner_nick || 'никто';
             if (startPriceSpan) startPriceSpan.innerText = `${currentAuction.start_price} 💎`;
             
-            // Обновляем подсказку минимальной ставки
             updateMinBidHintUI();
+            
+            // Сохраняем в localStorage при каждом обновлении
+            saveData();
         }
 
-        // Запустить таймер аукциона
         function startAuctionTimer() {
             if (auctionTimerInterval) clearInterval(auctionTimerInterval);
             
@@ -2866,7 +2880,7 @@
             const warningElement = document.getElementById('auctionLastMinuteWarning');
             const placeBidBtn = document.getElementById('auctionPlaceBidBtn');
             
-            if (!timerElement) return;
+            if (!timerElement || !currentAuction) return;
             
             const updateTimer = () => {
                 if (!currentAuction || currentAuction.status !== 'active') {
@@ -2875,7 +2889,8 @@
                 }
                 
                 const now = new Date();
-                const diff = currentAuction.end_time - now;
+                const endTime = new Date(currentAuction.end_time);
+                const diff = endTime - now;
                 
                 if (diff <= 0) {
                     // Аукцион завершён
@@ -3062,6 +3077,7 @@
             const winnerId = currentAuction.current_winner;
             const winnerNick = currentAuction.current_winner_nick || 'никто';
             const winningBid = currentAuction.current_bid;
+            const startPrice = currentAuction.start_price;  // Добавьте эту строку
             const card = {
                 id: currentAuction.card_id,
                 name: currentAuction.card_name,
@@ -3071,73 +3087,123 @@
             };
             
             let winnerGotCard = false;
+            let auctionResult = 'has_winner'; // Добавьте для отслеживания
             
-            if (winnerId && winnerId !== 'null' && winnerId !== null) {
-                // Если победитель — текущий игрок
-                if (winnerId === getUserId()) {
-                    // Добавляем карту в коллекцию
-                    const fullCard = getFullCardById(card.id);
-                    if (fullCard) {
-                        if (collectionMap.has(card.id)) {
-                            crystals += DUPLICATE_REWARD_CRYSTALS;
-                            showPromoStatus(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.name}"`, "success");
-                        } else {
-                            collectionMap.set(card.id, { cardData: fullCard, animated: false });
-                            addExp(15);
-                            checkAchievements();
-                            checkAllDecks();
-                            showPromoStatus(`🏆 ВЫ ВЫИГРАЛИ АУКЦИОН! Карта "${card.name}" добавлена в коллекцию!`, "success");
-                        }
-                        winnerGotCard = true;
-                        updateUI();
+            // ПРОВЕРКА: была ли хоть одна ставка?
+            const hasAnyBid = winnerId && winnerId !== 'null' && winnerId !== null && winningBid > startPrice;
+            
+            if (!hasAnyBid) {
+                // ⚠️ НИКТО НЕ СДЕЛАЛ СТАВКУ
+                auctionResult = 'no_bids';
+                showPromoStatus(`😔 Аукцион завершён без ставок! Карта "${card.name}" уходит в пустоту.`, "info");
+                
+                // Добавляем в историю с пометкой "нет ставок"
+                auctionHistoryList.unshift({
+                    card_name: card.name,
+                    card_rank: card.rank,
+                    winner: '❌ НЕТ СТАВОК',
+                    bid: 0,
+                    status: 'no_bids',
+                    time: new Date().toLocaleTimeString()
+                });
+                
+            } else if (winnerId === getUserId()) {
+                // 🏆 ПОБЕДИТЕЛЬ — ТЕКУЩИЙ ИГРОК
+                const fullCard = getFullCardById(card.id);
+                if (fullCard) {
+                    if (collectionMap.has(card.id)) {
+                        crystals += DUPLICATE_REWARD_CRYSTALS;
+                        showPromoStatus(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.name}"`, "success");
+                    } else {
+                        collectionMap.set(card.id, { cardData: fullCard, animated: false });
+                        addExp(15);
+                        checkAchievements();
+                        checkAllDecks();
+                        showPromoStatus(`🏆 ВЫ ВЫИГРАЛИ АУКЦИОН! Карта "${card.name}" добавлена в коллекцию!`, "success");
+                        showGlobalNotification(`🎉 ${currentNickname || 'Игрок'} выиграл карту "${card.name}" на аукционе!`);
                     }
-                } else {
-                    showPromoStatus(`🏆 Аукцион завершён! Победитель: ${winnerNick} (ставка ${winningBid}💎)`, "success");
+                    winnerGotCard = true;
+                    updateUI();
                 }
+                
+                auctionHistoryList.unshift({
+                    card_name: card.name,
+                    card_rank: card.rank,
+                    winner: 'ВЫ!',
+                    bid: winningBid,
+                    time: new Date().toLocaleTimeString()
+                });
+                
             } else {
-                showPromoStatus(`⏰ Аукцион завершён без победителя. Карта "${card.name}" уходит в хранилище.`, "info");
+                // 🏆 ПОБЕДИТЕЛЬ — ДРУГОЙ ИГРОК
+                showPromoStatus(`🏆 Аукцион завершён! Победитель: ${winnerNick} (ставка ${winningBid}💎)`, "success");
+                showGlobalNotification(`🏆 ${winnerNick} выиграл карту "${card.name}" на аукционе за ${winningBid}💎!`);
+                
+                auctionHistoryList.unshift({
+                    card_name: card.name,
+                    card_rank: card.rank,
+                    winner: winnerNick,
+                    bid: winningBid,
+                    time: new Date().toLocaleTimeString()
+                });
             }
             
-            // Добавляем в историю
-            auctionHistoryList.unshift({
-                card_name: card.name,
-                card_rank: card.rank,
-                winner: winnerGotCard ? 'Вы!' : winnerNick,
-                bid: winningBid,
-                time: new Date().toLocaleTimeString()
-            });
-            if (auctionHistoryList.length > 10) auctionHistoryList.pop();
+            // Ограничиваем историю
+            if (auctionHistoryList.length > 15) auctionHistoryList.pop();
             renderAuctionHistory();
             
-            // Обновляем статус в БД (если есть)
+            // Обновляем статус в БД
             if (!currentAuction.isLocal && supabaseInitialized) {
                 try {
                     await supabaseClient
                         .from('auctions')
-                        .update({ status: 'completed' })
+                        .update({ 
+                            status: 'completed',
+                            result: auctionResult 
+                        })
                         .eq('id', currentAuction.id);
                     
-                    // Сохраняем в историю БД
-                    await supabaseClient
-                        .from('auction_history')
-                        .insert({
-                            card_id: card.id,
-                            card_name: card.name,
-                            card_rank: card.rank,
-                            winner_id: winnerId,
-                            winner_nick: winnerNick,
-                            winning_bid: winningBid
-                        });
+                    // Сохраняем в историю БД (только если были ставки)
+                    if (hasAnyBid) {
+                        await supabaseClient
+                            .from('auction_history')
+                            .insert({
+                                card_id: card.id,
+                                card_name: card.name,
+                                card_rank: card.rank,
+                                winner_id: winnerId,
+                                winner_nick: winnerNick,
+                                winning_bid: winningBid,
+                                status: 'completed'
+                            });
+                    } else {
+                        await supabaseClient
+                            .from('auction_history')
+                            .insert({
+                                card_id: card.id,
+                                card_name: card.name,
+                                card_rank: card.rank,
+                                winner_id: null,
+                                winner_nick: null,
+                                winning_bid: 0,
+                                status: 'no_bids'
+                            });
+                    }
                 } catch (e) { console.error(e); }
             }
             
             currentAuction = null;
             renderAuctionUI();
             
-            // Планируем следующий аукцион через 30 секунд (для демо — через 5 сек)
+            // Сохраняем изменения
+            saveData();
+            
+            // Планируем следующий аукцион
+            // Если не было ставок — через 2 минуты, если были — через 30 минут
+            const nextDelay = auctionResult === 'no_bids' ? 120000 : 1800000;
             setTimeout(() => {
                 startNewAuction();
-            }, 5000);
+            }, nextDelay);
         }
 
         // Отрисовать историю аукционов
@@ -3188,16 +3254,42 @@
 
         // Инициализация аукциона
         function initAuction() {
+            console.log('🔨 Инициализация аукциона...');
+            
             // Привязываем кнопку ставки
             const placeBidBtn = document.getElementById('auctionPlaceBidBtn');
             if (placeBidBtn) {
-                placeBidBtn.addEventListener('click', placeAuctionBid);
+                // Удаляем старые обработчики, чтобы не было дублей
+                const newBtn = placeBidBtn.cloneNode(true);
+                placeBidBtn.parentNode.replaceChild(newBtn, placeBidBtn);
+                newBtn.addEventListener('click', placeAuctionBid);
             }
             
-            // Загружаем историю
+            // Загружаем историю из БД (если есть)
             loadAuctionHistory();
             
-            // Запускаем аукцион
+            // Проверяем, есть ли сохранённый активный аукцион
+            if (currentAuction && currentAuction.status === 'active') {
+                const now = new Date();
+                const endTime = new Date(currentAuction.end_time);
+                
+                if (endTime > now) {
+                    // Аукцион активен — восстанавливаем UI и таймер
+                    console.log('✅ ВОССТАНОВЛЕНИЕ АКТИВНОГО АУКЦИОНА');
+                    renderAuctionUI();
+                    startAuctionTimer();
+                    showPromoStatus(`🔨 Аукцион продолжается! Карта: ${currentAuction.card_name} | Текущая ставка: ${currentAuction.current_bid}💎`, "info");
+                    return;
+                } else {
+                    // Аукцион истёк — завершаем его
+                    console.log('⏰ Сохранённый аукцион истёк, завершаем...');
+                    finishAuction();
+                    return;
+                }
+            }
+            
+            // Нет активного аукциона — запускаем новый
+            console.log('🆕 Нет активного аукциона, запускаем новый...');
             startNewAuction();
         }
 
@@ -4800,10 +4892,31 @@
         
         function saveData() {
             const collectionData = Array.from(collectionMap.entries()).map(([id, data]) => ({ id, animated: data.animated || false }));
+            
+            // Сохраняем полное состояние аукциона
+            let auctionSaveData = null;
+            if (currentAuction && currentAuction.status === 'active') {
+                auctionSaveData = {
+                    id: currentAuction.id,
+                    card_id: currentAuction.card_id,
+                    card_name: currentAuction.card_name,
+                    card_rank: currentAuction.card_rank,
+                    card_image: currentAuction.card_image,
+                    card_set: currentAuction.card_set,
+                    start_price: currentAuction.start_price,
+                    current_bid: currentAuction.current_bid,
+                    current_winner: currentAuction.current_winner,
+                    current_winner_nick: currentAuction.current_winner_nick,
+                    end_time: currentAuction.end_time instanceof Date ? currentAuction.end_time.toISOString() : currentAuction.end_time,
+                    status: currentAuction.status,
+                    isLocal: currentAuction.isLocal || false
+                };
+            }
+            
             const saveObject = { 
                 crystals, shards, ore, dailyLastClaim, miningClicksToday, miningLastDate, 
                 collectionData, usedPromoCodes: Array.from(usedPromoCodes), 
-                version: 6,
+                version: 7,
                 unlockedAchievements: Array.from(unlockedAchievements),
                 packsOpened: packsOpened,
                 totalOreMined: totalOreMined,
@@ -4814,7 +4927,11 @@
                 lastQuestReset: lastQuestReset,
                 eventCurrency: eventCurrency,
                 lastDailyPurchase: lastDailyPurchase,
-                claimedDecks: Array.from(claimedDecks)
+                claimedDecks: Array.from(claimedDecks),
+                currentAuction: auctionSaveData,
+                recentlyAuctionedCards: recentlyAuctionedCards,
+                pendingAuctionCards: pendingAuctionCards,
+                auctionHistoryList: auctionHistoryList.slice(0, 15)  // Сохраняем историю
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(saveObject));
             syncToCloud();
@@ -4850,8 +4967,45 @@
                     claimedDecks = new Set(data.claimedDecks || []);
                     eventCurrency = data.eventCurrency || { spring: 0, summer: 0, halloween: 0, winter: 0 };
                     lastDailyPurchase = data.lastDailyPurchase || { spring: null, summer: null, halloween: null, winter: null };
-                } catch(e) { resetToDefaults(); }
-            } else { resetToDefaults(); }
+                    recentlyAuctionedCards = data.recentlyAuctionedCards || [];
+                    pendingAuctionCards = data.pendingAuctionCards || [];
+                    auctionHistoryList = data.auctionHistoryList || [];
+                    
+                    // ВОССТАНАВЛИВАЕМ АУКЦИОН
+                    if (data.currentAuction && data.currentAuction.status === 'active') {
+                        const savedAuction = data.currentAuction;
+                        const endTime = new Date(savedAuction.end_time);
+                        const now = new Date();
+                        
+                        if (endTime > now) {
+                            // Аукцион ещё активен
+                            currentAuction = {
+                                ...savedAuction,
+                                end_time: endTime,
+                                isLocal: savedAuction.isLocal || false
+                            };
+                            console.log('🔄 ВОССТАНОВЛЕН АУКЦИОН:', currentAuction.card_name);
+                            console.log('⏰ До конца:', Math.round((endTime - now) / 1000), 'секунд');
+                        } else {
+                            // Аукцион истёк
+                            console.log('⏰ Сохранённый аукцион истёк');
+                            currentAuction = null;
+                            lastAuctionEndTime = endTime;
+                        }
+                    } else {
+                        currentAuction = null;
+                    }
+                    
+                } catch(e) { 
+                    console.error('Ошибка загрузки:', e);
+                    resetToDefaults(); 
+                    currentAuction = null;
+                }
+            } else { 
+                resetToDefaults(); 
+                currentAuction = null;
+            }
+            
             const today = new Date().toDateString();
             if (miningLastDate !== today) { miningClicksToday = 0; miningLastDate = today; }
             
@@ -4860,6 +5014,11 @@
             }
             resetDailyQuests();
             updateLevelUI();
+            
+            // Отрисовываем историю
+            if (auctionHistoryList.length > 0) {
+                renderAuctionHistory();
+            }
         }
         
         async function autoFixUserSync() {
