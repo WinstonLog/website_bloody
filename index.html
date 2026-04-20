@@ -2186,7 +2186,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
-    <script src="cards.js?v=20041949"></script>
+    <script src="cards.js?v=2"></script>
     <script>
         let supabaseClient = null;
         let supabaseInitialized = false;
@@ -4843,7 +4843,7 @@
                         return null; // Сезон уже закончился
                     }
                     // Конец дня 20 апреля (23:59:59)
-                    return new Date(currentYear, 3, 20, 23, 59, 59);
+                    return new Date(currentYear, 3, 27, 23, 59, 59);
                     
                 case 'summer': // Лето: 20 июня - 20 июля (включительно)
                     if (now.getMonth() > 6 || (now.getMonth() === 6 && now.getDate() > 20)) {
@@ -4894,7 +4894,7 @@
             
             switch(currentSeason) {
                 case 'spring':
-                    endDate = new Date(now.getFullYear(), 3, 20, 23, 59, 59);
+                    endDate = new Date(now.getFullYear(), 3, 27, 23, 59, 59);
                     break;
                 case 'summer':
                     endDate = new Date(now.getFullYear(), 6, 20, 23, 59, 59);
