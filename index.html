@@ -1787,6 +1787,40 @@
             justify-content: center;
         }
 
+        /* Таймер окончания ивента */
+        .event-timer {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+            padding: 10px 12px;
+            margin: 12px 0;
+            text-align: center;
+            border: 1px solid rgba(255, 200, 100, 0.3);
+        }
+
+        .event-timer-label {
+            font-size: 0.7rem;
+            color: #ffccaa;
+            margin-bottom: 5px;
+        }
+
+        .event-timer-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffaa66;
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+
+        .event-timer-value.urgent {
+            color: #ff4444;
+            animation: timerPulse 1s ease-in-out infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
     </style>
 </head>
 <body>
@@ -1915,7 +1949,12 @@
                 <div class="event-icon">🎪</div>
                 <div>
                     <h3>ИВЕНТОВЫЙ ПАК</h3>
-                    <div class="event-season-badge" id="eventSeasonBadge">Сезон: Загрузка...</div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 20px;">
+                        <div class="event-season-badge" id="eventSeasonBadge" style="margin-bottom: 0;">Сезон: Загрузка...</div>
+                        <div id="eventTimerValue" style="background: rgba(0,0,0,0.5); padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; font-family: monospace;">
+                            --:--
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -2807,15 +2846,34 @@
             timerSpan.innerText = `${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
         }
         
-        // === ИВЕНТОВЫЕ ФУНКЦИИ ===
+        // Замените существующую функцию getCurrentSeason() на эту:
+
         function getCurrentSeason() {
             const now = new Date();
             const month = now.getMonth();
             const day = now.getDate();
-            if ((month === 9 && day >= 15) || (month === 10 && day <= 10)) return "halloween";
-            if ((month === 11 && day >= 15) || (month === 0 && day <= 15)) return "newyear";
-            if (month >= 2 && month <= 4) return "spring";
-            if (month >= 5 && month <= 7) return "summer";
+
+            // --- ВЕСНА (20 марта - 20 апреля ВКЛЮЧИТЕЛЬНО) ---
+            if ((month === 2 && day >= 20) || (month === 3 && day <= 20)) {
+                return "spring";
+            }
+            
+            // --- ЛЕТО (20 июня - 20 июля ВКЛЮЧИТЕЛЬНО) ---
+            if ((month === 5 && day >= 20) || (month === 6 && day <= 20)) {
+                return "summer";
+            }
+            
+            // --- ХЭЛЛОУИН (20 октября - 3 ноября ВКЛЮЧИТЕЛЬНО) ---
+            if ((month === 9 && day >= 20) || (month === 10 && day <= 3)) {
+                return "halloween";
+            }
+            
+            // --- НОВЫЙ ГОД (20 декабря - 31 января ВКЛЮЧИТЕЛЬНО) ---
+            if ((month === 11 && day >= 20) || (month === 0 && day <= 31)) {
+                return "newyear";
+            }
+
+            // Если ни один сезон не активен
             return null;
         }
         
@@ -2855,7 +2913,8 @@
             // Обновляем отображение ивент-валюты в шапке и в блоке ивента
             updateEventCurrencyInHeader();
             updateEventCurrencyUI();       
-            
+            updateEventTimer();
+
             if (packBtn) {
                 if (!currentSeason) {
                     packBtn.disabled = true;
@@ -4772,6 +4831,117 @@
         window.showVisitorStats = function() { alert(`👥 Всего уникальных игроков: ${document.getElementById('visitorCount').textContent}`); };
         window.copyUserId = copyUserId;
         
+        // Функция получения даты окончания текущего сезона (конец дня)
+        function getSeasonEndDate(season) {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            
+            switch(season) {
+                case 'spring': // Весна: 20 марта - 20 апреля (включительно)
+                    // Если сегодня ПОСЛЕ 20 апреля (21 апреля и далее)
+                    if (now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() > 20)) {
+                        return null; // Сезон уже закончился
+                    }
+                    // Конец дня 20 апреля (23:59:59)
+                    return new Date(currentYear, 3, 20, 23, 59, 59);
+                    
+                case 'summer': // Лето: 20 июня - 20 июля (включительно)
+                    if (now.getMonth() > 6 || (now.getMonth() === 6 && now.getDate() > 20)) {
+                        return null;
+                    }
+                    return new Date(currentYear, 6, 20, 23, 59, 59);
+                    
+                case 'halloween': // Хэллоуин: 20 октября - 3 ноября (включительно)
+                    if (now.getMonth() > 10 || (now.getMonth() === 10 && now.getDate() > 3)) {
+                        return null;
+                    }
+                    return new Date(currentYear, 10, 3, 23, 59, 59);
+                    
+                case 'newyear': // Новый год: 20 декабря - 31 января (включительно)
+                    if (now.getMonth() === 0) {
+                        // Сейчас январь, конец сезона - 31 января 23:59:59
+                        if (now.getDate() > 31) return null;
+                        return new Date(currentYear, 0, 31, 23, 59, 59);
+                    } else if (now.getMonth() === 11 && now.getDate() >= 20) {
+                        // Сейчас декабрь с 20 числа
+                        return new Date(currentYear + 1, 0, 31, 23, 59, 59);
+                    } else {
+                        return null;
+                    }
+                    
+                default:
+                    return null;
+            }
+        }
+
+        // Компактный таймер ивента (в одну строку)
+        function updateEventTimer() {
+            const timerElement = document.getElementById('eventTimerValue');
+            if (!timerElement) return;
+            
+            const currentSeason = getCurrentSeason();
+            
+            if (!currentSeason) {
+                timerElement.innerHTML = '⛔ ЗАВЕРШЁН';
+                timerElement.style.color = '#ff8888';
+                timerElement.style.opacity = '0.6';
+                return;
+            }
+            
+            // Даты окончания сезонов
+            const now = new Date();
+            let endDate;
+            
+            switch(currentSeason) {
+                case 'spring':
+                    endDate = new Date(now.getFullYear(), 3, 20, 23, 59, 59);
+                    break;
+                case 'summer':
+                    endDate = new Date(now.getFullYear(), 6, 20, 23, 59, 59);
+                    break;
+                case 'halloween':
+                    endDate = new Date(now.getFullYear(), 10, 3, 23, 59, 59);
+                    break;
+                case 'newyear':
+                    if (now.getMonth() === 11 && now.getDate() >= 20) {
+                        endDate = new Date(now.getFullYear() + 1, 0, 31, 23, 59, 59);
+                    } else {
+                        endDate = new Date(now.getFullYear(), 0, 31, 23, 59, 59);
+                    }
+                    break;
+                default:
+                    timerElement.innerHTML = '❌ ОШИБКА';
+                    return;
+            }
+            
+            const diff = endDate - now;
+            
+            if (diff <= 0) {
+                timerElement.innerHTML = '🎉 ЗАВЕРШЁН';
+                timerElement.style.color = '#ff8888';
+                return;
+            }
+            
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (3600000)) / (1000 * 60));
+            
+            let timeText = '';
+            if (hours >= 24) {
+                const days = Math.floor(hours / 24);
+                const remainHours = hours % 24;
+                timeText = `${days}д ${remainHours}ч`;
+                timerElement.style.color = '#ffaa66';
+            } else if (hours > 0) {
+                timeText = `${hours}ч ${minutes}м`;
+                timerElement.style.color = '#ffaa66';
+            } else {
+                timeText = `${minutes}м`;
+                timerElement.style.color = '#ff6666';
+            }
+            
+            timerElement.innerHTML = `⏳ ${timeText}`;
+        }
+
         async function init() {
             crystalDisplay = document.getElementById('crystalDisplay');
             oreDisplay = document.getElementById('oreDisplay');
@@ -4875,6 +5045,7 @@
                 updateQuestTimer();
                 resetDailyQuests();
                 updateEventUI();
+                updateEventTimer();
             }, 1000);
             
             document.getElementById('userIdDisplay').innerText = getUserId();
