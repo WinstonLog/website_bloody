@@ -2,6 +2,16 @@
 const ALL_CARDS = [
     { id: "osk01", name: "Осколок", emoji: "⚔️", rank: "A+", set: "Эхокалипсис", rankLabel: "A+", color: "#772ce8", rankOrder: 3, image: "images/osk.png", canUpgrade: false, animImage: null },
 
+    // Q
+
+    { id: "Qraiden01", name: "Райден", emoji: "🍊", rank: "Q", set: "Genshin Impact", rankLabel: "Q", color: "#4984b2", rankOrder: 1, image: "images/auctions/raiden01.png", canUpgrade: false, animImage: null },
+    { id: "Qalbedo01", name: "Альбедо", emoji: "🍊", rank: "Q", set: "Повелитель", rankLabel: "Q", color: "#4984b2", rankOrder: 1, image: "images/auctions/albedo01.png", canUpgrade: false, animImage: null },
+    { id: "Qkafka01", name: "Кафка", emoji: "🍊", rank: "Q", set: "Архив Звёздного Пути", rankLabel: "Q", color: "#4984b2", rankOrder: 1, image: "images/auctions/kafka01.png", canUpgrade: false, animImage: null },
+    { id: "Qzani01", name: "Зани", emoji: "🍊", rank: "Q", set: "Грозовые Волны", rankLabel: "Q", color: "#4984b2", rankOrder: 1, image: "images/auctions/zani01.png", canUpgrade: false, animImage: null },
+    { id: "Qyashma01", name: "Яшма", emoji: "🍊", rank: "Q", set: "Архив Звёздного Пути", rankLabel: "Q", color: "#4984b2", rankOrder: 1, image: "images/auctions/yashma01.png", canUpgrade: false, animImage: null },
+    { id: "Qmiaybi01", name: "Мияби", emoji: "🍊", rank: "Q", set: "Zenless Zone Zero", rankLabel: "Q", color: "#4984b2", rankOrder: 1, image: "images/auctions/miaybi01.png", canUpgrade: false, animImage: null },
+    { id: "Qgerta01", name: "Герта", emoji: "🍊", rank: "Q", set: "Архив Звёздного Пути", rankLabel: "Q", color: "#4984b2", rankOrder: 1, image: "images/auctions/gerta01.png", canUpgrade: false, animImage: null },
+
     // X
 
     { id: "Xcc01", name: "C.C.", emoji: "🍊", rank: "X", set: "Код Гиас", rankLabel: "X", color: "#4984b2", rankOrder: 1, image: "images/X/cc01.png", canUpgrade: false, animImage: null },
