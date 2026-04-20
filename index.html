@@ -2854,7 +2854,7 @@
             const day = now.getDate();
 
             // --- ВЕСНА (20 марта - 20 апреля ВКЛЮЧИТЕЛЬНО) ---
-            if ((month === 2 && day >= 20) || (month === 3 && day <= 20)) {
+            if ((month === 2 && day >= 20) || (month === 3 && day <= 27)) {
                 return "spring";
             }
             
@@ -4839,7 +4839,7 @@
             switch(season) {
                 case 'spring': // Весна: 20 марта - 20 апреля (включительно)
                     // Если сегодня ПОСЛЕ 20 апреля (21 апреля и далее)
-                    if (now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() > 20)) {
+                    if (now.getMonth() > 3 || (now.getMonth() === 3 && now.getDate() > 27)) {
                         return null; // Сезон уже закончился
                     }
                     // Конец дня 20 апреля (23:59:59)
