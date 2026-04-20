@@ -737,6 +737,20 @@
             border: 1px solid rgba(255,255,255,0.3);
         }
         
+        /* Q ранг */
+        .rank-corner-Q {
+            background: linear-gradient(135deg, #d4af37, #aa8833);
+            color: #fff;
+            text-shadow: 0 0 3px #000;
+            box-shadow: 0 0 8px #d4af37;
+            animation: queenPulse 2s infinite;
+        }
+
+        @keyframes queenPulse {
+            0%, 100% { box-shadow: 0 0 5px #d4af37; }
+            50% { box-shadow: 0 0 20px #d4af37; }
+        }
+
         .rank-corner-X { background: linear-gradient(135deg, #4984b2, #4477aa); color: #fff; }
         .rank-corner-S { background: linear-gradient(135deg, #f54972, #4477aa); color: #fff; }
         .rank-corner-Aplus { background: linear-gradient(135deg, #772ce8, #4477aa); color: #fff; }
@@ -2625,24 +2639,22 @@
             winter: null
         };
 
-        let pendingAuctionCards = [];
-        let lastAuctionEndTime = null;  // Для отслеживания времени
+        // ==================== АУКЦИОННАЯ СИСТЕМА (ОБЩАЯ ДЛЯ ВСЕХ) ====================
 
-        // ==================== АУКЦИОННАЯ СИСТЕМА ====================
+        // Переменные аукциона
+        let currentAuction = null;
+        let auctionTimerInterval = null;
+        let auctionHistoryList = [];
+
+        // Ранги аукциона
         const AUCTION_RANKS = ['Q'];
 
-        // Стартовые цены по рангам
+        // Стартовые цены
         const AUCTION_START_PRICES = {
             'Q': 500
         };
 
-        // Глобальные переменные аукциона
-        let currentAuction = null;           // Текущий активный аукцион
-        let auctionTimerInterval = null;     // Интервал таймера
-        let auctionHistoryList = [];          // История аукционов (локальный кеш)
-        let recentlyAuctionedCards = [];      // ID карт, которые недавно были в аукционе (чтобы не повторялись)
-
-        // Получить карты, доступные для аукциона (только определённые ранги, не ивентовые)
+        // Получить карты для аукциона
         function getAuctionableCards() {
             return CATALOG_CARDS.filter(card => 
                 AUCTION_RANKS.includes(card.rank) && 
@@ -2651,119 +2663,72 @@
             );
         }
 
-        // Получить случайную карту для аукциона (без повторов подряд)
+        // Получить случайную карту
         function getRandomAuctionCard() {
-            let availableCards = getAuctionableCards();
-            
-            // Исключаем карты, которые были в последних 5 аукционах
-            let filteredCards = availableCards.filter(card => !recentlyAuctionedCards.includes(card.id));
-            
-            if (filteredCards.length === 0) {
-                // Если все карты были недавно, сбрасываем историю
-                recentlyAuctionedCards = [];
-                filteredCards = availableCards;
-            }
-            
-            if (filteredCards.length === 0) return null;
-            
-            const randomIndex = Math.floor(Math.random() * filteredCards.length);
-            const selectedCard = { ...filteredCards[randomIndex] };
-            
-            // Добавляем в историю недавних
-            recentlyAuctionedCards.push(selectedCard.id);
-            if (recentlyAuctionedCards.length > 5) recentlyAuctionedCards.shift();
-            
-            return selectedCard;
+            const availableCards = getAuctionableCards();
+            if (availableCards.length === 0) return null;
+            const randomIndex = Math.floor(Math.random() * availableCards.length);
+            return { ...availableCards[randomIndex] };
         }
 
-        // Получить минимальную следующую ставку
-        function getMinNextBid(currentBid) {
-            const minIncrease = Math.max(10, Math.floor(currentBid * 0.1));
-            return currentBid + minIncrease;
-        }
-
-        // Показать уведомление о новом аукционе (всплывающее)
-        function showAuctionNotification(cardName, cardRank, startPrice) {
-            // Создаём временное уведомление
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 70px;
-                right: 10px;
-                background: linear-gradient(135deg, #ff4444, #aa2222);
-                color: white;
-                padding: 12px 18px;
-                border-radius: 16px;
-                font-size: 0.8rem;
-                font-weight: bold;
-                z-index: 1000;
-                animation: slideIn 0.3s ease;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-                cursor: pointer;
-            `;
-            notification.innerHTML = `🔨 НОВЫЙ АУКЦИОН!<br>🎴 ${cardName} (${cardRank})<br>💰 Старт: ${startPrice}💎`;
-            notification.onclick = () => {
-                document.querySelector('.tab-btn[data-tab="auction"]').click();
-                notification.remove();
-            };
-            document.body.appendChild(notification);
-            setTimeout(() => {
-                if (notification.parentNode) notification.remove();
-            }, 8000);
-        }
-
-        async function startNewAuction() {
-            // Проверяем, есть ли уже активный аукцион (в памяти)
-            if (currentAuction && currentAuction.status === 'active') {
-                const now = new Date();
-                if (new Date(currentAuction.end_time) > now) {
-                    console.log('⚠️ Аукцион уже активен, пропускаем создание нового');
-                    renderAuctionUI();
-                    startAuctionTimer();
-                    return;
-                }
-            }
-            
-            // Проверяем, нет ли уже активного в облаке
-            if (!supabaseInitialized) {
-                startLocalAuction();
-                return;
-            }
+        // ЗАГРУЗИТЬ АУКЦИОН ИЗ SUPABASE (ОБЩИЙ ДЛЯ ВСЕХ)
+        async function loadGlobalAuction() {
+            if (!supabaseInitialized) return;
             
             try {
-                // Проверяем активный аукцион в БД
-                const { data: activeAuction, error: checkError } = await supabaseClient
-                    .from('auctions')
+                const { data, error } = await supabaseClient
+                    .from('active_auction')
                     .select('*')
-                    .eq('status', 'active')
-                    .maybeSingle();
+                    .eq('id', 1)
+                    .single();
                 
-                if (checkError) throw checkError;
-                if (activeAuction) {
-                    // Уже есть активный аукцион в БД, загружаем его
-                    loadAuctionFromCloud(activeAuction);
+                if (error) {
+                    console.log('Нет активного аукциона, создаём новый');
+                    await createNewGlobalAuction();
                     return;
                 }
                 
-                // Создаём новый аукцион
-                const card = getRandomAuctionCard();
-                if (!card) {
-                    console.warn('Нет карт для аукциона');
-                    return;
+                if (data.status === 'active' && new Date(data.end_time) > new Date()) {
+                    currentAuction = {
+                        ...data,
+                        end_time: new Date(data.end_time)
+                    };
+                    renderAuctionUI();
+                    startAuctionTimer();
+                    console.log('✅ Аукцион загружен из БД:', currentAuction.card_name);
+                } else {
+                    await createNewGlobalAuction();
                 }
+            } catch (e) {
+                console.error('Ошибка загрузки аукциона:', e);
+            }
+        }
+
+        // СОЗДАТЬ НОВЫЙ ОБЩИЙ АУКЦИОН
+        async function createNewGlobalAuction() {
+            if (!supabaseInitialized) return;
+            
+            const card = getRandomAuctionCard();
+            if (!card) return;
+            
+            const startPrice = AUCTION_START_PRICES[card.rank] || 500;
+            const endTime = new Date();
+            endTime.setMinutes(endTime.getMinutes() + 30);
+            
+            try {
+                // Сначала удаляем старый
+                await supabaseClient.from('active_auction').delete().eq('id', 1);
                 
-                const startPrice = AUCTION_START_PRICES[card.rank] || 50;
-                const endTime = new Date();
-                endTime.setMinutes(endTime.getMinutes() + 30);
-                
-                const { data: newAuction, error: insertError } = await supabaseClient
-                    .from('auctions')
+                // Создаём новый
+                const { data, error } = await supabaseClient
+                    .from('active_auction')
                     .insert({
+                        id: 1,
                         card_id: card.id,
                         card_name: card.name,
                         card_rank: card.rank,
                         card_image: card.image,
-                        card_set: card.set || 'Обычная',
+                        card_set: card.set || 'Аукционная',
                         start_price: startPrice,
                         current_bid: startPrice,
                         current_winner: null,
@@ -2774,66 +2739,181 @@
                     .select()
                     .single();
                 
-                if (insertError) throw insertError;
+                if (error) throw error;
                 
-                showAuctionNotification(card.name, card.rank, startPrice);
-                loadAuctionFromCloud(newAuction);
+                currentAuction = {
+                    ...data,
+                    end_time: new Date(data.end_time)
+                };
                 
-                // Сохраняем в localStorage
-                saveData();
+                renderAuctionUI();
+                startAuctionTimer();
                 
-            } catch (error) {
-                console.error('Ошибка создания аукциона:', error);
-                startLocalAuction();
+                // Глобальное уведомление
+                await supabaseClient.from('global_notifications').insert({
+                    message: `🔨 НОВЫЙ АУКЦИОН! Карта "${card.name}" (${card.rank}) | Старт: ${startPrice}💎`
+                });
+                
+                console.log('✅ Создан новый аукцион:', card.name);
+                
+            } catch (e) {
+                console.error('Ошибка создания аукциона:', e);
             }
         }
 
-        // Локальный аукцион (для офлайн-режима или демо)
-        function startLocalAuction() {
-            const card = getRandomAuctionCard();
-            if (!card) return;
+        // СДЕЛАТЬ СТАВКУ (обновляет общую запись)
+        async function placeAuctionBid() {
+            if (!currentAuction || currentAuction.status !== 'active') {
+                showPromoStatus("❌ Нет активного аукциона!", "error");
+                return;
+            }
             
-            const startPrice = AUCTION_START_PRICES[card.rank] || 50;
-            const endTime = new Date();
-            endTime.setMinutes(endTime.getMinutes() + 30);
+            const now = new Date();
+            const diff = currentAuction.end_time - now;
+            if (diff <= 60000) {
+                showPromoStatus("⛔ В последнюю минуту ставки запрещены!", "error");
+                return;
+            }
             
-            currentAuction = {
-                id: 'local_' + Date.now(),
-                card_id: card.id,
-                card_name: card.name,
-                card_rank: card.rank,
-                card_image: card.image,
-                card_set: card.set || 'Обычная',
-                start_price: startPrice,
-                current_bid: startPrice,
-                current_winner: null,
-                current_winner_nick: null,
-                end_time: endTime,
-                status: 'active',
-                isLocal: true
-            };
+            const inputEl = document.getElementById('auctionBidInput');
+            let bidAmount = parseInt(inputEl?.value);
+            if (isNaN(bidAmount) || bidAmount <= 0) {
+                showPromoStatus("❌ Введите сумму ставки!", "error");
+                return;
+            }
             
-            showAuctionNotification(card.name, card.rank, startPrice);
-            renderAuctionUI();
-            startAuctionTimer();
+            const minBid = currentAuction.current_bid + Math.max(10, Math.floor(currentAuction.current_bid * 0.1));
+            if (bidAmount < minBid) {
+                showPromoStatus(`❌ Минимальная ставка: ${minBid}💎`, "error");
+                return;
+            }
+            
+            if (crystals < bidAmount) {
+                showPromoStatus(`❌ Недостаточно кристаллов!`, "error");
+                return;
+            }
+            
+            try {
+                // Получаем актуальный аукцион из БД
+                const { data: freshAuction, error: fetchError } = await supabaseClient
+                    .from('active_auction')
+                    .select('*')
+                    .eq('id', 1)
+                    .single();
+                
+                if (fetchError) throw fetchError;
+                
+                if (freshAuction.current_bid >= bidAmount) {
+                    showPromoStatus("❌ Кто-то уже перебил вашу ставку!", "error");
+                    return;
+                }
+                
+                // Записываем ставку в историю
+                await supabaseClient.from('auction_bids').insert({
+                    user_id: getUserId(),
+                    user_nick: currentNickname || getUserId().slice(0, 12),
+                    bid_amount: bidAmount
+                });
+                
+                // Обновляем аукцион
+                const { error: updateError } = await supabaseClient
+                    .from('active_auction')
+                    .update({
+                        current_bid: bidAmount,
+                        current_winner: getUserId(),
+                        current_winner_nick: currentNickname || getUserId().slice(0, 12),
+                        updated_at: new Date()
+                    })
+                    .eq('id', 1);
+                
+                if (updateError) throw updateError;
+                
+                // Списываем кристаллы
+                crystals -= bidAmount;
+                
+                // Обновляем локальный кеш
+                currentAuction.current_bid = bidAmount;
+                currentAuction.current_winner = getUserId();
+                currentAuction.current_winner_nick = currentNickname || getUserId().slice(0, 12);
+                
+                renderAuctionUI();
+                updateUI();
+                showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята!`, "success");
+                
+                if (inputEl) inputEl.value = '';
+                
+            } catch (e) {
+                console.error('Ошибка ставки:', e);
+                showPromoStatus("❌ Ошибка при ставке", "error");
+            }
         }
 
-        // Загрузить аукцион из облака в интерфейс
-        function loadAuctionFromCloud(auction) {
-            currentAuction = {
-                ...auction,
-                end_time: new Date(auction.end_time),
-                isLocal: false
-            };
+        // ЗАВЕРШИТЬ АУКЦИОН
+        async function finishAuction() {
+            if (auctionTimerInterval) clearInterval(auctionTimerInterval);
+            if (!currentAuction) return;
+            
+            const winnerId = currentAuction.current_winner;
+            const winnerNick = currentAuction.current_winner_nick || 'никто';
+            const winningBid = currentAuction.current_bid;
+            const startPrice = currentAuction.start_price;
+            const card = currentAuction;
+            
+            const hasAnyBid = winnerId && winnerId !== 'null' && winningBid > startPrice;
+            
+            if (hasAnyBid && winnerId === getUserId()) {
+                // Победитель — текущий игрок
+                const fullCard = getFullCardById(card.card_id);
+                if (fullCard) {
+                    if (collectionMap.has(card.card_id)) {
+                        crystals += DUPLICATE_REWARD_CRYSTALS;
+                        showPromoStatus(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎`, "success");
+                    } else {
+                        collectionMap.set(card.card_id, { cardData: fullCard, animated: false });
+                        addExp(15);
+                        checkAchievements();
+                        checkAllDecks();
+                        showPromoStatus(`🏆 ВЫ ВЫИГРАЛИ АУКЦИОН! Карта "${card.card_name}" добавлена!`, "success");
+                    }
+                    updateUI();
+                }
+            } else if (hasAnyBid) {
+                showPromoStatus(`🏆 Аукцион завершён! Победитель: ${winnerNick} (${winningBid}💎)`, "success");
+            } else {
+                showPromoStatus(`😔 Аукцион без ставок! Карта "${card.card_name}" уходит...`, "info");
+            }
+            
+            // Сохраняем историю
+            if (hasAnyBid) {
+                await supabaseClient.from('auction_history').insert({
+                    card_id: card.card_id,
+                    card_name: card.card_name,
+                    card_rank: card.card_rank,
+                    winner_id: winnerId,
+                    winner_nick: winnerNick,
+                    winning_bid: winningBid
+                });
+            }
+            
+            // Деактивируем аукцион
+            await supabaseClient
+                .from('active_auction')
+                .update({ status: 'completed' })
+                .eq('id', 1);
+            
+            currentAuction = null;
             renderAuctionUI();
-            startAuctionTimer();
+            
+            // Следующий аукцион через 30 минут
+            setTimeout(() => {
+                createNewGlobalAuction();
+            }, 1800000);
         }
 
+        // Отрисовать UI аукциона
         function renderAuctionUI() {
             const currentBlock = document.getElementById('auctionCurrentBlock');
             const noActiveBlock = document.getElementById('auctionNoActiveBlock');
-            
-            console.log('🎨 renderAuctionUI, currentAuction:', currentAuction ? 'есть' : 'нет');
             
             if (!currentAuction || currentAuction.status !== 'active') {
                 if (currentBlock) currentBlock.style.display = 'none';
@@ -2844,42 +2924,24 @@
             if (currentBlock) currentBlock.style.display = 'block';
             if (noActiveBlock) noActiveBlock.style.display = 'none';
             
-            // Заполняем данные карты
-            const cardImage = document.getElementById('auctionCardImage');
-            const cardName = document.getElementById('auctionCardName');
-            const cardRank = document.getElementById('auctionCardRank');
-            const cardSet = document.getElementById('auctionCardSet');
-            const currentBidSpan = document.getElementById('auctionCurrentBid');
-            const leaderSpan = document.getElementById('auctionLeader');
-            const startPriceSpan = document.getElementById('auctionStartPrice');
+            document.getElementById('auctionCardImage').src = currentAuction.card_image || '';
+            document.getElementById('auctionCardName').innerText = currentAuction.card_name;
+            document.getElementById('auctionCardRank').innerText = currentAuction.card_rank;
+            document.getElementById('auctionCardRank').className = `card-rank-corner ${getRankCornerClass(currentAuction.card_rank)}`;
+            document.getElementById('auctionCardSet').innerText = currentAuction.card_set || 'Аукционная';
+            document.getElementById('auctionCurrentBid').innerText = `${currentAuction.current_bid} 💎`;
+            document.getElementById('auctionLeader').innerText = currentAuction.current_winner_nick || 'никто';
+            document.getElementById('auctionStartPrice').innerText = `${currentAuction.start_price} 💎`;
             
-            if (cardImage) {
-                cardImage.src = currentAuction.card_image || getDefaultImageForRank({ rank: currentAuction.card_rank });
-                cardImage.onerror = () => { cardImage.src = getDefaultImageForRank({ rank: currentAuction.card_rank }); };
-            }
-            if (cardName) cardName.innerText = currentAuction.card_name;
-            if (cardRank) {
-                cardRank.innerText = currentAuction.card_rank;
-                cardRank.className = `card-rank-corner ${getRankCornerClass(currentAuction.card_rank)}`;
-            }
-            if (cardSet) cardSet.innerText = currentAuction.card_set || 'Обычная';
-            if (currentBidSpan) currentBidSpan.innerText = `${currentAuction.current_bid} 💎`;
-            if (leaderSpan) leaderSpan.innerText = currentAuction.current_winner_nick || 'никто';
-            if (startPriceSpan) startPriceSpan.innerText = `${currentAuction.start_price} 💎`;
-            
-            updateMinBidHintUI();
-            
-            // Сохраняем в localStorage при каждом обновлении
-            saveData();
+            const minBid = currentAuction.current_bid + Math.max(10, Math.floor(currentAuction.current_bid * 0.1));
+            document.getElementById('auctionMinBidHint').innerText = `Минимальная ставка: ${minBid} 💎`;
         }
 
+        // Запустить таймер
         function startAuctionTimer() {
             if (auctionTimerInterval) clearInterval(auctionTimerInterval);
             
             const timerElement = document.getElementById('auctionTimerValue');
-            const warningElement = document.getElementById('auctionLastMinuteWarning');
-            const placeBidBtn = document.getElementById('auctionPlaceBidBtn');
-            
             if (!timerElement || !currentAuction) return;
             
             const updateTimer = () => {
@@ -2888,25 +2950,23 @@
                     return;
                 }
                 
-                const now = new Date();
-                const endTime = new Date(currentAuction.end_time);
-                const diff = endTime - now;
+                const diff = currentAuction.end_time - new Date();
                 
                 if (diff <= 0) {
-                    // Аукцион завершён
                     finishAuction();
                     return;
                 }
                 
                 const minutes = Math.floor(diff / 60000);
                 const seconds = Math.floor((diff % 60000) / 1000);
-                const timeStr = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                timerElement.innerText = timeStr;
+                timerElement.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 
-                // Последняя минута
                 const isLastMinute = diff <= 60000;
-                if (isLastMinute && warningElement) {
-                    warningElement.style.display = 'block';
+                const warningElement = document.getElementById('auctionLastMinuteWarning');
+                const placeBidBtn = document.getElementById('auctionPlaceBidBtn');
+                
+                if (isLastMinute) {
+                    if (warningElement) warningElement.style.display = 'block';
                     timerElement.classList.add('urgent');
                     if (placeBidBtn) {
                         placeBidBtn.disabled = true;
@@ -2915,7 +2975,7 @@
                 } else {
                     if (warningElement) warningElement.style.display = 'none';
                     timerElement.classList.remove('urgent');
-                    if (placeBidBtn && currentAuction.status === 'active') {
+                    if (placeBidBtn) {
                         placeBidBtn.disabled = false;
                         placeBidBtn.classList.remove('disabled');
                     }
@@ -2926,373 +2986,43 @@
             auctionTimerInterval = setInterval(updateTimer, 200);
         }
 
-        // Обновить подсказку минимальной ставки
-        function updateMinBidHintUI() {
-            const hintSpan = document.getElementById('auctionMinBidHint');
-            if (!hintSpan || !currentAuction || currentAuction.status !== 'active') return;
-            
-            const minBid = getMinNextBid(currentAuction.current_bid);
-            hintSpan.innerText = `Минимальная ставка: ${minBid} 💎 (на 10% выше или +10💎)`;
-            
-            const inputEl = document.getElementById('auctionBidInput');
-            if (inputEl) inputEl.placeholder = `${minBid}`;
-        }
-
-        // Сделать ставку
-        async function placeAuctionBid() {
-            if (!currentAuction || currentAuction.status !== 'active') {
-                showPromoStatus("❌ Нет активного аукциона!", "error");
-                return;
-            }
-            
-            // Проверяем, не последняя ли минута
-            const now = new Date();
-            const diff = currentAuction.end_time - now;
-            if (diff <= 60000) {
-                showPromoStatus("⛔ В последнюю минуту аукциона ставки запрещены!", "error");
-                return;
-            }
-            
-            const inputEl = document.getElementById('auctionBidInput');
-            let bidAmount = parseInt(inputEl?.value);
-            if (isNaN(bidAmount) || bidAmount <= 0) {
-                showPromoStatus("❌ Введите корректную сумму ставки!", "error");
-                return;
-            }
-            
-            const minBid = getMinNextBid(currentAuction.current_bid);
-            if (bidAmount < minBid) {
-                showPromoStatus(`❌ Ставка должна быть не менее ${minBid}💎!`, "error");
-                return;
-            }
-            
-            if (crystals < bidAmount) {
-                showPromoStatus(`❌ Недостаточно кристаллов! Нужно: ${bidAmount}💎`, "error");
-                return;
-            }
-            
-            // Если это локальный аукцион
-            if (currentAuction.isLocal) {
-                // Возвращаем ставку предыдущему лидеру
-                if (currentAuction.current_winner && currentAuction.current_winner !== getUserId()) {
-                    // В локальной версии просто уведомляем
-                    showPromoStatus(`🔄 Предыдущему лидеру возвращена ставка ${currentAuction.current_bid}💎`, "info");
-                }
-                
-                // Списываем кристаллы
-                crystals -= bidAmount;
-                
-                // Обновляем аукцион
-                currentAuction.current_bid = bidAmount;
-                currentAuction.current_winner = getUserId();
-                currentAuction.current_winner_nick = currentNickname || getUserId().slice(0, 12);
-                
-                renderAuctionUI();
-                updateUI();
-                showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята! Вы лидируете!`, "success");
-                
-                if (inputEl) inputEl.value = bidAmount + 10;
-                return;
-            }
-            
-            // Облачная версия
-            try {
-                // Получаем текущий аукцион из БД (свежие данные)
-                const { data: freshAuction, error: fetchError } = await supabaseClient
-                    .from('auctions')
-                    .select('*')
-                    .eq('id', currentAuction.id)
-                    .single();
-                
-                if (fetchError) throw fetchError;
-                if (freshAuction.status !== 'active') {
-                    showPromoStatus("❌ Аукцион уже завершён!", "error");
-                    return;
-                }
-                
-                // Проверяем ставку снова (на случай, если кто-то перебил)
-                const freshMinBid = getMinNextBid(freshAuction.current_bid);
-                if (bidAmount < freshMinBid) {
-                    showPromoStatus(`❌ Ставка должна быть не менее ${freshMinBid}💎!`, "error");
-                    return;
-                }
-                
-                // Создаём запись о ставке
-                const { error: bidError } = await supabaseClient
-                    .from('auction_bids')
-                    .insert({
-                        auction_id: currentAuction.id,
-                        user_id: getUserId(),
-                        user_nick: currentNickname || getUserId().slice(0, 12),
-                        bid_amount: bidAmount
-                    });
-                
-                if (bidError) throw bidError;
-                
-                // Возвращаем ставку предыдущему лидеру (если есть)
-                if (freshAuction.current_winner && freshAuction.current_winner !== getUserId()) {
-                    // Здесь должна быть логика возврата кристаллов через БД
-                    // Для простоты показываем уведомление
-                    showPromoStatus(`🔄 Предыдущему лидеру возвращена ставка ${freshAuction.current_bid}💎`, "info");
-                }
-                
-                // Списываем кристаллы
-                crystals -= bidAmount;
-                
-                // Обновляем аукцион
-                const { error: updateError } = await supabaseClient
-                    .from('auctions')
-                    .update({
-                        current_bid: bidAmount,
-                        current_winner: getUserId(),
-                        current_winner_nick: currentNickname || getUserId().slice(0, 12)
-                    })
-                    .eq('id', currentAuction.id);
-                
-                if (updateError) throw updateError;
-                
-                // Обновляем локальный кеш
-                currentAuction.current_bid = bidAmount;
-                currentAuction.current_winner = getUserId();
-                currentAuction.current_winner_nick = currentNickname || getUserId().slice(0, 12);
-                
-                renderAuctionUI();
-                updateUI();
-                showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята! Вы лидируете!`, "success");
-                
-                if (inputEl) inputEl.value = bidAmount + 10;
-                
-            } catch (error) {
-                console.error('Ошибка ставки:', error);
-                showPromoStatus("❌ Ошибка при размещении ставки", "error");
-            }
-        }
-
-        // Завершить аукцион
-        async function finishAuction() {
-            if (auctionTimerInterval) clearInterval(auctionTimerInterval);
-            
-            if (!currentAuction) return;
-            
-            const winnerId = currentAuction.current_winner;
-            const winnerNick = currentAuction.current_winner_nick || 'никто';
-            const winningBid = currentAuction.current_bid;
-            const startPrice = currentAuction.start_price;  // Добавьте эту строку
-            const card = {
-                id: currentAuction.card_id,
-                name: currentAuction.card_name,
-                rank: currentAuction.card_rank,
-                image: currentAuction.card_image,
-                set: currentAuction.card_set
-            };
-            
-            let winnerGotCard = false;
-            let auctionResult = 'has_winner'; // Добавьте для отслеживания
-            
-            // ПРОВЕРКА: была ли хоть одна ставка?
-            const hasAnyBid = winnerId && winnerId !== 'null' && winnerId !== null && winningBid > startPrice;
-            
-            if (!hasAnyBid) {
-                // ⚠️ НИКТО НЕ СДЕЛАЛ СТАВКУ
-                auctionResult = 'no_bids';
-                showPromoStatus(`😔 Аукцион завершён без ставок! Карта "${card.name}" уходит в пустоту.`, "info");
-                
-                // Добавляем в историю с пометкой "нет ставок"
-                auctionHistoryList.unshift({
-                    card_name: card.name,
-                    card_rank: card.rank,
-                    winner: '❌ НЕТ СТАВОК',
-                    bid: 0,
-                    status: 'no_bids',
-                    time: new Date().toLocaleTimeString()
-                });
-                
-            } else if (winnerId === getUserId()) {
-                // 🏆 ПОБЕДИТЕЛЬ — ТЕКУЩИЙ ИГРОК
-                const fullCard = getFullCardById(card.id);
-                if (fullCard) {
-                    if (collectionMap.has(card.id)) {
-                        crystals += DUPLICATE_REWARD_CRYSTALS;
-                        showPromoStatus(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.name}"`, "success");
-                    } else {
-                        collectionMap.set(card.id, { cardData: fullCard, animated: false });
-                        addExp(15);
-                        checkAchievements();
-                        checkAllDecks();
-                        showPromoStatus(`🏆 ВЫ ВЫИГРАЛИ АУКЦИОН! Карта "${card.name}" добавлена в коллекцию!`, "success");
-                        showGlobalNotification(`🎉 ${currentNickname || 'Игрок'} выиграл карту "${card.name}" на аукционе!`);
-                    }
-                    winnerGotCard = true;
-                    updateUI();
-                }
-                
-                auctionHistoryList.unshift({
-                    card_name: card.name,
-                    card_rank: card.rank,
-                    winner: 'ВЫ!',
-                    bid: winningBid,
-                    time: new Date().toLocaleTimeString()
-                });
-                
-            } else {
-                // 🏆 ПОБЕДИТЕЛЬ — ДРУГОЙ ИГРОК
-                showPromoStatus(`🏆 Аукцион завершён! Победитель: ${winnerNick} (ставка ${winningBid}💎)`, "success");
-                showGlobalNotification(`🏆 ${winnerNick} выиграл карту "${card.name}" на аукционе за ${winningBid}💎!`);
-                
-                auctionHistoryList.unshift({
-                    card_name: card.name,
-                    card_rank: card.rank,
-                    winner: winnerNick,
-                    bid: winningBid,
-                    time: new Date().toLocaleTimeString()
-                });
-            }
-            
-            // Ограничиваем историю
-            if (auctionHistoryList.length > 15) auctionHistoryList.pop();
-            renderAuctionHistory();
-            
-            // Обновляем статус в БД
-            if (!currentAuction.isLocal && supabaseInitialized) {
-                try {
-                    await supabaseClient
-                        .from('auctions')
-                        .update({ 
-                            status: 'completed',
-                            result: auctionResult 
-                        })
-                        .eq('id', currentAuction.id);
-                    
-                    // Сохраняем в историю БД (только если были ставки)
-                    if (hasAnyBid) {
-                        await supabaseClient
-                            .from('auction_history')
-                            .insert({
-                                card_id: card.id,
-                                card_name: card.name,
-                                card_rank: card.rank,
-                                winner_id: winnerId,
-                                winner_nick: winnerNick,
-                                winning_bid: winningBid,
-                                status: 'completed'
-                            });
-                    } else {
-                        await supabaseClient
-                            .from('auction_history')
-                            .insert({
-                                card_id: card.id,
-                                card_name: card.name,
-                                card_rank: card.rank,
-                                winner_id: null,
-                                winner_nick: null,
-                                winning_bid: 0,
-                                status: 'no_bids'
-                            });
-                    }
-                } catch (e) { console.error(e); }
-            }
-            
-            currentAuction = null;
-            renderAuctionUI();
-            
-            // Сохраняем изменения
-            saveData();
-            
-            // Планируем следующий аукцион
-            // Если не было ставок — через 2 минуты, если были — через 30 минут
-            const nextDelay = auctionResult === 'no_bids' ? 120000 : 1800000;
-            setTimeout(() => {
-                startNewAuction();
-            }, nextDelay);
-        }
-
-        // Отрисовать историю аукционов
-        function renderAuctionHistory() {
-            const container = document.getElementById('auctionHistoryList');
-            if (!container) return;
-            
-            if (auctionHistoryList.length === 0) {
-                container.innerHTML = '<div style="text-align: center; padding: 10px; color: #aa8899;">📭 История пуста</div>';
-                return;
-            }
-            
-            let html = '';
-            for (const item of auctionHistoryList) {
-                html += `
-                    <div class="history-item">
-                        <span>🎴 ${item.card_name} (${item.card_rank})</span>
-                        <span><span class="history-winner">🏆 ${item.winner}</span> • <span class="history-bid">${item.bid}💎</span></span>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
-        }
-
-        // Загрузить историю аукционов из облака
+        // Загрузить историю
         async function loadAuctionHistory() {
             if (!supabaseInitialized) return;
             
             try {
-                const { data, error } = await supabaseClient
+                const { data } = await supabaseClient
                     .from('auction_history')
                     .select('*')
                     .order('ended_at', { ascending: false })
                     .limit(10);
                 
-                if (!error && data && data.length > 0) {
-                    auctionHistoryList = data.map(item => ({
-                        card_name: item.card_name,
-                        card_rank: item.card_rank,
-                        winner: item.winner_nick || item.winner_id?.slice(0, 12) || 'игрок',
-                        bid: item.winning_bid,
-                        time: new Date(item.ended_at).toLocaleTimeString()
-                    }));
-                    renderAuctionHistory();
+                if (data && data.length > 0) {
+                    const container = document.getElementById('auctionHistoryList');
+                    if (container) {
+                        container.innerHTML = data.map(item => `
+                            <div class="auction-history-item">
+                                <span>🎴 ${item.card_name} (${item.card_rank})</span>
+                                <span>🏆 ${item.winner_nick || 'игрок'} • ${item.winning_bid}💎</span>
+                            </div>
+                        `).join('');
+                    }
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) {}
         }
 
         // Инициализация аукциона
         function initAuction() {
-            console.log('🔨 Инициализация аукциона...');
-            
-            // Привязываем кнопку ставки
             const placeBidBtn = document.getElementById('auctionPlaceBidBtn');
             if (placeBidBtn) {
-                // Удаляем старые обработчики, чтобы не было дублей
                 const newBtn = placeBidBtn.cloneNode(true);
                 placeBidBtn.parentNode.replaceChild(newBtn, placeBidBtn);
                 newBtn.addEventListener('click', placeAuctionBid);
             }
             
-            // Загружаем историю из БД (если есть)
             loadAuctionHistory();
-            
-            // Проверяем, есть ли сохранённый активный аукцион
-            if (currentAuction && currentAuction.status === 'active') {
-                const now = new Date();
-                const endTime = new Date(currentAuction.end_time);
-                
-                if (endTime > now) {
-                    // Аукцион активен — восстанавливаем UI и таймер
-                    console.log('✅ ВОССТАНОВЛЕНИЕ АКТИВНОГО АУКЦИОНА');
-                    renderAuctionUI();
-                    startAuctionTimer();
-                    showPromoStatus(`🔨 Аукцион продолжается! Карта: ${currentAuction.card_name} | Текущая ставка: ${currentAuction.current_bid}💎`, "info");
-                    return;
-                } else {
-                    // Аукцион истёк — завершаем его
-                    console.log('⏰ Сохранённый аукцион истёк, завершаем...');
-                    finishAuction();
-                    return;
-                }
-            }
-            
-            // Нет активного аукциона — запускаем новый
-            console.log('🆕 Нет активного аукциона, запускаем новый...');
-            startNewAuction();
+            loadGlobalAuction();
         }
-
         function getCurrentEventCurrency() {
             const season = getCurrentSeason();
             switch(season) {
