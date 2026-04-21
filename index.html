@@ -2963,10 +2963,11 @@
         }
 
         function parseDBDate(dateString) {
-            if (!dateString) return null;
+            // Если строка заканчивается на Z или содержит +, это уже UTC
             if (dateString.endsWith('Z') || dateString.includes('+')) {
                 return new Date(dateString);
             }
+            // Иначе добавляем 'Z' чтобы интерпретировать как UTC
             return new Date(dateString + 'Z');
         }
 
@@ -3508,11 +3509,8 @@
             
             if (hasAnyBid && winnerId === currentUserId) {
                 console.log(`🏆 ВЫ ПОБЕДИЛИ! Карта: ${card.card_name}`);
-                console.log(`🔍 winnerId: ${winnerId}, currentUserId: ${currentUserId}`);
                 
                 const fullCard = getFullCardById(card.card_id);
-                console.log(`🔍 fullCard:`, fullCard);
-                
                 if (fullCard) {
                     if (collectionMap.has(card.card_id)) {
                         crystals += DUPLICATE_REWARD_CRYSTALS;
@@ -3523,28 +3521,20 @@
                         checkAchievements();
                         checkAllDecks();
                         showPromoStatus(`🏆 ПОЗДРАВЛЯЕМ! Вы выиграли аукцион и получили карту "${card.card_name}"!`, "success");
-                        console.log(`✅ Карта "${card.card_name}" добавлена в коллекцию!`);
                     }
                     updateUI();
                     saveData();
-                    
-                    // ✅ ПРИНУДИТЕЛЬНАЯ СИНХРОНИЗАЦИЯ
-                    await syncToCloud(true);
-                    
                 } else {
-                    console.error(`❌ Карта не найдена в каталоге! ID: ${card.card_id}`);
-                    console.log('📋 Доступные ID карт:', ALL_CARDS.map(c => c.id).join(', '));
-                    showPromoStatus(`❌ Ошибка: карта "${card.card_name}" не найдена в каталоге. Сообщите администратору.`, "error");
-                    
-                    // ✅ Возвращаем кристаллы при ошибке
-                    crystals += winningBid;
-                    updateUI();
-                    saveData();
-                    showPromoStatus(`💰 Вам возвращены кристаллы (${winningBid}💎) из-за ошибки`, "info");
+                    console.error(`❌ Карта не найдена в каталоге: ${card.card_id}`);
+                    showPromoStatus(`❌ Ошибка: карта "${card.card_name}" не найдена в каталоге`, "error");
                 }
+            } else if (hasAnyBid) {
+                showPromoStatus(`🏆 Аукцион завершён! Победитель: ${winnerNick} (${winningBid}💎)`, "success");
+            } else {
+                showPromoStatus(`😔 Аукцион без ставок! Карта "${card.card_name}" уходит...`, "info");
             }
             
-            if (hasAnyBid) {
+            if (hasAnyBid && !alreadySaved) {
                 try {
                     const { error: historyError } = await supabaseClient
                         .from('auction_history')
@@ -3558,16 +3548,7 @@
                             ended_at: new Date().toISOString()
                         });
                     
-                    // ✅ Обрабатываем дубликат gracefully
-                    if (historyError) {
-                        if (historyError.code === '23505') {
-                            console.log('⏭️ Запись уже существует в истории, пропускаем');
-                            // Не показываем ошибку пользователю, это нормальная ситуация
-                        } else {
-                            console.error('❌ Ошибка сохранения истории:', historyError);
-                        }
-                    } else {
-                        // Обновляем локальный кеш только при успешной вставке
+                    if (!historyError) {
                         auctionHistoryList.unshift({
                             card_name: card.card_name,
                             card_rank: card.card_rank,
@@ -3577,17 +3558,14 @@
                         });
                         if (auctionHistoryList.length > 10) auctionHistoryList.pop();
                         renderAuctionHistory();
-                        console.log('✅ История сохранена');
                     }
-                } catch(e) { 
-                    console.error('Ошибка сохранения истории:', e); 
-                }
+                } catch(e) { console.error('Ошибка сохранения истории:', e); }
             }
             
-            // ВЫЧИСЛЯЕМ ВРЕМЯ СЛЕДУЮЩЕГО АУКЦИОНА (через 30 секунд)
+            // ВЫЧИСЛЯЕМ ВРЕМЯ СЛЕДУЮЩЕГО АУКЦИОНА (через 30 минут)
             const nextAuctionTime = new Date();
             nextAuctionTime.setSeconds(nextAuctionTime.getSeconds() + 30);
-
+            
             // Обновляем статус аукциона и сохраняем время следующего
             try {
                 await supabaseClient
