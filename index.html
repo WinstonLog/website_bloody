@@ -2666,20 +2666,27 @@
                 .on(
                     'postgres_changes',
                     {
-                        event: 'UPDATE',
+                        event: '*',  // Изменили с 'UPDATE' на '*', чтобы ловить все события
                         schema: 'public',
                         table: 'user_resources',
                         filter: `user_id=eq.${userId}`
                     },
                     (payload) => {
                         console.log('📡 Получено обновление ресурсов:', payload);
-                        const newCrystals = payload.new.crystals;
-                        const newShards = payload.new.shards;
-                        const newOre = payload.new.ore;
+                        console.log('📡 eventType:', payload.eventType);
+                        console.log('📡 new:', payload.new);
+                        console.log('📡 old:', payload.old);
+                        
+                        const newCrystals = payload.new?.crystals;
+                        const newShards = payload.new?.shards;
+                        const newOre = payload.new?.ore;
                         const oldCrystals = payload.old?.crystals;
                         
                         // Обновляем локальные переменные
-                        if (newCrystals !== undefined) crystals = newCrystals;
+                        if (newCrystals !== undefined) {
+                            console.log(`💰 Кристаллы: ${crystals} → ${newCrystals}`);
+                            crystals = newCrystals;
+                        }
                         if (newShards !== undefined) shards = newShards;
                         if (newOre !== undefined) ore = newOre;
                         
