@@ -2676,6 +2676,7 @@
                         const newCrystals = payload.new.crystals;
                         const newShards = payload.new.shards;
                         const newOre = payload.new.ore;
+                        const oldCrystals = payload.old?.crystals;
                         
                         // Обновляем локальные переменные
                         if (newCrystals !== undefined) crystals = newCrystals;
@@ -2686,21 +2687,23 @@
                         updateUI();
                         
                         // Показываем уведомление о возврате кристаллов
-                        const oldCrystals = payload.old?.crystals;
                         if (oldCrystals !== undefined && newCrystals > oldCrystals) {
                             const returned = newCrystals - oldCrystals;
-                            showPromoStatus(`💰 Вам возвращено ${returned}💎 (вас перебили в аукционе)`, "info");
+                            showPromoStatus(`💰 Вам возвращено ${returned}💎 (вашу ставку перебили)`, "info");
                         }
                     }
                 )
-                .subscribe();
+                .subscribe((status) => {
+                    console.log('📡 Статус подписки ресурсов:', status);
+                });
         }
 
-        // Отписка от ресурсов
+        // Функция для отписки (опционально)
         function unsubscribeFromUserResources() {
             if (userResourcesSubscription) {
                 userResourcesSubscription.unsubscribe();
                 userResourcesSubscription = null;
+                console.log('🔔 Отписались от ресурсов пользователя');
             }
         }
 
@@ -3211,8 +3214,8 @@
             
             try {
                 // Списываем кристаллы у текущего пользователя (оптимистично)
-                crystals -= bidAmount;
-                updateUI();
+/*                crystals -= bidAmount;
+                updateUI();*/
                 
                 // Сохраняем обновлённые ресурсы
                 await supabaseClient
@@ -6139,7 +6142,7 @@
             if (supabaseInited) {
                 await syncInitialData();
                 await autoFixUserSync();
-                ubscribeToUserResources();
+                subscribeToUserResources();
                 await updateVisitorCounter();
                 setInterval(async () => { const total = await getTotalVisitors(); document.getElementById('visitorCount').textContent = total; }, 30000);
                 await loadTopPlayers();
