@@ -2146,9 +2146,9 @@
         <button class="tab-btn" data-tab="collection">📚 Мои карты</button>
         <button class="tab-btn" data-tab="decks">🃏 Колоды</button>
         <button class="tab-btn" data-tab="allcards">📖 Каталог</button>
-        <button class="tab-btn active" data-tab="pack">🎴 Паки карт</button>
+        <button class="tab-btn" data-tab="pack">🎴 Паки карт</button>
         <button class="tab-btn" data-tab="event">🎪 Ивент</button>
-        <button class="tab-btn" data-tab="auction">🔨 Аукцион</button>
+        <button class="tab-btn active" data-tab="auction">🔨 Аукцион</button>
         <button class="tab-btn" data-tab="players">👥 Игроки</button>
         <button class="tab-btn" data-tab="achievements">🏆 Ачивки</button>
         <button class="tab-btn" data-tab="quests">📋 Квесты</button>
@@ -3212,23 +3212,30 @@
             
             const userId = getUserId();
             
+            // СПИСЫВАЕМ КРИСТАЛЛЫ СРАЗУ (оптимистичное обновление)
+            crystals -= bidAmount;
+            updateUI();
+            
             try {
-                // Списываем кристаллы у текущего пользователя (оптимистично)
-                crystals -= bidAmount;
-                updateUI();
-                
-                // Сохраняем обновлённые ресурсы
-                await supabaseClient
+                // Сохраняем ОБНОВЛЁННЫЕ ресурсы в БД (с уже списанными кристаллами)
+                const { error: resourceError } = await supabaseClient
                     .from('user_resources')
                     .upsert({
                         user_id: userId,
-                        crystals: crystals,
+                        crystals: crystals,  // ← уже списано!
                         shards: shards,
                         ore: ore,
                         updated_at: new Date().toISOString()
                     });
                 
-                // ВСТАВЛЯЕМ ТОЛЬКО СТАВКУ! ВСЁ ОСТАЛЬНОЕ ДЕЛАЕТ ТРИГГЕР!
+                if (resourceError) {
+                    // Возвращаем кристаллы при ошибке
+                    crystals += bidAmount;
+                    updateUI();
+                    throw resourceError;
+                }
+                
+                // ВСТАВЛЯЕМ СТАВКУ! ТРИГГЕР ПРОВЕРИТ БАЛАНС И ОБНОВИТ АУКЦИОН
                 const { error: bidError } = await supabaseClient
                     .from('auction_bids')
                     .insert({
