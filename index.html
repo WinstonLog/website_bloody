@@ -3184,6 +3184,7 @@
                 return;
             }
             
+            // Проверяем, не последняя ли минута
             const now = new Date();
             const diff = currentAuction.end_time - now;
             if (diff <= 60000) {
@@ -3211,43 +3212,42 @@
             
             const userId = getUserId();
             
-            // СПИСЫВАЕМ КРИСТАЛЛЫ
-            crystals -= bidAmount;
-            updateUI();
+            // Блокируем кнопку на время обработки
+            const bidBtn = document.getElementById('auctionPlaceBidBtn');
+            const originalText = bidBtn?.innerHTML;
+            if (bidBtn) {
+                bidBtn.disabled = true;
+                bidBtn.innerHTML = '⏳ ОБРАБОТКА...';
+            }
             
             try {
-                await supabaseClient
-                    .from('user_resources')
-                    .upsert({
-                        user_id: userId,
-                        crystals: crystals,
-                        shards: shards,
-                        ore: ore,
-                        updated_at: new Date().toISOString()
-                    });
+                // ВЫЗЫВАЕМ ТОЛЬКО RPC ФУНКЦИЮ - ВСЁ ОСТАЛЬНОЕ ДЕЛАЕТ ОНА!
+                const { data, error } = await supabaseClient.rpc('place_auction_bid_safe', {
+                    p_auction_id: currentAuction.id,
+                    p_user_id: userId,
+                    p_user_nick: currentNickname || userId.slice(0, 12),
+                    p_bid_amount: bidAmount
+                });
                 
-                const { error: bidError } = await supabaseClient
-                    .from('auction_bids')
-                    .insert({
-                        auction_id: currentAuction.id,
-                        user_id: userId,
-                        user_nick: currentNickname || userId.slice(0, 12),
-                        bid_amount: bidAmount,
-                        created_at: new Date().toISOString()
-                    });
+                if (error) throw error;
                 
-                if (bidError) {
-                    crystals += bidAmount;
-                    updateUI();
-                    throw bidError;
+                if (data && data.success === false) {
+                    showPromoStatus(`❌ ${data.error || "Ошибка при ставке"}`, "error");
+                    return;
                 }
                 
                 showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята!`, "success");
+                
                 if (inputEl) inputEl.value = '';
                 
             } catch (error) {
                 console.error('Ошибка ставки:', error);
-                showPromoStatus(`❌ Ошибка при размещении ставки`, "error");
+                showPromoStatus(`❌ ${error.message || "Ошибка при размещении ставки"}`, "error");
+            } finally {
+                if (bidBtn) {
+                    bidBtn.disabled = false;
+                    bidBtn.innerHTML = originalText;
+                }
             }
         }
 
