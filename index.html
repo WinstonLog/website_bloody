@@ -3214,8 +3214,8 @@
             
             try {
                 // Списываем кристаллы у текущего пользователя (оптимистично)
-/*                crystals -= bidAmount;
-                updateUI();*/
+                crystals -= bidAmount;
+                updateUI();
                 
                 // Сохраняем обновлённые ресурсы
                 await supabaseClient
