@@ -2963,11 +2963,10 @@
         }
 
         function parseDBDate(dateString) {
-            // Если строка заканчивается на Z или содержит +, это уже UTC
+            if (!dateString) return null;
             if (dateString.endsWith('Z') || dateString.includes('+')) {
                 return new Date(dateString);
             }
-            // Иначе добавляем 'Z' чтобы интерпретировать как UTC
             return new Date(dateString + 'Z');
         }
 
@@ -3534,7 +3533,7 @@
                 showPromoStatus(`😔 Аукцион без ставок! Карта "${card.card_name}" уходит...`, "info");
             }
             
-            if (hasAnyBid && !alreadySaved) {
+            if (hasAnyBid) {
                 try {
                     const { error: historyError } = await supabaseClient
                         .from('auction_history')
@@ -3548,7 +3547,16 @@
                             ended_at: new Date().toISOString()
                         });
                     
-                    if (!historyError) {
+                    // ✅ Обрабатываем дубликат gracefully
+                    if (historyError) {
+                        if (historyError.code === '23505') {
+                            console.log('⏭️ Запись уже существует в истории, пропускаем');
+                            // Не показываем ошибку пользователю, это нормальная ситуация
+                        } else {
+                            console.error('❌ Ошибка сохранения истории:', historyError);
+                        }
+                    } else {
+                        // Обновляем локальный кеш только при успешной вставке
                         auctionHistoryList.unshift({
                             card_name: card.card_name,
                             card_rank: card.card_rank,
@@ -3558,14 +3566,17 @@
                         });
                         if (auctionHistoryList.length > 10) auctionHistoryList.pop();
                         renderAuctionHistory();
+                        console.log('✅ История сохранена');
                     }
-                } catch(e) { console.error('Ошибка сохранения истории:', e); }
+                } catch(e) { 
+                    console.error('Ошибка сохранения истории:', e); 
+                }
             }
             
-            // ВЫЧИСЛЯЕМ ВРЕМЯ СЛЕДУЮЩЕГО АУКЦИОНА (через 30 минут)
+            // ВЫЧИСЛЯЕМ ВРЕМЯ СЛЕДУЮЩЕГО АУКЦИОНА (через 30 секунд)
             const nextAuctionTime = new Date();
             nextAuctionTime.setSeconds(nextAuctionTime.getSeconds() + 30);
-            
+
             // Обновляем статус аукциона и сохраняем время следующего
             try {
                 await supabaseClient
