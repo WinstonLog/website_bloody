@@ -2688,12 +2688,13 @@
         let auctionInitialized = false;
         let auctionSubscription = null;
         let userResourcesSubscription = null;
+        let isFinishingAuction = false;
 
         const AUCTION_RANKS = ['Q'];
 
         // Стартовые цены по рангам
         const AUCTION_START_PRICES = {
-            'Q': 350
+            'Q': 100
         };
 
         // Глобальные переменные аукциона
@@ -2805,7 +2806,6 @@
                                 if (newBid > oldBid) {
                                     showPromoStatus(`💰 Новая ставка! ${newLeader} поднял до ${newBid}💎`, "info");
                                     
-                                    // Визуальное уведомление
                                     const currentBidSpan = document.getElementById('auctionCurrentBid');
                                     if (currentBidSpan) {
                                         currentBidSpan.style.animation = 'none';
@@ -2817,7 +2817,9 @@
                                     }
                                 }
                             }
-                        } else if (newData && newData.status === 'completed') {
+                        } 
+                        // НЕ ВЫЗЫВАЕМ finishAuction() ЗДЕСЬ! Только обновляем UI
+                        else if (newData && newData.status === 'completed') {
                             console.log('🏁 Аукцион завершён (по данным из БД)');
                             if (auctionTimerInterval) clearInterval(auctionTimerInterval);
                             currentAuction = null;
@@ -3164,6 +3166,9 @@
             console.log('🕐 Текущее время (UTC):', new Date().toISOString());
             
             const updateTimer = () => {
+                // Проверяем, не завершается ли уже аукцион
+                if (isFinishingAuction) return;
+                
                 if (!currentAuction || currentAuction.status !== 'active') {
                     console.log('⏹️ Таймер остановлен: аукцион не активен');
                     if (auctionTimerInterval) {
@@ -3176,12 +3181,6 @@
                 const now = new Date();
                 const endTimeDate = currentAuction.end_time instanceof Date ? currentAuction.end_time : parseDBDate(currentAuction.end_time);
                 const diff = endTimeDate.getTime() - now.getTime();
-                
-                // Для отладки - каждые 10 секунд выводим разницу
-                const secondsLeft = Math.floor(diff / 1000);
-                if (secondsLeft > 0 && secondsLeft % 10 === 0) {
-                    console.log(`⏱️ Таймер: осталось ${secondsLeft} секунд`);
-                }
                 
                 if (diff <= 0) {
                     console.log('⏰ Время вышло! Завершаем аукцион...');
@@ -3327,6 +3326,13 @@
         }
 
         async function finishAuction() {
+            // Предотвращаем повторный вызов
+            if (isFinishingAuction) {
+                console.log('⏳ Аукцион уже завершается, пропускаем');
+                return;
+            }
+            isFinishingAuction = true;
+            
             if (auctionTimerInterval) {
                 clearInterval(auctionTimerInterval);
                 auctionTimerInterval = null;
@@ -3334,12 +3340,14 @@
             
             if (!currentAuction) {
                 console.log('finishAuction: нет активного аукциона');
+                isFinishingAuction = false;
                 return;
             }
             
             // Проверяем, не завершён ли уже аукцион
             if (currentAuction.status !== 'active') {
                 console.log('finishAuction: аукцион уже не активен');
+                isFinishingAuction = false;
                 return;
             }
             
@@ -3356,6 +3364,9 @@
             console.log(`🏁 Текущий пользователь: ${currentUserId}`);
             console.log(`🏁 Есть ставки: ${hasAnyBid}`);
             
+            // Проверяем, не сохраняли ли уже историю для этого аукциона
+            const alreadySaved = auctionHistoryList.some(h => h.card_name === card.card_name && h.bid === winningBid);
+            
             // ПОБЕДИТЕЛЬ - ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ
             if (hasAnyBid && winnerId === currentUserId) {
                 console.log(`🏆 ВЫ ПОБЕДИЛИ! Карта: ${card.card_name}`);
@@ -3363,12 +3374,10 @@
                 const fullCard = getFullCardById(card.card_id);
                 if (fullCard) {
                     if (collectionMap.has(card.card_id)) {
-                        // Дубликат - даём кристаллы
                         crystals += DUPLICATE_REWARD_CRYSTALS;
                         showPromoStatus(`🔄 Дубликат! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.card_name}"`, "success");
                         console.log(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎`);
                     } else {
-                        // Новая карта - добавляем в коллекцию
                         collectionMap.set(card.card_id, { cardData: fullCard, animated: false });
                         addExp(15);
                         checkAchievements();
@@ -3394,8 +3403,8 @@
                 console.log(`😔 Аукцион без ставок`);
             }
             
-            // Сохраняем в историю побед
-            if (hasAnyBid) {
+            // Сохраняем в историю побед (только если ещё не сохраняли)
+            if (hasAnyBid && !alreadySaved) {
                 try {
                     const { error: historyError } = await supabaseClient
                         .from('auction_history')
@@ -3413,6 +3422,17 @@
                         console.error('Ошибка сохранения истории:', historyError);
                     } else {
                         console.log('✅ История сохранена');
+                        // Добавляем в локальный список
+                        auctionHistoryList.unshift({
+                            card_name: card.card_name,
+                            card_rank: card.card_rank,
+                            winner: winnerNick,
+                            bid: winningBid,
+                            time: new Date().toLocaleTimeString()
+                        });
+                        // Ограничиваем историю 10 записями
+                        if (auctionHistoryList.length > 10) auctionHistoryList.pop();
+                        renderAuctionHistory();
                     }
                 } catch(e) { console.error('Ошибка сохранения истории:', e); }
             }
@@ -3432,6 +3452,9 @@
             // Очищаем текущий аукцион
             currentAuction = null;
             renderAuctionUI();
+            
+            // Сбрасываем флаг
+            isFinishingAuction = false;
             
             // Запускаем следующий аукцион через 30 минут
             console.log('⏳ Следующий аукцион через 30 минут...');
