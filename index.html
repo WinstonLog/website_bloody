@@ -6142,7 +6142,7 @@
             if (supabaseInited) {
                 await syncInitialData();
                 await autoFixUserSync();
-                subscribeToUserResources();
+                SubscribeToUserResources();
                 await updateVisitorCounter();
                 setInterval(async () => { const total = await getTotalVisitors(); document.getElementById('visitorCount').textContent = total; }, 30000);
                 await loadTopPlayers();
