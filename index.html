@@ -3508,8 +3508,11 @@
             
             if (hasAnyBid && winnerId === currentUserId) {
                 console.log(`🏆 ВЫ ПОБЕДИЛИ! Карта: ${card.card_name}`);
+                console.log(`🔍 winnerId: ${winnerId}, currentUserId: ${currentUserId}`);
                 
                 const fullCard = getFullCardById(card.card_id);
+                console.log(`🔍 fullCard:`, fullCard);
+                
                 if (fullCard) {
                     if (collectionMap.has(card.card_id)) {
                         crystals += DUPLICATE_REWARD_CRYSTALS;
@@ -3520,17 +3523,25 @@
                         checkAchievements();
                         checkAllDecks();
                         showPromoStatus(`🏆 ПОЗДРАВЛЯЕМ! Вы выиграли аукцион и получили карту "${card.card_name}"!`, "success");
+                        console.log(`✅ Карта "${card.card_name}" добавлена в коллекцию!`);
                     }
                     updateUI();
                     saveData();
+                    
+                    // ✅ ПРИНУДИТЕЛЬНАЯ СИНХРОНИЗАЦИЯ
+                    await syncToCloud(true);
+                    
                 } else {
-                    console.error(`❌ Карта не найдена в каталоге: ${card.card_id}`);
-                    showPromoStatus(`❌ Ошибка: карта "${card.card_name}" не найдена в каталоге`, "error");
+                    console.error(`❌ Карта не найдена в каталоге! ID: ${card.card_id}`);
+                    console.log('📋 Доступные ID карт:', ALL_CARDS.map(c => c.id).join(', '));
+                    showPromoStatus(`❌ Ошибка: карта "${card.card_name}" не найдена в каталоге. Сообщите администратору.`, "error");
+                    
+                    // ✅ Возвращаем кристаллы при ошибке
+                    crystals += winningBid;
+                    updateUI();
+                    saveData();
+                    showPromoStatus(`💰 Вам возвращены кристаллы (${winningBid}💎) из-за ошибки`, "info");
                 }
-            } else if (hasAnyBid) {
-                showPromoStatus(`🏆 Аукцион завершён! Победитель: ${winnerNick} (${winningBid}💎)`, "success");
-            } else {
-                showPromoStatus(`😔 Аукцион без ставок! Карта "${card.card_name}" уходит...`, "info");
             }
             
             if (hasAnyBid) {
