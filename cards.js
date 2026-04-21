@@ -33,8 +33,8 @@ const ALL_CARDS = [
     { id: "GGsyani01", name: "Сянь Юнь", emoji: "🍊", rank: "G", set: "Геншинский удар", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Геншинский удар/G/syani01.png", canUpgrade: true, animImage: "images/Геншинский удар/C/anim/syani01.gif" },
     { id: "GGsyao01", name: "Сяо", emoji: "🍊", rank: "G", set: "Геншинский удар", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Геншинский удар/G/syao01.png", canUpgrade: false, animImage: null },
     { id: "GGtifnari01", name: "Тигнари", emoji: "🍊", rank: "G", set: "Геншинский удар", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Геншинский удар/G/tifnari01.png", canUpgrade: true, animImage: "images/Геншинский удар/C/anim/tifnari01.gif" },
-    { id: "GGventi01", name: "Venti", emoji: "🍊", rank: "G", set: "Геншинский удар", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Геншинский удар/G/venti01.png", canUpgrade: false, animImage: null },
-    { id: "GGyaoyao01", name: "Yaoyao", emoji: "🍊", rank: "G", set: "Геншинский удар", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Геншинский удар/G/yaoyao01.png", canUpgrade: false, animImage: null },
+    { id: "GGventi01", name: "Венти", emoji: "🍊", rank: "G", set: "Геншинский удар", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Геншинский удар/G/venti01.png", canUpgrade: false, animImage: null },
+    { id: "GGyaoyao01", name: "Яо Яо", emoji: "🍊", rank: "G", set: "Геншинский удар", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Геншинский удар/G/yaoyao01.png", canUpgrade: false, animImage: null },
 
     // B
 
@@ -443,6 +443,7 @@ const ALL_CARDS = [
     
     // V
 
+    { id: "Vzein01", name: "Зейн", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/zein01.png", set: "Весеннее цветение", canUpgrade: true, animImage: "images/events/spring/anim/zein01.gif", season: "spring" },
     { id: "Vczin01", name: "Цзин Юань", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/iskorka01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
     { id: "Viskorka01", name: "Искорка", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/iskorka01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
     { id: "Vdan01", name: "Дань Хэн", rank: "V", rankLabel: "V", color: "#ff88cc", rankOrder: 1.7, image: "images/events/spring/dan01.png", set: "Весеннее цветение", canUpgrade: false, animImage: null, season: "spring" },
