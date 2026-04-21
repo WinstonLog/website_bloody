@@ -3269,7 +3269,7 @@
 
         function startAuctionTimer(forceRestart = false) {
             // Если таймер уже запущен и время окончания не изменилось, не перезапускаем
-            if (!forceRestart && auctionTimerInterval && currentAuction) {
+/*            if (!forceRestart && auctionTimerInterval && currentAuction) {
                 let currentEndTime = currentAuction.end_time;
                 if (typeof currentEndTime === 'string') {
                     currentEndTime = parseDBDate(currentEndTime);
@@ -3280,7 +3280,7 @@
                     console.log('⏭️ Таймер уже запущен с тем же временем, пропускаем');
                     return;
                 }
-            }
+            }*/
             
             // Останавливаем старый таймер
             if (auctionTimerInterval) {
@@ -3409,6 +3409,9 @@
             }
             
             const userId = getUserId();
+            const userNick = currentNickname || userId.slice(0, 12);
+            const oldWinnerId = currentAuction.current_winner;
+            const oldBid = currentAuction.current_bid;
             
             // Блокируем кнопку на время обработки
             const bidBtn = document.getElementById('auctionPlaceBidBtn');
@@ -3419,26 +3422,38 @@
             }
             
             try {
-                // ВЫЗЫВАЕМ RPC ФУНКЦИЮ
-                const { data, error } = await supabaseClient.rpc('place_auction_bid_safe', {
-                    p_auction_id: currentAuction.id,
+                // 1. Возвращаем ставку предыдущему лидеру (если есть)
+                if (oldWinnerId && oldWinnerId !== userId) {
+                    await supabaseClient.rpc('increment_crystals', {
+                        p_user_id: oldWinnerId,
+                        p_amount: oldBid
+                    });
+                }
+                
+                // 2. Списываем кристаллы у нового ставщика
+                await supabaseClient.rpc('decrement_crystals', {
                     p_user_id: userId,
-                    p_user_nick: currentNickname || userId.slice(0, 12),
-                    p_bid_amount: bidAmount
+                    p_amount: bidAmount
                 });
                 
-                if (error) throw error;
+                // 3. Обновляем аукцион
+                const { error: updateError } = await supabaseClient
+                    .from('active_auction')
+                    .update({
+                        current_bid: bidAmount,
+                        current_winner: userId,
+                        current_winner_nick: userNick,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', currentAuction.id);
                 
-                if (data && data.success === false) {
-                    showPromoStatus(`❌ ${data.error || "Ошибка при ставке"}`, "error");
-                    return;
-                }
+                if (updateError) throw updateError;
                 
                 showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята!`, "success");
                 
                 if (inputEl) inputEl.value = '';
                 
-                // ПРИНУДИТЕЛЬНО ОБНОВЛЯЕМ ДАННЫЕ ПОСЛЕ СТАВКИ
+                // Обновляем локальные данные
                 await refreshUserResources();
                 
             } catch (error) {
