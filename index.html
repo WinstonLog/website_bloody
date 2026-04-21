@@ -2707,6 +2707,7 @@
         let auctionSubscription = null;
         let userResourcesSubscription = null;
         let isFinishingAuction = false;
+        let lastAuctionId = null;
 
         const AUCTION_RANKS = ['Q'];
 
@@ -2798,48 +2799,66 @@
                     (payload) => {
                         console.log('📡 Получено обновление аукциона:', payload);
                         const newData = payload.new;
+                        const oldData = payload.old;
                         
                         if (newData && newData.status === 'active') {
-                            // Обновляем локальный аукцион
                             const endTime = parseDBDate(newData.end_time);
                             
+                            // Проверяем, изменилась ли карта (ID карты или время окончания)
+                            const cardChanged = oldData && (
+                                oldData.card_id !== newData.card_id ||
+                                oldData.end_time !== newData.end_time
+                            );
+                            
+                            const bidChanged = oldData && oldData.current_bid !== newData.current_bid;
+                            const leaderChanged = oldData && oldData.current_winner_nick !== newData.current_winner_nick;
+                            
+                            // Обновляем локальный аукцион
                             currentAuction = {
                                 ...newData,
                                 end_time: endTime,
                                 isLocal: false
                             };
                             
-                            // Обновляем UI
+                            // Обновляем UI всегда
                             renderAuctionUI();
                             
-                            // Перезапускаем таймер с новым временем
-                            startAuctionTimer();
-                            
-                            // Показываем уведомление о новой ставке
-                            if (payload.new.current_bid !== payload.old?.current_bid) {
-                                const newBid = payload.new.current_bid;
-                                const newLeader = payload.new.current_winner_nick || 'игрок';
-                                const oldBid = payload.old?.current_bid || 0;
+                            // Перезапускаем таймер ТОЛЬКО если изменилась карта или время
+                            if (cardChanged) {
+                                console.log('🔄 Карта аукциона изменилась, перезапускаем таймер');
+                                startAuctionTimer();
+                            } else if (bidChanged || leaderChanged) {
+                                // Только обновляем UI без перезапуска таймера
+                                console.log('💰 Обновлена ставка, таймер не перезапускаем');
                                 
-                                if (newBid > oldBid) {
-                                    showPromoStatus(`💰 Новая ставка! ${newLeader} поднял до ${newBid}💎`, "info");
+                                // Показываем уведомление о новой ставке
+                                if (bidChanged) {
+                                    const newBid = newData.current_bid;
+                                    const newLeader = newData.current_winner_nick || 'игрок';
+                                    const oldBid = oldData?.current_bid || 0;
                                     
-                                    const currentBidSpan = document.getElementById('auctionCurrentBid');
-                                    if (currentBidSpan) {
-                                        currentBidSpan.style.animation = 'none';
-                                        currentBidSpan.offsetHeight;
-                                        currentBidSpan.style.animation = 'bidUpdate 0.3s ease';
-                                        setTimeout(() => {
-                                            if (currentBidSpan) currentBidSpan.style.animation = '';
-                                        }, 300);
+                                    if (newBid > oldBid) {
+                                        showPromoStatus(`💰 Новая ставка! ${newLeader} поднял до ${newBid}💎`, "info");
+                                        
+                                        const currentBidSpan = document.getElementById('auctionCurrentBid');
+                                        if (currentBidSpan) {
+                                            currentBidSpan.style.animation = 'none';
+                                            currentBidSpan.offsetHeight;
+                                            currentBidSpan.style.animation = 'bidUpdate 0.3s ease';
+                                            setTimeout(() => {
+                                                if (currentBidSpan) currentBidSpan.style.animation = '';
+                                            }, 300);
+                                        }
                                     }
                                 }
                             }
                         } 
-                        // НЕ ВЫЗЫВАЕМ finishAuction() ЗДЕСЬ! Только обновляем UI
                         else if (newData && newData.status === 'completed') {
                             console.log('🏁 Аукцион завершён (по данным из БД)');
-                            if (auctionTimerInterval) clearInterval(auctionTimerInterval);
+                            if (auctionTimerInterval) {
+                                clearInterval(auctionTimerInterval);
+                                auctionTimerInterval = null;
+                            }
                             currentAuction = null;
                             renderAuctionUI();
                         }
@@ -3247,8 +3266,23 @@
             updateTimer();
             waitingTimerInterval = setInterval(updateTimer, 1000);
         }
-        
-        function startAuctionTimer() {
+
+        function startAuctionTimer(forceRestart = false) {
+            // Если таймер уже запущен и время окончания не изменилось, не перезапускаем
+            if (!forceRestart && auctionTimerInterval && currentAuction) {
+                let currentEndTime = currentAuction.end_time;
+                if (typeof currentEndTime === 'string') {
+                    currentEndTime = parseDBDate(currentEndTime);
+                }
+                
+                // Если время окончания то же самое, просто выходим
+                if (lastEndTime && currentEndTime.getTime() === lastEndTime.getTime()) {
+                    console.log('⏭️ Таймер уже запущен с тем же временем, пропускаем');
+                    return;
+                }
+            }
+            
+            // Останавливаем старый таймер
             if (auctionTimerInterval) {
                 clearInterval(auctionTimerInterval);
                 auctionTimerInterval = null;
@@ -3270,12 +3304,14 @@
                 currentAuction.end_time = endTime;
             }
             
+            // Сохраняем время окончания для проверки в следующий раз
+            lastEndTime = endTime.getTime();
+            
             console.log('🕐 Запуск таймера для:', currentAuction.card_name);
             console.log('⏰ end_time (Date UTC):', endTime.toISOString());
             console.log('🕐 Текущее время (UTC):', new Date().toISOString());
             
             const updateTimer = () => {
-                // Проверяем, не завершается ли уже аукцион
                 if (isFinishingAuction) return;
                 
                 if (!currentAuction || currentAuction.status !== 'active') {
@@ -5271,34 +5307,33 @@
             resetDailyQuests();
             updateLevelUI();
         }
-        
+                
         async function autoFixUserSync() {
             if (!supabaseInitialized) return false;
             
             const userId = getUserId();
             const localCount = collectionMap.size;
             
-            const { data: cloudCards, error } = await supabaseClient
+            // Получаем актуальное количество карт в облаке
+            const { data: cloudCards, error, count } = await supabaseClient
                 .from('user_collections')
-                .select('card_id', { count: 'exact', head: true })
+                .select('card_id', { count: 'exact', head: false })
                 .eq('user_id', userId);
             
             const cloudCount = cloudCards?.length || 0;
             
             console.log(`🔍 Проверка синхронизации: облако=${cloudCount}, локально=${localCount}`);
             
-            if (cloudCount !== localCount && localCount > 0) {
-                console.log(`🔄 Обнаружено несоответствие! Исправляем...`);
-                
-                const allCards = [];
-                for (const [cardId, data] of collectionMap.entries()) {
-                    allCards.push({
-                        user_id: userId,
-                        card_id: cardId,
-                        animated: data.animated || false
-                    });
-                }
-                
+            // Если количество совпадает, ничего не делаем
+            if (cloudCount === localCount) {
+                console.log('✅ Синхронизация в порядке');
+                return false;
+            }
+            
+            console.log(`🔄 Обнаружено несоответствие! Исправляем...`);
+            
+            try {
+                // 1. Удаляем все карты пользователя
                 const { error: deleteError } = await supabaseClient
                     .from('user_collections')
                     .delete()
@@ -5309,20 +5344,48 @@
                     return false;
                 }
                 
+                console.log('✅ Все карты удалены из облака');
+                
+                // 2. Ждём немного, чтобы удаление точно завершилось
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // 3. Подготавливаем все карты для вставки
+                const allCards = [];
+                for (const [cardId, data] of collectionMap.entries()) {
+                    allCards.push({
+                        user_id: userId,
+                        card_id: cardId,
+                        animated: data.animated || false
+                    });
+                }
+                
+                if (allCards.length === 0) {
+                    console.log('📭 Нет карт для вставки');
+                    return true;
+                }
+                
+                // 4. Вставляем пачками по 50 карт
                 const chunkSize = 50;
                 let success = true;
                 
                 for (let i = 0; i < allCards.length; i += chunkSize) {
                     const chunk = allCards.slice(i, i + chunkSize);
-                    const { error: insertError } = await supabaseClient
-                        .from('user_collections')
-                        .insert(chunk);
                     
-                    if (insertError) {
-                        console.error('❌ Ошибка вставки:', insertError);
+                    // Используем upsert вместо insert, чтобы избежать дубликатов
+                    const { error: upsertError } = await supabaseClient
+                        .from('user_collections')
+                        .upsert(chunk, { 
+                            onConflict: 'user_id,card_id',
+                            ignoreDuplicates: true  // Игнорируем дубликаты
+                        });
+                    
+                    if (upsertError) {
+                        console.error('❌ Ошибка upsert:', upsertError);
                         success = false;
                         break;
                     }
+                    
+                    console.log(`✅ Вставлена пачка ${i / chunkSize + 1}: ${chunk.length} карт`);
                 }
                 
                 if (success) {
@@ -5330,9 +5393,13 @@
                     showPromoStatus(`🔧 Синхронизация исправлена! Теперь ваши ${localCount} карт отображаются в топе.`, "success");
                     return true;
                 }
+                
+                return false;
+                
+            } catch(e) {
+                console.error('❌ Ошибка в autoFixUserSync:', e);
+                return false;
             }
-            
-            return false;
         }
 
         function resetToDefaults() {
@@ -6353,22 +6420,23 @@
             
             timerElement.innerHTML = `⏳ ${timeText}`;
         }
-
+        
         function initDonateButtons() {
             const donateBtns = document.querySelectorAll('.donate-btn');
             if (donateBtns.length === 0) return;
             
             donateBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    const crystals = btn.dataset.crystals;
+                    const crystalsAmount = btn.dataset.crystals;
                     const price = btn.dataset.price;
                     
-                    // Ссылка на ваш кошелёк с предзаполненной суммой и комментарием
-                    const donateUrl = `https://yoomoney.ru/to/4100119003253255`;
+                    // ✅ Формируем ссылку с суммой
+                    // Сумма в рублях (price) подставляется в URL
+                    const donateUrl = `https://yoomoney.ru/to/4100119003253255/${price}`;
                     
-                    if (confirm(`💰 Пополнение ${crystals}💎 за ${price}₽\n\nПосле оплаты напишите @b_loody с чеком и вашим ID: ${getUserId()}\n\nПерейти к оплате?`)) {
+                    if (confirm(`💰 Пополнение ${crystalsAmount}💎 за ${price}₽\n\nПосле оплаты напишите @b_loody с чеком и вашим ID: ${getUserId()}\n\nПерейти к оплате?`)) {
                         window.open(donateUrl, '_blank');
-                        showPromoStatus(`💰 После оплаты напишите @b_loody с чеком для получения ${crystals}💎`, "info");
+                        showPromoStatus(`💰 После оплаты напишите @b_loody с чеком для получения ${crystalsAmount}💎`, "info");
                     }
                 });
             });
