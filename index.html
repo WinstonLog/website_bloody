@@ -5309,17 +5309,56 @@
         function exchangeOreFunc() { if (ore < 100) return; const exchangeAmount = Math.floor(ore / 100); crystals += exchangeAmount; ore -= exchangeAmount * 100; updateQuestProgress("daily_exchange", exchangeAmount * 100); updateUI(); }
         
         function getRandomCardForPack() {
-            let total = Object.values(RANK_WEIGHTS).reduce((a,b)=>a+b,0);
-            let rand = Math.random() * total, acc = 0;
-            for (let [rank, w] of Object.entries(RANK_WEIGHTS)) {
-                acc += w;
+            // Исключаем Q-ранги (только для аукциона) и ивентовые карты
+            const availableCards = ALL_CARDS.filter(c => 
+                c.rank !== 'Q' && 
+                !c.season && 
+                c.id !== "osk01"
+            );
+            
+            if (availableCards.length === 0) {
+                return { ...ALL_CARDS.find(c => c.id === "Eakira01") || ALL_CARDS[0] };
+            }
+            
+            // Веса для оставшихся рангов (убираем Q)
+            const rankWeights = {
+                "X": 1, "S": 4, "A": 15, "P": 15, "G": 15, 
+                "B": 15, "C": 15, "D": 15, "E": 20
+            };
+            
+            // Группируем доступные карты по рангам
+            const cardsByRank = {};
+            for (const card of availableCards) {
+                if (!cardsByRank[card.rank]) cardsByRank[card.rank] = [];
+                cardsByRank[card.rank].push(card);
+            }
+            
+            // Выбираем ранг по весам
+            let total = 0;
+            for (const weight of Object.values(rankWeights)) total += weight;
+            
+            let rand = Math.random() * total;
+            let acc = 0;
+            let selectedRank = null;
+            
+            for (const [rank, weight] of Object.entries(rankWeights)) {
+                acc += weight;
                 if (rand <= acc) {
-                    const pool = ALL_CARDS.filter(c => c.rank === rank && !c.season && c.id !== "osk01");
-                    if (pool.length === 0) return { ...ALL_CARDS.find(c => c.id === "Eakira01") || ALL_CARDS[0] };
-                    return { ...pool[Math.floor(Math.random() * pool.length)] };
+                    selectedRank = rank;
+                    break;
                 }
             }
-            return { ...ALL_CARDS.find(c => c.id === "Eakira01") || ALL_CARDS[0] };
+            
+            if (!selectedRank || !cardsByRank[selectedRank]) {
+                selectedRank = "E";
+            }
+            
+            const pool = cardsByRank[selectedRank];
+            if (!pool || pool.length === 0) {
+                return { ...availableCards[Math.floor(Math.random() * availableCards.length)] };
+            }
+            
+            return { ...pool[Math.floor(Math.random() * pool.length)] };
         }
         
         function generateOffer() { const cards = [], used = new Set(); while (cards.length < 3) { const card = getRandomCardForPack(); if (!used.has(card.id)) { used.add(card.id); cards.push(card); } } return cards; }
@@ -5695,14 +5734,13 @@
         }
                 
         function giveRandomCard() {
-            const nonAPlusCards = CATALOG_CARDS.filter(c => !c.season);
-            if (nonAPlusCards.length === 0) return false;
+            // Исключаем Q-ранги и ивентовые карты
+            const nonAuctionCards = CATALOG_CARDS.filter(c => !c.season && c.rank !== 'Q');
+            if (nonAuctionCards.length === 0) return false;
             
-            const randomCard = nonAPlusCards[Math.floor(Math.random() * nonAPlusCards.length)];
+            const randomCard = nonAuctionCards[Math.floor(Math.random() * nonAuctionCards.length)];
             const imgPath = getCardImage(randomCard, false);
             
-            // Принудительно показываем модальное окно ДО обработки коллекции
-            // чтобы пользователь видел, что выпало
             showModal(imgPath, randomCard.name, randomCard.rank);
             
             if (collectionMap.has(randomCard.id)) {
