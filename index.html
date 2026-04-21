@@ -2547,7 +2547,7 @@
             <div class="pack-description" style="margin-top: 16px;">
                 <p><strong>🔨 ПРАВИЛА АУКЦИОНА:</strong></p>
                 <div class="pack-rules">
-                    <span>🎴 Каждые 30 минут — 1 карта (ранги S/A/P/G/B/C/D/E)</span>
+                    <span>🎴 Каждые 30 секунд — 1 карта (ранги Q/K)</span>
                     <span>💎 Ставки кристаллами, минимальный шаг +10% или +10💎</span>
                     <span>⛔ В последнюю минуту ставки запрещены!</span>
                     <span>🏆 Победитель получает карту</span>
@@ -2640,6 +2640,7 @@
         // ==================== АУКЦИОННАЯ СИСТЕМА ====================
         let auctionInitialized = false;
         let auctionSubscription = null;
+        let userResourcesSubscription = null;
 
         const AUCTION_RANKS = ['Q'];
 
@@ -2653,6 +2654,55 @@
         let auctionTimerInterval = null;     // Интервал таймера
         let auctionHistoryList = [];          // История аукционов (локальный кеш)
         let recentlyAuctionedCards = [];      // ID карт, которые недавно были в аукционе (чтобы не повторялись)
+
+        function subscribeToUserResources() {
+            if (!supabaseInitialized || userResourcesSubscription) return;
+            
+            const userId = getUserId();
+            console.log('🔔 Подписываемся на изменения ресурсов пользователя:', userId);
+            
+            userResourcesSubscription = supabaseClient
+                .channel('user-resources')
+                .on(
+                    'postgres_changes',
+                    {
+                        event: 'UPDATE',
+                        schema: 'public',
+                        table: 'user_resources',
+                        filter: `user_id=eq.${userId}`
+                    },
+                    (payload) => {
+                        console.log('📡 Получено обновление ресурсов:', payload);
+                        const newCrystals = payload.new.crystals;
+                        const newShards = payload.new.shards;
+                        const newOre = payload.new.ore;
+                        
+                        // Обновляем локальные переменные
+                        if (newCrystals !== undefined) crystals = newCrystals;
+                        if (newShards !== undefined) shards = newShards;
+                        if (newOre !== undefined) ore = newOre;
+                        
+                        // Обновляем UI
+                        updateUI();
+                        
+                        // Показываем уведомление о возврате кристаллов
+                        const oldCrystals = payload.old?.crystals;
+                        if (oldCrystals !== undefined && newCrystals > oldCrystals) {
+                            const returned = newCrystals - oldCrystals;
+                            showPromoStatus(`💰 Вам возвращено ${returned}💎 (вас перебили в аукционе)`, "info");
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        // Отписка от ресурсов
+        function unsubscribeFromUserResources() {
+            if (userResourcesSubscription) {
+                userResourcesSubscription.unsubscribe();
+                userResourcesSubscription = null;
+            }
+        }
 
         function subscribeToAuctionUpdates() {
             if (!supabaseInitialized || auctionSubscription) return;
@@ -3158,50 +3208,14 @@
             }
             
             const userId = getUserId();
-            const previousWinner = currentAuction.current_winner;
-            const previousBid = currentAuction.current_bid;
             
             try {
-                // 1. Если есть предыдущий победитель и это не текущий пользователь - возвращаем ему кристаллы
-                if (previousWinner && previousWinner !== userId && previousWinner !== 'null') {
-                    console.log(`💰 Возвращаем ${previousBid}💎 игроку ${previousWinner}`);
-                    
-                    // Получаем текущие ресурсы предыдущего победителя
-                    const { data: prevUserData, error: fetchError } = await supabaseClient
-                        .from('user_resources')
-                        .select('crystals')
-                        .eq('user_id', previousWinner)
-                        .single();
-                    
-                    if (!fetchError && prevUserData) {
-                        const newCrystals = (prevUserData.crystals || 0) + previousBid;
-                        const { error: updateError } = await supabaseClient
-                            .from('user_resources')
-                            .update({ 
-                                crystals: newCrystals,
-                                updated_at: new Date().toISOString()
-                            })
-                            .eq('user_id', previousWinner);
-                        
-                        if (updateError) {
-                            console.error('❌ Ошибка возврата кристаллов:', updateError);
-                        } else {
-                            console.log(`✅ Возвращено ${previousBid}💎 игроку ${previousWinner}`);
-                            
-                            // Если предыдущий победитель - это текущий пользователь в другом окне, покажем уведомление
-                            if (previousWinner === userId) {
-                                showPromoStatus(`🔄 Ваша ставка ${previousBid}💎 возвращена (вас перебили)`, "info");
-                            }
-                        }
-                    }
-                }
-                
-                // 2. Списываем кристаллы у текущего пользователя
+                // Списываем кристаллы у текущего пользователя (оптимистично)
                 crystals -= bidAmount;
                 updateUI();
                 
-                // 3. Сохраняем ресурсы текущего пользователя в БД
-                const { error: resourceError } = await supabaseClient
+                // Сохраняем обновлённые ресурсы
+                await supabaseClient
                     .from('user_resources')
                     .upsert({
                         user_id: userId,
@@ -3211,9 +3225,7 @@
                         updated_at: new Date().toISOString()
                     });
                 
-                if (resourceError) console.error('Ошибка сохранения ресурсов:', resourceError);
-                
-                // 4. Записываем ставку в историю
+                // ВСТАВЛЯЕМ ТОЛЬКО СТАВКУ! ВСЁ ОСТАЛЬНОЕ ДЕЛАЕТ ТРИГГЕР!
                 const { error: bidError } = await supabaseClient
                     .from('auction_bids')
                     .insert({
@@ -3231,33 +3243,13 @@
                     throw bidError;
                 }
                 
-                // 5. Обновляем аукцион (если нет триггера в БД)
-                const { error: updateAuctionError } = await supabaseClient
-                    .from('active_auction')
-                    .update({
-                        current_bid: bidAmount,
-                        current_winner: userId,
-                        current_winner_nick: currentNickname || userId.slice(0, 12),
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', 1);
-                
-                if (updateAuctionError) console.error('Ошибка обновления аукциона:', updateAuctionError);
-                
-                // 6. Обновляем локальный кеш
-                currentAuction.current_bid = bidAmount;
-                currentAuction.current_winner = userId;
-                currentAuction.current_winner_nick = currentNickname || userId.slice(0, 12);
-                
-                renderAuctionUI();
-                
-                showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята! Вы лидируете!`, "success");
+                showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята!`, "success");
                 
                 if (inputEl) inputEl.value = '';
                 
             } catch (error) {
                 console.error('Ошибка ставки:', error);
-                showPromoStatus("❌ Ошибка при размещении ставки", "error");
+                showPromoStatus(`❌ ${error.message || "Ошибка при размещении ставки"}`, "error");
             }
         }
 
@@ -6147,6 +6139,7 @@
             if (supabaseInited) {
                 await syncInitialData();
                 await autoFixUserSync();
+                ubscribeToUserResources();
                 await updateVisitorCounter();
                 setInterval(async () => { const total = await getTotalVisitors(); document.getElementById('visitorCount').textContent = total; }, 30000);
                 await loadTopPlayers();
