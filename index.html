@@ -2114,6 +2114,20 @@
             100% { transform: scale(1); color: #ffcc88; }
         }
 
+        .donate-btn {
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .donate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .donate-btn:active {
+            transform: translateY(1px);
+}
+
     </style>
 </head>
 <body>
@@ -2437,7 +2451,42 @@
             <div class="promo-codes-list" id="promoCodesList"></div>
             <div class="promo-status" id="promoStatus">⌛ Готов к активации</div>
         </div>
-    </div>
+        <!-- ДОНАТ ПАНЕЛЬ -->
+        <div class="promo-section" style="background: linear-gradient(135deg, #ffd70020, #ffaa3320); border-color: #ffd700;">
+            <div class="promo-header">
+                <span class="promo-icon">⭐</span>
+                <h4 style="color: #ffd700;">ПОДДЕРЖАТЬ ПРОЕКТ</h4>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 12px;">
+                <button class="donate-btn" data-crystals="100" data-price="10" style="background: linear-gradient(135deg, #ffaa33, #ff8833); border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;">
+                    100💎<br>10 ₽
+                </button>
+                <button class="donate-btn" data-crystals="250" data-price="20" style="background: linear-gradient(135deg, #ffaa33, #ff8833); border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;">
+                    250💎<br>20 ₽
+                </button>
+                <button class="donate-btn" data-crystals="550" data-price="50" style="background: linear-gradient(135deg, #ffaa33, #ff8833); border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;">
+                    550💎<br>50 ₽
+                </button>
+                <button class="donate-btn" data-crystals="1200" data-price="100" style="background: linear-gradient(135deg, #ffaa33, #ff8833); border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;">
+                    1200💎<br>100 ₽
+                </button>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                <button class="donate-btn" data-crystals="2500" data-price="200" style="background: linear-gradient(135deg, #ffaa33, #ff8833); border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;">
+                    2500💎<br>200 ₽
+                </button>
+                <button class="donate-btn" data-crystals="6500" data-price="500" style="background: linear-gradient(135deg, #ffaa33, #ff8833); border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;">
+                    6500💎<br>500 ₽
+                </button>
+                <button class="donate-btn" data-crystals="14000" data-price="1000" style="background: linear-gradient(135deg, #ffaa33, #ff8833); border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;">
+                    14000💎<br>1000 ₽
+                </button>
+            </div>
+            <div class="promo-status" id="donateStatus" style="text-align: center; margin-top: 10px;">
+                💖 Нажми на сумму, чтобы поддержать проект<br>
+                📝 После оплаты напишите @b_loody с чеком
+            </div>
+        </div>
 
     <!-- Ачивки -->
     <div class="tab-content" id="tab-achievements">
@@ -2646,7 +2695,7 @@
 
         // Стартовые цены по рангам
         const AUCTION_START_PRICES = {
-            'Q': 100
+            'Q': 350
         };
 
         // Глобальные переменные аукциона
@@ -6161,6 +6210,26 @@
             timerElement.innerHTML = `⏳ ${timeText}`;
         }
 
+        function initDonateButtons() {
+            const donateBtns = document.querySelectorAll('.donate-btn');
+            if (donateBtns.length === 0) return;
+            
+            donateBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const crystals = btn.dataset.crystals;
+                    const price = btn.dataset.price;
+                    
+                    // Ссылка на ваш кошелёк с предзаполненной суммой и комментарием
+                    const donateUrl = `https://yoomoney.ru/to/4100119003253255`;
+                    
+                    if (confirm(`💰 Пополнение ${crystals}💎 за ${price}₽\n\nПосле оплаты напишите @b_loody с чеком и вашим ID: ${getUserId()}\n\nПерейти к оплате?`)) {
+                        window.open(donateUrl, '_blank');
+                        showPromoStatus(`💰 После оплаты напишите @b_loody с чеком для получения ${crystals}💎`, "info");
+                    }
+                });
+            });
+        }
+
         async function init() {
             crystalDisplay = document.getElementById('crystalDisplay');
             oreDisplay = document.getElementById('oreDisplay');
@@ -6249,6 +6318,7 @@
                 });
             });
             
+
             setupFilters();
             updateDailyUI();
             updateMiningUI();
@@ -6274,6 +6344,7 @@
         }
         
         document.addEventListener('DOMContentLoaded', init);
+        initDonateButtons();
     </script>
 </body>
 </html>
