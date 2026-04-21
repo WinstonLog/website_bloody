@@ -3221,7 +3221,7 @@
             }
             
             try {
-                // ВЫЗЫВАЕМ ТОЛЬКО RPC ФУНКЦИЮ - ВСЁ ОСТАЛЬНОЕ ДЕЛАЕТ ОНА!
+                // ВЫЗЫВАЕМ RPC ФУНКЦИЮ
                 const { data, error } = await supabaseClient.rpc('place_auction_bid_safe', {
                     p_auction_id: currentAuction.id,
                     p_user_id: userId,
@@ -3239,6 +3239,9 @@
                 showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята!`, "success");
                 
                 if (inputEl) inputEl.value = '';
+                
+                // ПРИНУДИТЕЛЬНО ОБНОВЛЯЕМ ДАННЫЕ ПОСЛЕ СТАВКИ
+                await refreshUserResources();
                 
             } catch (error) {
                 console.error('Ошибка ставки:', error);
@@ -3265,6 +3268,7 @@
                 shards = data.shards;
                 ore = data.ore;
                 updateUI();
+                console.log('💰 Ресурсы обновлены:', { crystals, shards, ore });
             }
         }
 
