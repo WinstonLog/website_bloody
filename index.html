@@ -3599,6 +3599,11 @@
             renderAuctionUI();
             
             isFinishingAuction = false;
+
+            setTimeout(() => {
+                console.log('🔄 Автоматический запуск следующего аукциона...');
+                startNewAuction();
+            }, 1000);
         }
 
         function renderAuctionHistory() {
