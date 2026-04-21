@@ -3212,54 +3212,63 @@
             
             const userId = getUserId();
             
-            // СПИСЫВАЕМ КРИСТАЛЛЫ СРАЗУ (оптимистичное обновление)
-            crystals -= bidAmount;
-            updateUI();
+            // Блокируем кнопку на время обработки
+            const bidBtn = document.getElementById('auctionPlaceBidBtn');
+            const originalText = bidBtn?.innerHTML;
+            if (bidBtn) {
+                bidBtn.disabled = true;
+                bidBtn.innerHTML = '⏳ ОБРАБОТКА...';
+            }
             
             try {
-                // Сохраняем ОБНОВЛЁННЫЕ ресурсы в БД (с уже списанными кристаллами)
-                const { error: resourceError } = await supabaseClient
-                    .from('user_resources')
-                    .upsert({
-                        user_id: userId,
-                        crystals: crystals,  // ← уже списано!
-                        shards: shards,
-                        ore: ore,
-                        updated_at: new Date().toISOString()
-                    });
+                // ВЫЗЫВАЕМ БЕЗОПАСНУЮ RPC ФУНКЦИЮ
+                const { data, error } = await supabaseClient.rpc('place_auction_bid_safe', {
+                    p_auction_id: currentAuction.id,
+                    p_user_id: userId,
+                    p_user_nick: currentNickname || userId.slice(0, 12),
+                    p_bid_amount: bidAmount
+                });
                 
-                if (resourceError) {
-                    // Возвращаем кристаллы при ошибке
-                    crystals += bidAmount;
-                    updateUI();
-                    throw resourceError;
-                }
+                if (error) throw error;
                 
-                // ВСТАВЛЯЕМ СТАВКУ! ТРИГГЕР ПРОВЕРИТ БАЛАНС И ОБНОВИТ АУКЦИОН
-                const { error: bidError } = await supabaseClient
-                    .from('auction_bids')
-                    .insert({
-                        auction_id: currentAuction.id,
-                        user_id: userId,
-                        user_nick: currentNickname || userId.slice(0, 12),
-                        bid_amount: bidAmount,
-                        created_at: new Date().toISOString()
-                    });
-                
-                if (bidError) {
-                    // Если ошибка - возвращаем кристаллы
-                    crystals += bidAmount;
-                    updateUI();
-                    throw bidError;
+                if (data && data.success === false) {
+                    showPromoStatus(`❌ ${data.error || "Ошибка при ставке"}`, "error");
+                    return;
                 }
                 
                 showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята!`, "success");
                 
                 if (inputEl) inputEl.value = '';
                 
+                // Обновляем локальные данные (Realtime подписка сделает это автоматически)
+                // Но для надежности обновим UI
+                updateUI();
+                
             } catch (error) {
                 console.error('Ошибка ставки:', error);
                 showPromoStatus(`❌ ${error.message || "Ошибка при размещении ставки"}`, "error");
+            } finally {
+                if (bidBtn) {
+                    bidBtn.disabled = false;
+                    bidBtn.innerHTML = originalText;
+                }
+            }
+        }
+
+        // Функция для принудительного обновления ресурсов
+        async function refreshUserResources() {
+            const userId = getUserId();
+            const { data, error } = await supabaseClient
+                .from('user_resources')
+                .select('crystals, shards, ore')
+                .eq('user_id', userId)
+                .single();
+            
+            if (!error && data) {
+                crystals = data.crystals;
+                shards = data.shards;
+                ore = data.ore;
+                updateUI();
             }
         }
 
@@ -6210,7 +6219,7 @@
             updateUI();
             updateEventUI();
             renderDecks();
-            // initAuction();
+            initAuction();
 
             setInterval(() => {
                 updateFishingUI();
