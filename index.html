@@ -3301,48 +3301,76 @@
             const winningBid = currentAuction.current_bid;
             const startPrice = currentAuction.start_price;
             const card = currentAuction;
+            const currentUserId = getUserId();
             
-            const hasAnyBid = winnerId && winnerId !== 'null' && winningBid > startPrice;
+            const hasAnyBid = winnerId && winnerId !== 'null' && winnerId !== '' && winningBid > startPrice;
             
-            console.log(`🏁 Завершаем аукцион. Победитель: ${winnerNick}, ставка: ${winningBid}`);
+            console.log(`🏁 Завершаем аукцион. Победитель: ${winnerNick} (ID: ${winnerId}), ставка: ${winningBid}`);
+            console.log(`🏁 Текущий пользователь: ${currentUserId}`);
+            console.log(`🏁 Есть ставки: ${hasAnyBid}`);
             
-            if (hasAnyBid && winnerId === getUserId()) {
+            // ПОБЕДИТЕЛЬ - ТЕКУЩИЙ ПОЛЬЗОВАТЕЛЬ
+            if (hasAnyBid && winnerId === currentUserId) {
+                console.log(`🏆 ВЫ ПОБЕДИЛИ! Карта: ${card.card_name}`);
+                
                 const fullCard = getFullCardById(card.card_id);
                 if (fullCard) {
                     if (collectionMap.has(card.card_id)) {
+                        // Дубликат - даём кристаллы
                         crystals += DUPLICATE_REWARD_CRYSTALS;
-                        showPromoStatus(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎`, "success");
+                        showPromoStatus(`🔄 Дубликат! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.card_name}"`, "success");
+                        console.log(`🔄 Дубликат! +${DUPLICATE_REWARD_CRYSTALS}💎`);
                     } else {
+                        // Новая карта - добавляем в коллекцию
                         collectionMap.set(card.card_id, { cardData: fullCard, animated: false });
                         addExp(15);
                         checkAchievements();
                         checkAllDecks();
-                        showPromoStatus(`🏆 ВЫ ВЫИГРАЛИ АУКЦИОН! Карта "${card.card_name}" добавлена!`, "success");
+                        showPromoStatus(`🏆 ПОЗДРАВЛЯЕМ! Вы выиграли аукцион и получили карту "${card.card_name}"!`, "success");
+                        console.log(`✅ Новая карта добавлена: ${card.card_name}`);
                     }
                     updateUI();
+                    saveData();
+                } else {
+                    console.error(`❌ Карта не найдена в каталоге: ${card.card_id}`);
+                    showPromoStatus(`❌ Ошибка: карта "${card.card_name}" не найдена в каталоге`, "error");
                 }
-            } else if (hasAnyBid) {
+            } 
+            // ПОБЕДИТЕЛЬ - ДРУГОЙ ИГРОК
+            else if (hasAnyBid) {
                 showPromoStatus(`🏆 Аукцион завершён! Победитель: ${winnerNick} (${winningBid}💎)`, "success");
-            } else {
+                console.log(`🏆 Победитель другой игрок: ${winnerNick}`);
+            } 
+            // СТАВОК НЕ БЫЛО
+            else {
                 showPromoStatus(`😔 Аукцион без ставок! Карта "${card.card_name}" уходит...`, "info");
+                console.log(`😔 Аукцион без ставок`);
             }
             
-            // Сохраняем в историю
+            // Сохраняем в историю побед
             if (hasAnyBid) {
                 try {
-                    await supabaseClient.from('auction_history').insert({
-                        card_id: card.card_id,
-                        card_name: card.card_name,
-                        card_rank: card.card_rank,
-                        winner_id: winnerId,
-                        winner_nick: winnerNick,
-                        winning_bid: winningBid,
-                        ended_at: new Date().toISOString()
-                    });
+                    const { error: historyError } = await supabaseClient
+                        .from('auction_history')
+                        .insert({
+                            card_id: card.card_id,
+                            card_name: card.card_name,
+                            card_rank: card.card_rank,
+                            winner_id: winnerId,
+                            winner_nick: winnerNick,
+                            winning_bid: winningBid,
+                            ended_at: new Date().toISOString()
+                        });
+                    
+                    if (historyError) {
+                        console.error('Ошибка сохранения истории:', historyError);
+                    } else {
+                        console.log('✅ История сохранена');
+                    }
                 } catch(e) { console.error('Ошибка сохранения истории:', e); }
             }
             
-            // Обновляем статус на completed
+            // Обновляем статус аукциона на completed
             try {
                 await supabaseClient
                     .from('active_auction')
@@ -3351,18 +3379,19 @@
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', 1);
+                console.log('✅ Статус аукциона обновлён на completed');
             } catch(e) { console.error('Ошибка обновления статуса:', e); }
             
             // Очищаем текущий аукцион
             currentAuction = null;
             renderAuctionUI();
             
-            // Ждём 30 секунд перед следующим аукционом (для теста)
-            console.log('⏳ Следующий аукцион через 30 секунд...');
+            // Запускаем следующий аукцион через 30 минут
+            console.log('⏳ Следующий аукцион через 30 минут...');
             setTimeout(() => {
                 console.log('🔄 Запускаем следующий аукцион...');
                 startNewAuction();
-            }, 30 * 60 * 1000); // 30 секунд для теста
+            }, 30 * 60 * 1000);
         }
 
         function renderAuctionHistory() {
