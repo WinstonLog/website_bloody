@@ -3537,26 +3537,60 @@
             
             const alreadySaved = auctionHistoryList.some(h => h.card_name === card.card_name && h.bid === winningBid);
             
-            if (hasAnyBid && winnerId === currentUserId) {
-                console.log(`🏆 ВЫ ПОБЕДИЛИ! Карта: ${card.card_name}`);
-                
+            if (hasAnyBid && winnerId) {
                 const fullCard = getFullCardById(card.card_id);
+                
                 if (fullCard) {
-                    if (collectionMap.has(card.card_id)) {
-                        crystals += DUPLICATE_REWARD_CRYSTALS;
-                        showPromoStatus(`🔄 Дубликат! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.card_name}"`, "success");
-                    } else {
-                        collectionMap.set(card.card_id, { cardData: fullCard, animated: false });
-                        addExp(15);
-                        checkAchievements();
-                        checkAllDecks();
-                        showPromoStatus(`🏆 ПОЗДРАВЛЯЕМ! Вы выиграли аукцион и получили карту "${card.card_name}"!`, "success");
+                    // ★★★ СОХРАНЯЕМ КАРТУ НАПРЯМУЮ В БД ★★★
+                    try {
+                        const { data: existingCard } = await supabaseClient
+                            .from('user_collections')
+                            .select('card_id')
+                            .eq('user_id', winnerId)
+                            .eq('card_id', card.card_id)
+                            .maybeSingle();
+                        
+                        if (existingCard) {
+                            // Дубликат - выдаём кристаллы
+                            await supabaseClient.rpc('increment_crystals', {
+                                p_user_id: winnerId,
+                                p_amount: DUPLICATE_REWARD_CRYSTALS
+                            });
+                            console.log(`🔄 Дубликат! Победитель ${winnerNick} получил ${DUPLICATE_REWARD_CRYSTALS}💎`);
+                            
+                            if (winnerId === currentUserId) {
+                                crystals += DUPLICATE_REWARD_CRYSTALS;
+                                showPromoStatus(`🔄 Дубликат! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.card_name}"`, "success");
+                            }
+                        } else {
+                            // Новая карта - добавляем в коллекцию
+                            await supabaseClient
+                                .from('user_collections')
+                                .insert({
+                                    user_id: winnerId,
+                                    card_id: card.card_id,
+                                    animated: false
+                                });
+                            
+                            console.log(`✨ Новая карта! Победитель ${winnerNick} получил карту "${card.card_name}"`);
+                            
+                            if (winnerId === currentUserId) {
+                                collectionMap.set(card.card_id, { cardData: fullCard, animated: false });
+                                addExp(15);
+                                checkAchievements();
+                                checkAllDecks();
+                                showPromoStatus(`🏆 ПОЗДРАВЛЯЕМ! Вы выиграли аукцион и получили карту "${card.card_name}"!`, "success");
+                            }
+                        }
+                        
+                        updateUI();
+                        saveData();
+                        
+                    } catch (error) {
+                        console.error('❌ Ошибка при сохранении карты победителю:', error);
                     }
-                    updateUI();
-                    saveData();
                 } else {
                     console.error(`❌ Карта не найдена в каталоге: ${card.card_id}`);
-                    showPromoStatus(`❌ Ошибка: карта "${card.card_name}" не найдена в каталоге`, "error");
                 }
             } else if (hasAnyBid) {
                 showPromoStatus(`🏆 Аукцион завершён! Победитель: ${winnerNick} (${winningBid}💎)`, "success");
@@ -3592,7 +3626,7 @@
                 } catch(e) { console.error('Ошибка сохранения истории:', e); }
             }
             
-            // ВЫЧИСЛЯЕМ ВРЕМЯ СЛЕДУЮЩЕГО АУКЦИОНА (через 30 минут)
+            // ★★★ ВЫЧИСЛЯЕМ ВРЕМЯ СЛЕДУЮЩЕГО АУКЦИОНА (через 30 секунд) ★★★
             const nextAuctionTime = new Date();
             nextAuctionTime.setSeconds(nextAuctionTime.getSeconds() + 30);
             
@@ -3614,8 +3648,9 @@
             
             isFinishingAuction = false;
 
+            // Запускаем следующий аукцион через 1 секунду (startNewAuction сам обработает next_auction_time)
             setTimeout(() => {
-                console.log('🔄 Автоматический запуск следующего аукциона...');
+                console.log('🔄 Запуск следующего аукциона...');
                 startNewAuction();
             }, 1000);
         }
