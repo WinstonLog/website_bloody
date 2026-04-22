@@ -3391,14 +3391,6 @@
                 return;
             }
             
-            const userId = getUserId();
-            
-            // ❗ НОВАЯ ПРОВЕРКА: нельзя перебивать свою ставку
-            if (currentAuction.current_winner === userId) {
-                showPromoStatus("❌ Вы уже лидируете! Нельзя повышать свою ставку", "error");
-                return;
-            }
-            
             const inputEl = document.getElementById('auctionBidInput');
             let bidAmount = parseInt(inputEl?.value);
             if (isNaN(bidAmount) || bidAmount <= 0) {
@@ -3417,6 +3409,7 @@
                 return;
             }
             
+            const userId = getUserId();
             const userNick = currentNickname || userId.slice(0, 12);
             const oldWinnerId = currentAuction.current_winner;
             const oldBid = currentAuction.current_bid;
@@ -3430,22 +3423,19 @@
             }
             
             try {
-                // 1. Возвращаем ставку предыдущему лидеру (если есть и это не тот же игрок)
+                // 1. Возвращаем ставку предыдущему лидеру (если есть)
                 if (oldWinnerId && oldWinnerId !== userId) {
-                    const { error: refundError } = await supabaseClient.rpc('increment_crystals', {
+                    await supabaseClient.rpc('increment_crystals', {
                         p_user_id: oldWinnerId,
                         p_amount: oldBid
                     });
-                    if (refundError) console.error('Ошибка возврата:', refundError);
                 }
                 
                 // 2. Списываем кристаллы у нового ставщика
-                const { error: debitError } = await supabaseClient.rpc('decrement_crystals', {
+                await supabaseClient.rpc('decrement_crystals', {
                     p_user_id: userId,
                     p_amount: bidAmount
                 });
-                
-                if (debitError) throw debitError;
                 
                 // 3. Обновляем аукцион
                 const { error: updateError } = await supabaseClient
@@ -3477,7 +3467,6 @@
                 }
             }
         }
-
 
         // Функция для принудительного обновления ресурсов
         async function refreshUserResources() {
