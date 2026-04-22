@@ -3393,17 +3393,12 @@
             
             const inputEl = document.getElementById('auctionBidInput');
             let bidAmount = parseInt(inputEl?.value);
-            
-            // Получаем минимальную ставку
-            const minBid = getMinNextBid(currentAuction.current_bid);
-            
-            // ★★★ ЕСЛИ ПОЛЕ ПУСТОЕ ИЛИ НЕКОРРЕКТНОЕ, ИСПОЛЬЗУЕМ МИНИМАЛЬНУЮ СТАВКУ ★★★
             if (isNaN(bidAmount) || bidAmount <= 0) {
-                bidAmount = minBid;
-                if (inputEl) inputEl.value = minBid;
-                showPromoStatus(`💡 Автоматически установлена минимальная ставка: ${minBid}💎`, "info");
+                showPromoStatus("❌ Введите корректную сумму ставки!", "error");
+                return;
             }
             
+            const minBid = getMinNextBid(currentAuction.current_bid);
             if (bidAmount < minBid) {
                 showPromoStatus(`❌ Ставка должна быть не менее ${minBid}💎!`, "error");
                 return;
@@ -3417,7 +3412,7 @@
             const userId = getUserId();
             const currentWinnerId = currentAuction.current_winner;
             
-            // Запрещаем перебивать свою же ставку
+            // ★★★ ЗАПРЕЩАЕМ ПЕРЕБИВАТЬ СВОЮ ЖЕ СТАВКУ ★★★
             if (currentWinnerId === userId) {
                 showPromoStatus("❌ Вы не можете перебить свою собственную ставку!", "error");
                 return;
