@@ -9,6 +9,33 @@ const ALL_CARDS = [
     
     // Геншенский удар
 
+    // P
+
+    { id: "GPalbedo01", name: "Альбедо", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/albedo01.png", canUpgrade: false, animImage: null },
+    { id: "GParlekino01", name: "Арлекино", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/arlekino01.png", canUpgrade: false, animImage: null },
+    { id: "GPayto01", name: "Аято", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/ayto01.png", canUpgrade: false, animImage: null },
+    { id: "GPchujun01", name: "Чжун Ли", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/chujun01.png", canUpgrade: true, animImage: "images/Геншинский удар/P/anim/chujun01.gif" },
+    { id: "GPdainsleif01", name: "Дайслейф", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/dainsleif01.png", canUpgrade: false, animImage: null },
+    { id: "GPdaliya01", name: "Далия", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/daliya01.png", canUpgrade: false, animImage: null },
+    { id: "GPflins01", name: "Флинс", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/flins01.png", canUpgrade: false, animImage: null },
+    { id: "GPfremine01", name: "Фремине", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/fremine01.png", canUpgrade: true, animImage: "images/Геншинский удар/P/anim/fremine01.gif" },
+    { id: "GPfurina01", name: "Фурина", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/furina01.png", canUpgrade: false, animImage: null },
+    { id: "GPfurina02", name: "Фурина|Ху Тао", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/furina02.png", canUpgrade: false, animImage: null },
+    { id: "GPjinn01", name: "Джинн", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/jinn01.png", canUpgrade: false, animImage: null },
+    { id: "GPkeia01", name: "Кэйа", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/keia01.png", canUpgrade: false, animImage: null },
+    { id: "GPkinich01", name: "Кинич", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/kinich01.png", canUpgrade: false, animImage: null },
+    { id: "GPklorinda01", name: "Клоринда", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/klorinda01.png", canUpgrade: false, animImage: null },
+    { id: "GPkokomi01", name: "Кокоми", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/kokomi01.png", canUpgrade: false, animImage: null },
+    { id: "GPlaila01", name: "Лайла", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/laila01.png", canUpgrade: false, animImage: null },
+    { id: "GPmualani01", name: "Муалани", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/mualani01.png", canUpgrade: false, animImage: null },
+    { id: "GPnevillet01", name: "Нёвиллет", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/nevillet01.png", canUpgrade: false, animImage: null },
+    { id: "GPnevillet02", name: "Нёвиллет", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/nevillet02.png", canUpgrade: false, animImage: null },
+    { id: "GPshefrez01", name: "Шеврёз", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/shefrez01.png", canUpgrade: false, animImage: null },
+    { id: "GPsheny01", name: "Шэнь Хэ|Гань Юй", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/sheny01.png", canUpgrade: false, animImage: null },
+    { id: "GPsincu01", name: "Син Цю", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/sincu01.png", canUpgrade: false, animImage: null },
+    { id: "GPstrannik01", name: "Странник", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/strannik01.png", canUpgrade: false, animImage: null },
+    { id: "GPtartaliy01", name: "Тарталья", emoji: "🍊", rank: "P", set: "Геншинский удар", rankLabel: "P", color: "#005db6", rankOrder: 5, image: "images/Геншинский удар/P/tartaliy01.png", canUpgrade: false, animImage: null },
+
     // G
 
     { id: "GGaly01", name: "Аль-Хайтам", emoji: "🍊", rank: "G", set: "Геншинский удар", rankLabel: "G", color: "#093", rankOrder: 6, image: "images/Геншинский удар/G/aly01.png", canUpgrade: false, animImage: null },
