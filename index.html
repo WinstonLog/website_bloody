@@ -3410,6 +3410,14 @@
             }
             
             const userId = getUserId();
+            const currentWinnerId = currentAuction.current_winner;
+            
+            // ★★★ ЗАПРЕЩАЕМ ПЕРЕБИВАТЬ СВОЮ ЖЕ СТАВКУ ★★★
+            if (currentWinnerId === userId) {
+                showPromoStatus("❌ Вы не можете перебить свою собственную ставку!", "error");
+                return;
+            }
+            
             const userNick = currentNickname || userId.slice(0, 12);
             const oldWinnerId = currentAuction.current_winner;
             const oldBid = currentAuction.current_bid;
@@ -3450,11 +3458,17 @@
                 
                 if (updateError) throw updateError;
                 
+                // Обновляем локальные данные
+                currentAuction.current_bid = bidAmount;
+                currentAuction.current_winner = userId;
+                currentAuction.current_winner_nick = userNick;
+                
                 showPromoStatus(`✅ Ваша ставка ${bidAmount}💎 принята!`, "success");
                 
                 if (inputEl) inputEl.value = '';
                 
-                // Обновляем локальные данные
+                // Обновляем UI и ресурсы
+                renderAuctionUI();
                 await refreshUserResources();
                 
             } catch (error) {
