@@ -3150,7 +3150,6 @@
             startAuctionTimer();
         }
 
-        // Отрисовать интерфейс аукциона
         function renderAuctionUI() {
             const currentBlock = document.getElementById('auctionCurrentBlock');
             const noActiveBlock = document.getElementById('auctionNoActiveBlock');
@@ -3162,15 +3161,10 @@
             const leaderSpan = document.getElementById('auctionLeader');
             const startPriceSpan = document.getElementById('auctionStartPrice');
             
-            // Если есть активный аукцион
             if (currentAuction && currentAuction.status === 'active') {
                 if (currentBlock) currentBlock.style.display = 'block';
-                if (noActiveBlock) {
-                    // Очищаем блок "нет аукциона" от лишних сообщений
-                    noActiveBlock.style.display = 'none';
-                }
+                if (noActiveBlock) noActiveBlock.style.display = 'none';
                 
-                // Заполняем данные
                 if (cardImage) {
                     cardImage.src = currentAuction.card_image || getDefaultImageForRank({ rank: currentAuction.card_rank });
                     cardImage.onerror = () => { cardImage.src = getDefaultImageForRank({ rank: currentAuction.card_rank }); };
@@ -3185,41 +3179,11 @@
                 if (leaderSpan) leaderSpan.innerText = currentAuction.current_winner_nick || 'никто';
                 if (startPriceSpan) startPriceSpan.innerText = `${currentAuction.start_price} 💎`;
                 
-                // Обновляем подсказку минимальной ставки
                 updateMinBidHintUI();
                 return;
             }
             
-            // Если нет активного аукциона, проверяем наличие запланированного времени
-            if (currentAuction && currentAuction.next_auction_time) {
-                const nextTime = parseDBDate(currentAuction.next_auction_time);
-                const now = new Date();
-                
-                if (nextTime.getTime() > now.getTime()) {
-                    // Показываем сообщение о запланированном аукционе
-                    if (currentBlock) currentBlock.style.display = 'none';
-                    if (noActiveBlock) {
-                        const diffMs = nextTime - now;
-                        const minutes = Math.floor(diffMs / 60000);
-                        const seconds = Math.floor((diffMs % 60000) / 1000);
-                        
-                        noActiveBlock.innerHTML = `
-                            <div class="auction-waiting">
-                                <div class="auction-waiting-text">⏳ СЛЕДУЮЩИЙ АУКЦИОН ЗАПЛАНИРОВАН</div>
-                                <div class="auction-waiting-timer" id="auctionWaitTimer">${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}</div>
-                                <div class="auction-waiting-sub">Аукцион начнётся автоматически</div>
-                            </div>
-                        `;
-                        noActiveBlock.style.display = 'block';
-                        
-                        // Запускаем таймер обратного отсчёта для ожидания
-                        startWaitingTimer(nextTime);
-                    }
-                    return;
-                }
-            }
-            
-            // Если нет ни активного аукциона, ни запланированного времени
+            // Если нет активного аукциона - показываем стандартное сообщение
             if (currentBlock) currentBlock.style.display = 'none';
             if (noActiveBlock) {
                 noActiveBlock.innerHTML = `
