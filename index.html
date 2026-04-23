@@ -3541,9 +3541,7 @@
                 const fullCard = getFullCardById(card.card_id);
                 
                 if (fullCard) {
-                    // ★★★ СОХРАНЯЕМ КАРТУ НАПРЯМУЮ В БД ДЛЯ ПОБЕДИТЕЛЯ ★★★
                     try {
-                        // Проверяем, есть ли уже такая карта у победителя
                         const { data: existingCard } = await supabaseClient
                             .from('user_collections')
                             .select('card_id')
@@ -3552,14 +3550,12 @@
                             .maybeSingle();
                         
                         if (existingCard) {
-                            // Дубликат - выдаём кристаллы
                             await supabaseClient.rpc('increment_crystals', {
                                 p_user_id: winnerId,
                                 p_amount: DUPLICATE_REWARD_CRYSTALS
                             });
                             console.log(`🔄 Дубликат! Победитель ${winnerNick} получил ${DUPLICATE_REWARD_CRYSTALS}💎`);
                         } else {
-                            // Новая карта - добавляем в коллекцию
                             await supabaseClient
                                 .from('user_collections')
                                 .insert({
@@ -3573,7 +3569,6 @@
                         console.error('❌ Ошибка при сохранении карты победителю:', error);
                     }
                     
-                    // Для текущего пользователя обновляем локально
                     if (winnerId === currentUserId) {
                         if (collectionMap.has(card.card_id)) {
                             crystals += DUPLICATE_REWARD_CRYSTALS;
@@ -3623,7 +3618,7 @@
                 } catch(e) { console.error('Ошибка сохранения истории:', e); }
             }
             
-            // ★★★ ОСТАВЛЯЕМ ОРИГИНАЛЬНУЮ ЛОГИКУ БЕЗ ИЗМЕНЕНИЙ ★★★
+            // ★★★ ВЫЧИСЛЯЕМ ВРЕМЯ СЛЕДУЮЩЕГО АУКЦИОНА (через 30 секунд) ★★★
             const nextAuctionTime = new Date();
             nextAuctionTime.setSeconds(nextAuctionTime.getSeconds() + 30);
             
@@ -3643,12 +3638,6 @@
             renderAuctionUI();
             
             isFinishingAuction = false;
-
-            // Оригинальный запуск следующего аукциона
-            setTimeout(() => {
-                console.log('🔄 Автоматический запуск следующего аукциона...');
-                startNewAuction();
-            }, 1000);
         }
 
         function renderAuctionHistory() {
