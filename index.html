@@ -3531,12 +3531,14 @@
             const card = currentAuction;
             const currentUserId = getUserId();
             
+            // Есть ли вообще хоть одна ставка (не стартовая цена)
             const hasAnyBid = winnerId && winnerId !== 'null' && winnerId !== '' && winningBid > startPrice;
             
-            console.log(`🏁 Завершаем аукцион. Победитель: ${winnerNick} (ID: ${winnerId}), ставка: ${winningBid}`);
+            console.log(`🏁 Завершаем аукцион. Победитель: ${winnerNick} (ID: ${winnerId}), ставка: ${winningBid}, были ставки: ${hasAnyBid}`);
             
             const alreadySaved = auctionHistoryList.some(h => h.card_name === card.card_name && h.bid === winningBid);
             
+            // ★★★ ТОЛЬКО ЕСЛИ БЫЛИ СТАВКИ ★★★
             if (hasAnyBid && winnerId) {
                 const fullCard = getFullCardById(card.card_id);
                 
@@ -3569,6 +3571,7 @@
                         console.error('❌ Ошибка при сохранении карты победителю:', error);
                     }
                     
+                    // Для текущего пользователя обновляем локально
                     if (winnerId === currentUserId) {
                         if (collectionMap.has(card.card_id)) {
                             crystals += DUPLICATE_REWARD_CRYSTALS;
@@ -3584,41 +3587,43 @@
                         saveData();
                     }
                 }
-            } else if (hasAnyBid) {
+                
+                // Сохраняем в историю только если были ставки
+                if (!alreadySaved) {
+                    try {
+                        const { error: historyError } = await supabaseClient
+                            .from('auction_history')
+                            .insert({
+                                card_id: card.card_id,
+                                card_name: card.card_name,
+                                card_rank: card.card_rank,
+                                winner_id: winnerId,
+                                winner_nick: winnerNick,
+                                winning_bid: winningBid,
+                                ended_at: new Date().toISOString()
+                            });
+                        
+                        if (!historyError) {
+                            auctionHistoryList.unshift({
+                                card_name: card.card_name,
+                                card_rank: card.card_rank,
+                                winner: winnerNick,
+                                bid: winningBid,
+                                time: new Date().toLocaleTimeString()
+                            });
+                            if (auctionHistoryList.length > 10) auctionHistoryList.pop();
+                            renderAuctionHistory();
+                        }
+                    } catch(e) { console.error('Ошибка сохранения истории:', e); }
+                }
+                
                 showPromoStatus(`🏆 Аукцион завершён! Победитель: ${winnerNick} (${winningBid}💎)`, "success");
             } else {
+                // ★★★ СТАВОК НЕ БЫЛО - просто выводим сообщение ★★★
                 showPromoStatus(`😔 Аукцион без ставок! Карта "${card.card_name}" уходит...`, "info");
             }
             
-            if (hasAnyBid && !alreadySaved) {
-                try {
-                    const { error: historyError } = await supabaseClient
-                        .from('auction_history')
-                        .insert({
-                            card_id: card.card_id,
-                            card_name: card.card_name,
-                            card_rank: card.card_rank,
-                            winner_id: winnerId,
-                            winner_nick: winnerNick,
-                            winning_bid: winningBid,
-                            ended_at: new Date().toISOString()
-                        });
-                    
-                    if (!historyError) {
-                        auctionHistoryList.unshift({
-                            card_name: card.card_name,
-                            card_rank: card.card_rank,
-                            winner: winnerNick,
-                            bid: winningBid,
-                            time: new Date().toLocaleTimeString()
-                        });
-                        if (auctionHistoryList.length > 10) auctionHistoryList.pop();
-                        renderAuctionHistory();
-                    }
-                } catch(e) { console.error('Ошибка сохранения истории:', e); }
-            }
-            
-            // ★★★ ВЫЧИСЛЯЕМ ВРЕМЯ СЛЕДУЮЩЕГО АУКЦИОНА (через 30 секунд) ★★★
+            // ★★★ ВСЕГДА УСТАНАВЛИВАЕМ СЛЕДУЮЩИЙ АУКЦИОН, ДАЖЕ ЕСЛИ СТАВОК НЕ БЫЛО ★★★
             const nextAuctionTime = new Date();
             nextAuctionTime.setSeconds(nextAuctionTime.getSeconds() + 30);
             
@@ -3638,6 +3643,8 @@
             renderAuctionUI();
             
             isFinishingAuction = false;
+            
+            // ★★★ НЕ ВЫЗЫВАЕМ startNewAuction() - renderAuctionUI() сам запустит таймер ожидания ★★★
         }
 
         function renderAuctionHistory() {
