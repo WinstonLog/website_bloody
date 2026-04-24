@@ -2998,28 +2998,27 @@
                 const nextAuctionTime = existingAuction?.next_auction_time ? parseDBDate(existingAuction.next_auction_time) : null;
                 const now = new Date();
                 
+                // Если есть запланированное время в будущем - ждём его
                 if (nextAuctionTime && nextAuctionTime.getTime() > now.getTime()) {
                     const waitMs = nextAuctionTime.getTime() - now.getTime();
                     console.log(`⏳ Следующий аукцион запланирован на ${nextAuctionTime.toISOString()}, ждём ${Math.round(waitMs / 1000)} секунд`);
                     
-                    // ✅ Устанавливаем currentAuction для отображения режима ожидания
                     currentAuction = {
                         status: 'waiting',
                         next_auction_time: nextAuctionTime.toISOString()
                     };
                     
-                    // Устанавливаем таймер на запланированное время
-                    setTimeout(() => {
-                        console.log('🔄 Запускаем запланированный аукцион');
-                        startNewAuction();
-                    }, waitMs);
-                    
-                    // Показываем сообщение пользователю с таймером
-                    renderAuctionUI();
-                    
-                    // Запускаем таймер обратного отсчёта
+                    // Запускаем таймер ожидания
                     startWaitingTimer(nextAuctionTime);
                     
+                    // Запускаем аукцион в запланированное время
+                    setTimeout(() => {
+                        console.log('🔄 Запускаем запланированный аукцион');
+                        auctionInitialized = false;
+                        startNewAuction(); // Рекурсивный вызов после ожидания
+                    }, waitMs);
+                    
+                    renderAuctionUI();
                     auctionInitialized = false;
                     return;
                 }
@@ -3593,9 +3592,11 @@
                 } catch(e) { console.error('Ошибка сохранения истории:', e); }
             }
             
-            // ВЫЧИСЛЯЕМ ВРЕМЯ СЛЕДУЮЩЕГО АУКЦИОНА (через 30 минут)
+            // ✅ ВАЖНО: ВСЕГДА планируем следующий аукцион через 30 секунд
             const nextAuctionTime = new Date();
             nextAuctionTime.setSeconds(nextAuctionTime.getSeconds() + 30);
+            
+            console.log(`🕐 Планируем следующий аукцион на: ${nextAuctionTime.toISOString()}`);
             
             // Обновляем статус аукциона и сохраняем время следующего
             try {
@@ -3607,18 +3608,21 @@
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', 1);
-                console.log(`✅ Аукцион завершён. Следующий аукцион через 30 секунд в: ${nextAuctionTime.toISOString()}`);
-            } catch(e) { console.error('Ошибка обновления статуса:', e); }
+                console.log(`✅ Аукцион завершён. Следующий аукцион через 30 секунд`);
+            } catch(e) { 
+                console.error('Ошибка обновления статуса:', e); 
+            }
             
             currentAuction = null;
             renderAuctionUI();
             
             isFinishingAuction = false;
-        
+
+            // ✅ Запускаем следующий аукцион через 30 секунд (не сразу)
             setTimeout(() => {
                 console.log('🔄 Автоматический запуск следующего аукциона...');
                 startNewAuction();
-            }, 1000);
+            }, 30000);  // Ждём 30 секунд перед запуском
         }
 
         function renderAuctionHistory() {
