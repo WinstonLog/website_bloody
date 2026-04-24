@@ -4641,7 +4641,6 @@
             if (collectionMap.has(card.id)) {
                 crystals += DUPLICATE_REWARD_CRYSTALS;
                 showPromoStatus(`🔄 Дубликат ивент-карты! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за "${card.name}"`, "success");
-                syncToCloud();
             } else {
                 const fullCard = getFullCardById(card.id);
                 if (fullCard) {
@@ -4650,7 +4649,6 @@
                     checkAchievements();
                     checkAllDecks();
                     showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
-                    syncToCloud();
                 } else {
                     const newCard = { ...card };
                     ALL_CARDS.push(newCard);
@@ -4660,14 +4658,13 @@
                     checkAchievements();
                     checkAllDecks();
                     showPromoStatus(`✨ Новая ивент-карта! "${card.name}" добавлена в коллекцию ✨`, "success");
-                    syncToCloud();
                 }
             }
             currentEventOfferedCards = [];
             selectedEventCardIndex = null;
             const eventSelectionArea = document.getElementById('eventSelectionArea');
             if (eventSelectionArea) eventSelectionArea.style.display = 'none';
-            updateUI();
+            updateUI(); // updateUI() вызывает saveData(), который вызывает syncToCloud()
         }
         
         function isDoubleOreEventActive() {
@@ -4801,9 +4798,21 @@
             return userId;
         }
         
+        let pendingSync = false;
+
         async function syncToCloud(force = false) {
             if (!supabaseInitialized) {
-                console.error('❌ Supabase не инициализирован');
+                console.log('⏳ Supabase ещё не готов, синхронизация отложена');
+                if (!pendingSync) {
+                    pendingSync = true;
+                    // Попробуем снова через 1 секунду
+                    setTimeout(async () => {
+                        pendingSync = false;
+                        if (supabaseInitialized) {
+                            await syncToCloud(true);
+                        }
+                    }, 1000);
+                }
                 return;
             }
             
@@ -4822,7 +4831,6 @@
             
             const userId = getUserId();
             console.log('🔄 Синхронизация для пользователя:', userId);
-            console.log('📊 Карт для синхронизации:', collectionMap.size);
             
             try {
                 const { error: resourceError } = await supabaseClient
@@ -5602,7 +5610,7 @@
                 if (collectionMap.has(card.id)) {
                     crystals += DUPLICATE_REWARD_CRYSTALS;
                     showPromoStatus(`🔄 Дубликат! Вы получили ${DUPLICATE_REWARD_CRYSTALS}💎 за карту "${card.name}"`, "success");
-                    syncToCloud();
+                    // Убираем лишний syncToCloud() - saveData() сделает это
                 } else {
                     const fullCard = getFullCardById(card.id);
                     if (fullCard) {
@@ -5611,12 +5619,13 @@
                         checkAchievements();
                         checkAllDecks();
                         showPromoStatus(`✨ Новая карта! "${card.name}" добавлена в коллекцию ✨`, "success");
-                        syncToCloud();
                     }
                 }
             }
-            currentOfferedCards = []; selectedCardIndex = null; selectionArea.style.display = 'none';
-            updateUI();
+            currentOfferedCards = [];
+            selectedCardIndex = null;
+            selectionArea.style.display = 'none';
+            updateUI(); // updateUI() вызывает saveData(), который вызывает syncToCloud()
         }
         
         async function buyPack() { 
@@ -6222,71 +6231,99 @@
         }
         
         async function syncInitialData() {
-            if (!supabaseInitialized) return;
-            const userId = getUserId();
-            const nickname = await loadUserNickname(userId);
-            if (nickname) { 
-                currentNickname = nickname; 
-                updateNicknameUI(); 
+            if (!supabaseInitialized) {
+                console.log('⏳ Supabase не инициализирован, ждём...');
+                // Ждём инициализации Supabase
+                let waitCount = 0;
+                while (!supabaseInitialized && waitCount < 50) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    waitCount++;
+                }
+                if (!supabaseInitialized) {
+                    console.error('❌ Supabase так и не инициализировался');
+                    return;
+                }
             }
             
-            const existingData = await loadFromCloud(userId);
+            const userId = getUserId();
+            console.log('🔄 Загрузка данных из облака для пользователя:', userId);
             
-            if (!existingData || !existingData.resources) { 
-                await syncToCloud(); 
-            } else {
-                const cloudCrystals = existingData.resources.crystals || 0;
-                const cloudShards = existingData.resources.shards || 0;
-                const cloudOre = existingData.resources.ore || 0;
+            try {
+                // Загружаем ресурсы
+                const { data: resources, error: resourcesError } = await supabaseClient
+                    .from('user_resources')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .maybeSingle();
                 
-                if (cloudCrystals > crystals) crystals = cloudCrystals;
-                if (cloudShards > shards) shards = cloudShards;
-                if (cloudOre > ore) ore = cloudOre;
+                if (resourcesError) {
+                    console.error('❌ Ошибка загрузки ресурсов:', resourcesError);
+                } else if (resources) {
+                    console.log('📦 Загружены ресурсы:', resources);
+                    crystals = resources.crystals ?? START_CRYSTALS;
+                    shards = resources.shards ?? 0;
+                    ore = resources.ore ?? 0;
+                } else {
+                    console.log('📭 Ресурсы не найдены в облаке, создаём...');
+                    // Создаём запись в облаке
+                    await supabaseClient
+                        .from('user_resources')
+                        .insert({
+                            user_id: userId,
+                            crystals: crystals,
+                            shards: shards,
+                            ore: ore,
+                            updated_at: new Date().toISOString()
+                        });
+                }
                 
-                let needUpdate = false;
+                // Загружаем коллекцию карт
+                const { data: collections, error: collectionsError } = await supabaseClient
+                    .from('user_collections')
+                    .select('*')
+                    .eq('user_id', userId);
                 
-                if (existingData.collections) {
-                    for (const item of existingData.collections) {
-                        if (!collectionMap.has(item.card_id)) {
+                if (collectionsError) {
+                    console.error('❌ Ошибка загрузки коллекции:', collectionsError);
+                } else if (collections && collections.length > 0) {
+                    console.log(`📦 Загружено ${collections.length} карт из облака`);
+                    
+                    // Очищаем локальную коллекцию, если она пустая или меньше облачной
+                    if (collectionMap.size === 0 || collections.length > collectionMap.size) {
+                        collectionMap.clear();
+                        for (const item of collections) {
                             const fullCard = getFullCardById(item.card_id);
                             if (fullCard) {
-                                collectionMap.set(item.card_id, { 
-                                    cardData: fullCard, 
-                                    animated: item.animated || false 
+                                collectionMap.set(item.card_id, {
+                                    cardData: fullCard,
+                                    animated: item.animated || false
                                 });
-                                needUpdate = true;
-                                console.log(`📥 Добавлена карта из облака: ${fullCard.name}`);
-                            }
-                        } else {
-                            const localCard = collectionMap.get(item.card_id);
-                            if (localCard.animated !== item.animated && item.animated === true) {
-                                localCard.animated = true;
-                                needUpdate = true;
                             }
                         }
+                        console.log(`✅ Загружено ${collectionMap.size} карт в коллекцию`);
                     }
                 }
                 
-                const collectionData = Array.from(collectionMap.entries()).map(([cardId, data]) => ({
-                    user_id: userId,
-                    card_id: cardId,
-                    animated: data.animated || false
-                }));
-                
-                if (collectionData.length > 0) {
-                    await supabaseClient
-                        .from('user_collections')
-                        .upsert(collectionData, { onConflict: 'user_id,card_id' });
+                // Загружаем никнейм
+                const nickname = await loadUserNickname(userId);
+                if (nickname) {
+                    currentNickname = nickname;
+                    updateNicknameUI();
                 }
                 
-                console.log(`📥 Синхронизировано: ${crystals}💎, ${shards}⚡, ${ore}⛏️, ${collectionMap.size} карт`);
-                
-                if (needUpdate) {
-                    showPromoStatus("🔄 Данные синхронизированы с облаком!", "success");
-                }
-                
+                // Обновляем UI после загрузки всех данных
                 updateUI();
+                updateMiningUI();
+                updateDailyUI();
+                updateFishingUI();
+                
+                console.log(`✅ Синхронизация завершена: ${crystals}💎, ${shards}⚡, ${ore}⛏️, ${collectionMap.size} карт`);
+                
+                // Сохраняем в localStorage
                 saveData();
+                
+            } catch (error) {
+                console.error('❌ Критическая ошибка синхронизации:', error);
             }
         }
         
@@ -6483,6 +6520,7 @@
         }
 
         async function init() {
+            // Получаем элементы DOM
             crystalDisplay = document.getElementById('crystalDisplay');
             oreDisplay = document.getElementById('oreDisplay');
             shardDisplay = document.getElementById('shardDisplay');
@@ -6509,58 +6547,108 @@
             modalRank = document.getElementById('modalRank');
             modalCloseBtn = document.getElementById('modalCloseBtn');
             
+            // Сначала загружаем локальные данные (для быстрого старта)
             loadData();
             
+            // Показываем индикатор загрузки в интерфейсе
+            if (crystalDisplay) crystalDisplay.innerText = '...';
+            if (oreDisplay) oreDisplay.innerText = '...';
+            if (shardDisplay) shardDisplay.innerText = '...';
+            
+            // Инициализируем Supabase
             const supabaseInited = initSupabase();
+            
             if (supabaseInited) {
+                // Ждём загрузки данных из облака
                 await syncInitialData();
-                await autoFixUserSync();
+                
+                // После загрузки данных подписываемся на обновления
                 subscribeToUserResources();
+                
+                // Обновляем счётчик посетителей
                 await updateVisitorCounter();
-                setInterval(async () => { const total = await getTotalVisitors(); document.getElementById('visitorCount').textContent = total; }, 30000);
+                setInterval(async () => {
+                    const total = await getTotalVisitors();
+                    const counterSpan = document.getElementById('visitorCount');
+                    if (counterSpan) counterSpan.textContent = total;
+                }, 30000);
+                
+                // Загружаем топ игроков
                 await loadTopPlayers();
                 updateInviteLink();
             } else {
+                console.warn('⚠️ Supabase не инициализирован, работаем в офлайн-режиме');
                 document.getElementById('visitorCount').textContent = '?';
                 document.getElementById('myUserId').innerText = 'офлайн';
+                // Всё равно показываем интерфейс с локальными данными
+                updateUI();
             }
             
+            // Загружаем данные рыбалки
             loadFishingData();
             
+            // Настройка обработчиков событий
             dailyBonusBtn.addEventListener('click', claimDaily);
             exchangeOreBtn.addEventListener('click', exchangeOreFunc);
             mineClickBtn.addEventListener('click', mine);
             openPackBtn.addEventListener('click', buyPack);
-            document.getElementById('eventPackBtn')?.addEventListener('click', buyEventPack);
+            
+            const eventPackBtn = document.getElementById('eventPackBtn');
+            if (eventPackBtn) eventPackBtn.addEventListener('click', buyEventPack);
+            
             confirmChoiceBtn.addEventListener('click', () => {
                 if (currentEventOfferedCards.length > 0) confirmEventChoice();
                 else confirmChoiceCard();
             });
-            document.getElementById('confirmEventChoiceBtn')?.addEventListener('click', confirmEventChoice);
+            
+            const confirmEventChoiceBtn = document.getElementById('confirmEventChoiceBtn');
+            if (confirmEventChoiceBtn) confirmEventChoiceBtn.addEventListener('click', confirmEventChoice);
+            
             modalCloseBtn.addEventListener('click', closeModal);
             modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
             activatePromoBtn.addEventListener('click', activatePromoCode);
             
-            document.getElementById('freeFishBtn')?.addEventListener('click', () => doFishing(true));
-            document.getElementById('paidFishBtn')?.addEventListener('click', () => doFishing(false));
-            document.getElementById('searchPlayerBtn')?.addEventListener('click', searchAndViewPlayer);
-            document.getElementById('closeViewingBtn')?.addEventListener('click', closeViewing);
-            document.getElementById('editNicknameBtn')?.addEventListener('click', showNicknameEditForm);
-            document.getElementById('saveNicknameBtn')?.addEventListener('click', setNickname);
-            document.getElementById('cancelNicknameBtn')?.addEventListener('click', cancelNicknameEdit);
-            document.getElementById('copyInviteLinkBtn')?.addEventListener('click', copyInviteLink);
-            document.getElementById('copyNicknameBtn')?.addEventListener('click', copyNickname);
-            document.getElementById('buyEventCurrencyBtn')?.addEventListener('click', buyDailyEventCurrency);
+            const freeFishBtn = document.getElementById('freeFishBtn');
+            const paidFishBtn = document.getElementById('paidFishBtn');
+            if (freeFishBtn) freeFishBtn.addEventListener('click', () => doFishing(true));
+            if (paidFishBtn) paidFishBtn.addEventListener('click', () => doFishing(false));
+            
+            const searchPlayerBtn = document.getElementById('searchPlayerBtn');
+            if (searchPlayerBtn) searchPlayerBtn.addEventListener('click', searchAndViewPlayer);
+            
+            const closeViewingBtn = document.getElementById('closeViewingBtn');
+            if (closeViewingBtn) closeViewingBtn.addEventListener('click', closeViewing);
+            
+            const editNicknameBtn = document.getElementById('editNicknameBtn');
+            if (editNicknameBtn) editNicknameBtn.addEventListener('click', showNicknameEditForm);
+            
+            const saveNicknameBtn = document.getElementById('saveNicknameBtn');
+            if (saveNicknameBtn) saveNicknameBtn.addEventListener('click', setNickname);
+            
+            const cancelNicknameBtn = document.getElementById('cancelNicknameBtn');
+            if (cancelNicknameBtn) cancelNicknameBtn.addEventListener('click', cancelNicknameEdit);
+            
+            const copyInviteLinkBtn = document.getElementById('copyInviteLinkBtn');
+            if (copyInviteLinkBtn) copyInviteLinkBtn.addEventListener('click', copyInviteLink);
+            
+            const copyNicknameBtn = document.getElementById('copyNicknameBtn');
+            if (copyNicknameBtn) copyNicknameBtn.addEventListener('click', copyNickname);
+            
+            const buyEventCurrencyBtn = document.getElementById('buyEventCurrencyBtn');
+            if (buyEventCurrencyBtn) buyEventCurrencyBtn.addEventListener('click', buyDailyEventCurrency);
             
             renderPromoChips();
             
+            // Настройка вкладок
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                     btn.classList.add('active');
                     const tabId = `tab-${btn.dataset.tab}`;
-                    document.getElementById(tabId).classList.add('active');
+                    const tabElement = document.getElementById(tabId);
+                    if (tabElement) tabElement.classList.add('active');
+                    
                     if (btn.dataset.tab === 'players') {
                         refreshTopPlayers();
                     }
@@ -6570,7 +6658,6 @@
                 });
             });
             
-
             setupFilters();
             updateDailyUI();
             updateMiningUI();
@@ -6578,11 +6665,12 @@
             updateEventUI();
             renderDecks();
             initAuction();
-
+            
+            // Таймеры для обновления UI
             setInterval(() => {
                 updateFishingUI();
                 const freeEl = document.getElementById('nextFreeAttempt');
-                if (freeEl && document.getElementById('tab-fishing').classList.contains('active')) {
+                if (freeEl && document.getElementById('tab-fishing')?.classList.contains('active')) {
                     freeEl.innerText = getNextFreeTimeString();
                 }
                 updateQuestTimer();
@@ -6591,10 +6679,13 @@
                 updateEventTimer();
             }, 1000);
             
-            document.getElementById('userIdDisplay').innerText = getUserId();
+            const userIdSpan = document.getElementById('userIdDisplay');
+            if (userIdSpan) userIdSpan.innerText = getUserId();
+            
             updateEventBanner();
-
             initDonateButtons();
+            
+            console.log('✅ Инициализация завершена');
         }
         
         document.addEventListener('DOMContentLoaded', init);
