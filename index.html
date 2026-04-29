@@ -2811,73 +2811,40 @@
                     (payload) => {
                         console.log('📡 Получено обновление аукциона:', payload);
                         const newData = payload.new;
-                        const oldData = payload.old;
                         
                         if (newData && newData.status === 'active') {
-                            const endTime = parseDBDate(newData.end_time);
+                            // Обновляем текущую ставку и лидера в UI
+                            const currentBidSpan = document.getElementById('auctionCurrentBid');
+                            const leaderSpan = document.getElementById('auctionLeader');
                             
-                            // Проверяем, изменилась ли карта (ID карты или время окончания)
-                            const cardChanged = oldData && (
-                                oldData.card_id !== newData.card_id ||
-                                oldData.end_time !== newData.end_time
-                            );
-                            
-                            const bidChanged = oldData && oldData.current_bid !== newData.current_bid;
-                            const leaderChanged = oldData && oldData.current_winner_nick !== newData.current_winner_nick;
-                            
-                            // Обновляем локальный аукцион
-                            currentAuction = {
-                                ...newData,
-                                end_time: endTime,
-                                isLocal: false
-                            };
-                            
-                            // Обновляем UI всегда
-                            renderAuctionUI();
-                            
-                            // Перезапускаем таймер ТОЛЬКО если изменилась карта или время
-                            if (cardChanged) {
-                                console.log('🔄 Карта аукциона изменилась, перезапускаем таймер');
-                                startAuctionTimer();
-                            } else if (bidChanged || leaderChanged) {
-                                // Только обновляем UI без перезапуска таймера
-                                console.log('💰 Обновлена ставка, таймер не перезапускаем');
-                                
-                                // Показываем уведомление о новой ставке
-                                if (bidChanged) {
-                                    const newBid = newData.current_bid;
-                                    const newLeader = newData.current_winner_nick || 'игрок';
-                                    const oldBid = oldData?.current_bid || 0;
-                                    
-                                    if (newBid > oldBid) {
-                                        showPromoStatus(`💰 Новая ставка! ${newLeader} поднял до ${newBid}💎`, "info");
-                                        
-                                        const currentBidSpan = document.getElementById('auctionCurrentBid');
-                                        if (currentBidSpan) {
-                                            currentBidSpan.style.animation = 'none';
-                                            currentBidSpan.offsetHeight;
-                                            currentBidSpan.style.animation = 'bidUpdate 0.3s ease';
-                                            setTimeout(() => {
-                                                if (currentBidSpan) currentBidSpan.style.animation = '';
-                                            }, 300);
-                                        }
-                                    }
-                                }
+                            if (currentBidSpan) {
+                                currentBidSpan.innerText = `${newData.current_bid} 💎`;
+                                // Анимация обновления ставки
+                                currentBidSpan.style.animation = 'none';
+                                currentBidSpan.offsetHeight;
+                                currentBidSpan.style.animation = 'bidUpdate 0.3s ease';
+                                setTimeout(() => {
+                                    if (currentBidSpan) currentBidSpan.style.animation = '';
+                                }, 300);
                             }
-                        } 
-                        else if (newData && newData.status === 'completed') {
-                            console.log('🏁 Аукцион завершён (по данным из БД)');
-                            if (auctionTimerInterval) {
-                                clearInterval(auctionTimerInterval);
-                                auctionTimerInterval = null;
+                            if (leaderSpan) {
+                                leaderSpan.innerText = newData.current_winner_nick || 'никто';
                             }
-                            currentAuction = null;
-                            renderAuctionUI();
+                            
+                            // Обновляем локальные данные
+                            if (currentAuction) {
+                                currentAuction.current_bid = newData.current_bid;
+                                currentAuction.current_winner = newData.current_winner;
+                                currentAuction.current_winner_nick = newData.current_winner_nick;
+                            }
+                            
+                            // Обновляем подсказку минимальной ставки
+                            updateMinBidHintUI();
                         }
                     }
                 )
                 .subscribe((status) => {
-                    console.log('📡 Статус подписки:', status);
+                    console.log('📡 Статус подписки аукциона:', status);
                 });
         }
 
@@ -3176,6 +3143,10 @@
             const leaderSpan = document.getElementById('auctionLeader');
             const startPriceSpan = document.getElementById('auctionStartPrice');
             
+            if (!auctionSubscription) {
+                subscribeToAuctionUpdates();
+            }
+
             // Если есть активный аукцион
             if (currentAuction && currentAuction.status === 'active') {
                 if (currentBlock) currentBlock.style.display = 'block';
@@ -3757,6 +3728,43 @@
         }
 
         let auctionInitStarted = false;
+        let auctionPollingInterval = null;
+
+        function startAuctionPolling() {
+            if (auctionPollingInterval) clearInterval(auctionPollingInterval);
+            
+            auctionPollingInterval = setInterval(async () => {
+                if (!currentAuction || currentAuction.status !== 'active') return;
+                if (auctionSubscription) return; // Если WebSocket работает, не опрашиваем
+                
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('active_auction')
+                        .select('current_bid, current_winner_nick')
+                        .eq('id', 1)
+                        .single();
+                    
+                    if (!error && data && data.current_bid !== currentAuction.current_bid) {
+                        currentAuction.current_bid = data.current_bid;
+                        currentAuction.current_winner_nick = data.current_winner_nick;
+                        
+                        const currentBidSpan = document.getElementById('auctionCurrentBid');
+                        const leaderSpan = document.getElementById('auctionLeader');
+                        
+                        if (currentBidSpan) {
+                            currentBidSpan.innerText = `${data.current_bid} 💎`;
+                            currentBidSpan.style.animation = 'bidUpdate 0.3s ease';
+                            setTimeout(() => {
+                                if (currentBidSpan) currentBidSpan.style.animation = '';
+                            }, 300);
+                        }
+                        if (leaderSpan) leaderSpan.innerText = data.current_winner_nick || 'никто';
+                        
+                        updateMinBidHintUI();
+                    }
+                } catch(e) {}
+            }, 5000);
+        }
 
         function initAuction() {
             if (auctionInitStarted) return;
@@ -3767,12 +3775,18 @@
                 placeBidBtn.addEventListener('click', placeAuctionBid);
             }
             
-            // Загружаем историю без блокировки, с увеличенным таймаутом
             setTimeout(() => {
                 loadAuctionHistory().catch(e => console.warn('История не загрузилась:', e));
             }, 500);
             
-            // Запускаем аукцион
+            // Включаем WebSocket подписку
+            setTimeout(() => {
+                subscribeToAuctionUpdates();
+            }, 1000);
+            
+            // Включаем polling как резерв
+            startAuctionPolling();
+            
             startNewAuction();
         }
         
@@ -5739,16 +5753,22 @@
             const entry = collectionMap.get(cardId); 
             if (!entry || !entry.cardData.canUpgrade || entry.animated) {
                 showPromoStatus(`❌ Эту карту нельзя улучшить или она уже улучшена`, "error");
+                console.log('Улучшение не удалось:', { 
+                    hasCard: !!entry, 
+                    canUpgrade: entry?.cardData?.canUpgrade, 
+                    isAnimated: entry?.animated 
+                });
                 return;
             }
             if (shards < 3) {
-                showPromoStatus(`❌ Недостаточно осколков! Нужно 3⚡`, "error");
+                showPromoStatus(`❌ Недостаточно осколков! Нужно 3⚡, у вас: ${shards}`, "error");
                 return;
             }
             shards -= 3; 
             entry.animated = true; 
             updateUI();
             showPromoStatus(`✨ Карта "${entry.cardData.name}" улучшена и теперь анимирована! ✨`, "success");
+            saveData(); // Важно: сохраняем изменения
         }
         
         function renderCollection() {
