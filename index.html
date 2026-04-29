@@ -2809,19 +2809,17 @@
                         filter: 'id=eq.1'
                     },
                     (payload) => {
-                        console.log('📡 Получено обновление аукциона:', payload);
+                        console.log('📡 Обновление ставки:', payload.new.current_bid);
                         const newData = payload.new;
                         
                         if (newData && newData.status === 'active') {
-                            // Обновляем текущую ставку и лидера в UI
+                            // Обновляем UI
                             const currentBidSpan = document.getElementById('auctionCurrentBid');
                             const leaderSpan = document.getElementById('auctionLeader');
                             
                             if (currentBidSpan) {
                                 currentBidSpan.innerText = `${newData.current_bid} 💎`;
-                                // Анимация обновления ставки
-                                currentBidSpan.style.animation = 'none';
-                                currentBidSpan.offsetHeight;
+                                // Анимация обновления
                                 currentBidSpan.style.animation = 'bidUpdate 0.3s ease';
                                 setTimeout(() => {
                                     if (currentBidSpan) currentBidSpan.style.animation = '';
@@ -2838,7 +2836,6 @@
                                 currentAuction.current_winner_nick = newData.current_winner_nick;
                             }
                             
-                            // Обновляем подсказку минимальной ставки
                             updateMinBidHintUI();
                         }
                     }
@@ -3741,7 +3738,6 @@
             
             auctionPollingInterval = setInterval(async () => {
                 if (!currentAuction || currentAuction.status !== 'active') return;
-                if (auctionSubscription) return; // Если WebSocket работает, не опрашиваем
                 
                 try {
                     const { data, error } = await supabaseClient
@@ -3751,6 +3747,8 @@
                         .single();
                     
                     if (!error && data && data.current_bid !== currentAuction.current_bid) {
+                        console.log('🔄 Polling: обновляем ставку', data.current_bid);
+                        
                         currentAuction.current_bid = data.current_bid;
                         currentAuction.current_winner_nick = data.current_winner_nick;
                         
@@ -3769,7 +3767,7 @@
                         updateMinBidHintUI();
                     }
                 } catch(e) {}
-            }, 5000);
+            }, 3000); // Опрашиваем каждые 3 секунды
         }
 
         function initAuction() {
