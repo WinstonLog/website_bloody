@@ -3093,19 +3093,25 @@
         }
 
         function startLocalAuction() {
-            const card = getRandomAuctionCard();
-            if (!card) return;
+            // Фиксированная карта для теста вместо случайной
+            const testCard = {
+                id: 'Qmiaybi01',
+                name: 'Мияби (ТЕСТ)',
+                rank: 'Q',
+                image: 'images/auctions/miaybi01.png',
+                set: 'Тестовый аукцион'
+            };
             
-            const startPrice = AUCTION_START_PRICES[card.rank] || 500;
+            const startPrice = AUCTION_START_PRICES['Q'] || 100;
             const endTime = getUTCDateInMinutes(30);
             
             currentAuction = {
                 id: 'local_' + Date.now(),
-                card_id: card.id,
-                card_name: card.name,
-                card_rank: card.rank,
-                card_image: card.image,
-                card_set: card.set || 'Обычная',
+                card_id: testCard.id,
+                card_name: testCard.name,
+                card_rank: testCard.rank,
+                card_image: testCard.image,
+                card_set: testCard.set,
                 start_price: startPrice,
                 current_bid: startPrice,
                 current_winner: null,
@@ -3115,7 +3121,7 @@
                 isLocal: true
             };
             
-            showAuctionNotification(card.name, card.rank, startPrice);
+            showAuctionNotification(testCard.name, testCard.rank, startPrice);
             renderAuctionUI();
             startAuctionTimer();
         }
